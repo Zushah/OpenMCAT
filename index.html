@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>OpenMCAT</title>
+        <meta name="description" content="Open-source and local-first MCAT practice and analytics powered by your AI model."/>
+        <link rel="preconnect" href="https://fonts.googleapis.com"/>
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+        <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200" rel="stylesheet"/>
+        <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg"/>
+        <link rel="stylesheet" href="./styles/tokens.css"/>
+        <link rel="stylesheet" href="./styles/base.css"/>
+        <link rel="stylesheet" href="./styles/layout.css"/>
+        <link rel="stylesheet" href="./styles/components.css"/>
+        <link rel="stylesheet" href="./styles/views.css"/>
+        <link rel="stylesheet" href="./styles/responsive.css"/>
+    </head>
+    <body>
+        <div class="app-background" aria-hidden="true"></div>
+        <div class="app-shell">
+            <a class="skip-link" href="#main-content">Skip to content</a>
+            <header class="top-nav">
+                <div class="brand-wrap">
+                    <img src="./assets/logo.svg" alt="" class="brand-logo" />
+                    <div>
+                        <p class="brand-name">OpenMCAT</p>
+                        <p class="brand-subtitle">AI-powered MCAT studying</p>
+                    </div>
+                </div>
+                <nav class="nav-links" aria-label="Primary">
+                    <a href="/" data-route="landing"><span class="material-symbols-outlined" aria-hidden="true">home</span>Home</a>
+                    <a href="/generate" data-route="generator"><span class="material-symbols-outlined" aria-hidden="true">rocket_launch</span>Practice</a>
+                    <a href="/dashboard" data-route="dashboard"><span class="material-symbols-outlined" aria-hidden="true">insights</span>Dashboard</a>
+                    <a href="/settings" data-route="settings"><span class="material-symbols-outlined" aria-hidden="true">tune</span>Settings</a>
+                    <a href="/about" data-route="about"><span class="material-symbols-outlined" aria-hidden="true">info</span>About</a>
+                    <a href="https://github.com/Zushah/OpenMCAT" target="_blank" rel="noreferrer noopener" class="nav-github"><span class="material-symbols-outlined" aria-hidden="true">code</span>GitHub</a>
+                </nav>
+            </header>
+            <main id="main-content" class="main-content" tabindex="-1"></main>
+            <footer class="site-footer">
+                <p>
+                OpenMCAT is an independent free-and-open-source study tool. It is not
+                affiliated with, endorsed by, or sponsored by the Association of American
+                Medical Colleges (AAMC). MCAT is a registered trademark of the AAMC.
+                OpenMCAT generates AI-powered practice for content drilling and reasoning
+                practice. It is not intended to be used as a substitute for official AAMC
+                practice materials and it does not predict MCAT scores.
+                </p>
+                <p class="footer-copyright">Copyright &copy; <a href="https://www.github.com/Zushah" target="_blank" rel="noreferrer noopener">Zushah</a> 2026. All rights reserved. Licensed under the <a href="(https://www.github.com/Zushah/OpenMCAT/blob/main/LICENSE.md" target="_blank" rel="noreferrer noopener">GPLv3</a></p>
+            </footer>
+        </div>
+        <div id="modal-root"></div>
+        <div id="toast-root" class="toast-root" aria-live="polite"></div>
+        <script src="https://cdn.jsdelivr.net/gh/Zushah/Chalkboard@3.0.2/dist/Chalkboard.min.js"></script>
+        <script type="module" src="./src/main.js"></script>
+    </body>
+</html>
