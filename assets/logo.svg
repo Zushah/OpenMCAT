@@ -1,0 +1,19 @@
+<!-- NOTE: This logo for OpenMCAT is a placeholder. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+    <title id="title">OpenMCAT</title>
+    <defs>
+        <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#2b312f"/>
+            <stop offset="100%" stop-color="#1e2322"/>
+        </linearGradient>
+        <linearGradient id="mint" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#8ff8bc"/>
+            <stop offset="100%" stop-color="#edfff8"/>
+        </linearGradient>
+    </defs>
+    <rect x="2.5" y="2.5" width="59" height="59" rx="19" fill="url(#glass)" stroke="#edfff838"/>
+    <circle cx="32" cy="32" r="16.5" fill="none" stroke="url(#mint)" stroke-width="4"/>
+    <path d="M29 24.8h6v14.4h-6z" fill="url(#mint)"/>
+    <circle cx="32" cy="44.2" r="2.2" fill="url(#mint)"/>
+    <path d="M17 20.5c2.8-4.2 7.7-6.9 13.2-6.9" fill="none" stroke="#edfff8" stroke-width="1.3" stroke-linecap="round" opacity="0.7"/>
+</svg>
