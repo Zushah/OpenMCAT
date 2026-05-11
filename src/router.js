@@ -25,5 +25,6 @@ export const getRouteFromHash = (hash) => {
 
 export const setHashForRoute = (route) => {
     const target = ROUTE_TO_HASH[route] ?? ROUTE_TO_HASH.generator;
-    if (location.pathname !== target) history.pushState({}, "", target);
+    const url = location.pathname.startsWith("/OpenMCAT") ? `/OpenMCAT${target === "/" ? "" : target}` : target;
+    if (location.pathname !== url) history.pushState({}, "", url);
 };
