@@ -42,4 +42,4 @@ OpenMCAT is an independent free-and-open-source study tool. It is not affiliated
 
 ## License
 
-OpenMCAT is available under the [GNU General Public License v3.0 (GPLv3)](https://www.github.com/Zushah/OpenMCAT/blob/main/LICENSE.md).
+OpenMCAT is available under the [GNU Affero General Public License v3.0 (AGPL-3.0)](https://www.github.com/Zushah/OpenMCAT/blob/main/LICENSE.md).
