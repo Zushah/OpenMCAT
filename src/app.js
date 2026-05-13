@@ -7,7 +7,7 @@ export const state = {
     settings: loadSettings(),
     currentConfig: structuredClone(DEFAULT_CONFIG),
     generation: {
-        status: "idle", // idle | compiling | waiting | manual | validating | ready | error
+        status: "idle", // idle | compiling | manual | validating | ready | error
         rawText: "",
         parsedSession: null,
         error: null,
@@ -15,7 +15,9 @@ export const state = {
         compiledPrompt: null,
         showRawResponse: false,
         configSnapshot: null,
-        providerMeta: null
+        providerMeta: null,
+        pipelineOpen: false,
+        manualInput: ""
     },
     activeSession: null,
     activeAttempt: null,
@@ -36,6 +38,8 @@ export const resetGenerationState = () => {
         compiledPrompt: null,
         showRawResponse: false,
         configSnapshot: null,
-        providerMeta: null
+        providerMeta: null,
+        pipelineOpen: false,
+        manualInput: ""
     };
 };

@@ -3,14 +3,14 @@ export const DEFAULT_CONFIG = {
     topicIds: ["bb_amino_acids_proteins"],
     skillIds: ["sirs_1", "sirs_2"],
     difficulty: "medium",
-    questionFormat: "mixed",
+    questionFormat: "discrete",
     questionCount: 5,
     timingMode: "untimed",
     secondsPerQuestion: null,
     reviewMode: "immediate",
     explanationDepth: "standard",
-    providerId: "mock",
-    model: "mock-mcat-v1",
+    providerId: "manual_json",
+    model: "any",
     batchSize: 5,
     promptStrictness: "strict"
 };
@@ -29,8 +29,8 @@ export const DEFAULT_SETTINGS = {
     theme: "system",
     reducedMotion: "system",
     provider: {
-        selectedProviderId: "mock",
-        selectedModel: "mock-mcat-v1"
+        selectedProviderId: "manual_json",
+        selectedModel: "any"
     }
 };
 
@@ -44,7 +44,7 @@ export const PROVIDER_OPTIONS = [
     {
         id: "manual_json",
         name: "Manual JSON paste",
-        description: "Copy prompt to any model and paste response JSON.",
+        description: "Copy prompt to any model and paste its response.",
         requiresApiKey: false
     }
 ];

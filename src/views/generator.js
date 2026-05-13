@@ -1,5 +1,5 @@
 import { DIFFICULTIES, QUESTION_FORMATS, SECTIONS, getSkillsForSection, getTopicsBySection } from "../data/taxonomy.js";
-import { PROVIDER_OPTIONS, REVIEW_MODES, TIMING_MODES } from "../data/defaults.js";
+import { REVIEW_MODES, TIMING_MODES } from "../data/defaults.js";
 
 const makeCardTitle = (text) => {
     const title = document.createElement("h2");
@@ -18,44 +18,6 @@ const makeHero = () => {
     "Generate targeted drills by section, topic, skill, and difficulty. Track accuracy, timing, and weak areas locally without paywalls.";
     hero.append(heading, sub);
     return hero;
-};
-
-const classifyJsonToken = (token) => {
-    if (/^[{}[\],:]$/.test(token)) return "punctuation";
-    if (/^"/.test(token) && /:$/.test(token)) return "key";
-    if (/^"/.test(token)) return "string";
-    if (/^(true|false)$/.test(token)) return "boolean";
-    if (/^null$/.test(token)) return "null";
-    return "number";
-};
-
-const createHighlightedCodeBlock = (rawText) => {
-    const block = document.createElement("div");
-    block.className = "raw-response-wrap";
-    const pre = document.createElement("pre");
-    pre.className = "codeblock";
-    const code = document.createElement("code");
-    code.className = "codeblock-code";
-    let displayText = rawText;
-    try { displayText = JSON.stringify(JSON.parse(rawText), null, 2); } catch { };
-    const tokenRegex = /"(?:\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(?=\s*:)?|"(?:\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"|true|false|null|-?\d+(?:\.\d+)?(?:[eE][+\-]?\d+)?|[{}\[\],:]/g;
-    let cursor = 0;
-    let match = tokenRegex.exec(displayText);
-    while (match) {
-        const token = match[0];
-        const start = match.index;
-        if (start > cursor) code.append(document.createTextNode(displayText.slice(cursor, start)));
-        const span = document.createElement("span");
-        span.className = `json-token ${classifyJsonToken(token)}`;
-        span.textContent = token;
-        code.append(span);
-        cursor = start + token.length;
-        match = tokenRegex.exec(displayText);
-    }
-    if (cursor < displayText.length) code.append(document.createTextNode(displayText.slice(cursor)));
-    pre.append(code);
-    block.append(pre);
-    return block;
 };
 
 const makeSectionSelect = (config, actions) => {
@@ -164,196 +126,74 @@ const makeFormatSelect = (config, actions) => {
     return wrap;
 };
 
-const makeProviderSelect = (config, settings, actions) => {
-    const wrap = document.createElement("div");
-    wrap.className = "field";
-    const label = document.createElement("label");
-    label.htmlFor = "provider-select";
-    label.textContent = "Provider";
-    const select = document.createElement("select");
-    select.id = "provider-select";
-    PROVIDER_OPTIONS.forEach((provider) => {
-        const option = document.createElement("option");
-        option.value = provider.id;
-        option.textContent = provider.name;
-        if (config.providerId === provider.id) option.selected = true;
-        select.append(option);
+const makeGenerationPipelineModal = (state, actions) => {
+    if (!state.generation.pipelineOpen || !state.generation.compiledPrompt) return null;
+    const overlay = document.createElement("section");
+    overlay.className = "generation-pipeline-overlay";
+    overlay.setAttribute("role", "presentation");
+    overlay.addEventListener("click", (event) => { if (event.target === overlay) actions.closeGenerationPipeline(); });
+    const panel = document.createElement("section");
+    panel.className = "card card-pad generation-pipeline-panel";
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-labelledby", "generation-pipeline-heading");
+    panel.addEventListener("click", (event) => event.stopPropagation());
+    const top = document.createElement("div");
+    top.className = "generation-pipeline-top";
+    const heading = document.createElement("h2");
+    heading.id = "generation-pipeline-heading";
+    heading.textContent = "Generation pipeline";
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "btn btn-ghost generation-pipeline-close";
+    close.setAttribute("aria-label", "Close generation pipeline");
+    close.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">close</span>';
+    close.addEventListener("click", () => actions.closeGenerationPipeline());
+    top.append(heading, close);
+    panel.append(top);
+    const instructions = document.createElement("p");
+    instructions.className = "generation-pipeline-instructions";
+    instructions.textContent = "Copy prompt -> Paste into an AI model chatbox of your choice -> Paste its output below:";
+    panel.append(instructions);
+    const controls = document.createElement("div");
+    controls.className = "generation-pipeline-row";
+    const copyButton = document.createElement("button");
+    copyButton.type = "button";
+    copyButton.className = "btn btn-secondary";
+    copyButton.textContent = "Copy prompt";
+    copyButton.addEventListener("click", async () => {
+        const text = `${state.generation.compiledPrompt.system}\n\n${state.generation.compiledPrompt.user}`;
+        try {
+            await navigator.clipboard.writeText(text);
+            copyButton.textContent = "Copied";
+            setTimeout(() => { copyButton.textContent = "Copy prompt"; }, 1200);
+        } catch { };
     });
-    select.addEventListener("change", () => {
-        const nextProviderId = select.value;
-        let nextModel = config.model;
-        if (nextProviderId === "mock") nextModel = "mock-mcat-v1"; else if (nextProviderId === "manual_json") nextModel = settings.provider.selectedModel || config.model;
-        actions.updateConfig({ providerId: nextProviderId, model: nextModel });
-    });
-    wrap.append(label, select);
-    return wrap;
-};
-
-const makeGenerationStatus = (state, actions) => {
-    const card = document.createElement("section");
-    card.className = "card card-pad";
-    card.append(makeCardTitle("Generation pipeline"));
-    const status = document.createElement("p");
-    status.className = "status";
-    status.setAttribute("role", "status");
-    status.setAttribute("aria-live", "polite");
-    const statusMap = {
-        idle: "Ready. Choose settings and generate a session.",
-        compiling: "Compiling constrained prompt.",
-        waiting: "Request sent. Waiting for provider response.",
-        manual: "Manual mode active. Paste model JSON below.",
-        validating: "Validating JSON and schema constraints.",
-        ready: "Session validated successfully.",
-        error: "Generation failed. Review error details."
-    };
-    status.textContent = statusMap[state.generation.status] ?? "Idle";
-    if (state.generation.status === "error") status.classList.add("error");
-    if (state.generation.status === "ready") status.classList.add("success");
-    card.append(status);
-    const hint = document.createElement("p");
-    hint.className = "tiny";
-    hint.textContent = "Flow: Compile prompt -> Generate output -> Validate JSON.";
-    card.append(hint);
+    const outputInput = document.createElement("textarea");
+    outputInput.className = "generation-pipeline-output";
+    outputInput.placeholder = "Paste output";
+    outputInput.rows = 6;
+    outputInput.value = state.generation.manualInput ?? "";
+    controls.append(copyButton, outputInput);
+    panel.append(controls);
+    const startRow = document.createElement("div");
+    startRow.className = "generation-pipeline-start-row";
+    const start = document.createElement("button");
+    start.type = "button";
+    start.className = "btn btn-primary";
+    start.textContent = "Start session";
+    start.disabled = state.generation.status === "validating";
+    start.addEventListener("click", () => actions.submitManualJson(outputInput.value));
+    startRow.append(start);
+    panel.append(startRow);
     if (state.generation.error) {
         const error = document.createElement("p");
-        error.className = "danger-note";
+        error.className = "danger-note generation-pipeline-error";
         error.textContent = state.generation.error;
-        card.append(error);
+        panel.append(error);
     }
-    if (state.generation.warnings?.length) {
-        const warningList = document.createElement("ul");
-        warningList.className = "help";
-        state.generation.warnings.forEach((warning) => {
-            const item = document.createElement("li");
-            item.textContent = `- ${warning}`;
-            warningList.append(item);
-        });
-        card.append(warningList);
-    }
-    const buttonRow = document.createElement("div");
-    buttonRow.className = "button-row";
-    if (state.generation.status === "ready") {
-        const startSession = document.createElement("button");
-        startSession.type = "button";
-        startSession.className = "btn btn-primary";
-        startSession.textContent = "Start session";
-        startSession.addEventListener("click", () => actions.startSessionFromGeneration());
-        buttonRow.append(startSession);
-    }
-    if (state.generation.status === "error" || state.generation.status === "ready") {
-        const retry = document.createElement("button");
-        retry.type = "button";
-        retry.className = "btn btn-secondary";
-        retry.textContent =
-        state.generation.status === "ready" ? "Generate again" : "Retry generation";
-        retry.addEventListener("click", () => actions.generateSession());
-        buttonRow.append(retry);
-    }
-    if (state.generation.rawText) {
-        const viewRaw = document.createElement("button");
-        viewRaw.type = "button";
-        viewRaw.className = "btn btn-ghost";
-        viewRaw.textContent = state.generation.showRawResponse
-        ? "Hide raw response"
-        : "Show raw response";
-        viewRaw.addEventListener("click", () => actions.toggleRawResponse());
-        buttonRow.append(viewRaw);
-    }
-    if (state.generation.compiledPrompt) {
-        const copy = document.createElement("button");
-        copy.type = "button";
-        copy.className = "btn btn-ghost";
-        copy.textContent = "Copy prompt";
-        copy.addEventListener("click", async () => {
-            const text = `${state.generation.compiledPrompt.system}\n\n${state.generation.compiledPrompt.user}`;
-            try {
-                await navigator.clipboard.writeText(text);
-                copy.textContent = "Copied";
-                setTimeout(() => {
-                        copy.textContent = "Copy prompt";
-                }, 1500);
-            } catch { };
-        });
-        buttonRow.append(copy);
-        const switchManual = document.createElement("button");
-        switchManual.type = "button";
-        switchManual.className = "btn btn-ghost";
-        switchManual.textContent = "Use manual JSON";
-        switchManual.addEventListener("click", () => {
-            actions.updateConfig({ providerId: "manual_json" });
-            actions.generateSession();
-        });
-        buttonRow.append(switchManual);
-    }
-    card.append(buttonRow);
-    if (state.generation.rawText && state.generation.showRawResponse) card.append(createHighlightedCodeBlock(state.generation.rawText));
-    return card;
-};
-
-const makeManualPanel = (state, actions) => {
-    if (state.generation.status !== "manual" || !state.generation.compiledPrompt) return null;
-    const card = document.createElement("section");
-    card.className = "card card-pad";
-    card.append(makeCardTitle("Manual JSON paste workflow"));
-    const instructions = document.createElement("p");
-    instructions.textContent = "Copy the compiled prompt into any AI model, then paste the returned JSON below.";
-    card.append(instructions);
-    const promptField = document.createElement("div");
-    promptField.className = "field";
-    const promptLabel = document.createElement("label");
-    promptLabel.htmlFor = "manual-compiled-prompt";
-    promptLabel.textContent = "Compiled prompt";
-    const promptArea = document.createElement("textarea");
-    promptArea.id = "manual-compiled-prompt";
-    promptArea.rows = 14;
-    promptArea.readOnly = true;
-    promptArea.value = `${state.generation.compiledPrompt.system}\n\n${state.generation.compiledPrompt.user}`;
-    promptField.append(promptLabel, promptArea);
-    card.append(promptField);
-    const responseField = document.createElement("div");
-    responseField.className = "field";
-    const responseLabel = document.createElement("label");
-    responseLabel.htmlFor = "manual-json-response";
-    responseLabel.textContent = "Pasted model response";
-    const responseArea = document.createElement("textarea");
-    responseArea.id = "manual-json-response";
-    responseArea.rows = 12;
-    responseArea.placeholder = "Paste full JSON object here";
-    responseField.append(responseLabel, responseArea);
-    card.append(responseField);
-    const buttonRow = document.createElement("div");
-    buttonRow.className = "button-row";
-    const copyPrompt = document.createElement("button");
-    copyPrompt.type = "button";
-    copyPrompt.className = "btn btn-secondary";
-    copyPrompt.textContent = "Copy prompt";
-    copyPrompt.addEventListener("click", async () => {
-        try {
-            await navigator.clipboard.writeText(promptArea.value);
-            copyPrompt.textContent = "Copied";
-            setTimeout(() => {
-                    copyPrompt.textContent = "Copy prompt";
-                }, 1500);
-        } catch {
-            promptArea.select();
-            document.execCommand("copy");
-        };
-    });
-    buttonRow.append(copyPrompt);
-    const validate = document.createElement("button");
-    validate.type = "button";
-    validate.className = "btn btn-primary";
-    validate.textContent = "Validate and start session";
-    validate.addEventListener("click", () => actions.submitManualJson(responseArea.value));
-    buttonRow.append(validate);
-    const cancel = document.createElement("button");
-    cancel.type = "button";
-    cancel.className = "btn btn-ghost";
-    cancel.textContent = "Cancel";
-    cancel.addEventListener("click", () => actions.resetManualGeneration());
-    buttonRow.append(cancel);
-    card.append(buttonRow);
-    return card;
+    overlay.append(panel);
+    return overlay;
 };
 
 export const renderGeneratorView = (state, actions) => {
@@ -366,8 +206,14 @@ export const renderGeneratorView = (state, actions) => {
     primary.append(makeCardTitle("Session generator"));
     const sectionTopics = getTopicsBySection(state.currentConfig.sectionId);
     const sectionSkills = getSkillsForSection(state.currentConfig.sectionId);
-    primary.append(makeSectionSelect(state.currentConfig, actions));
-    primary.append(
+    const sessionGrid = document.createElement("div");
+    sessionGrid.className = "generator-session-grid";
+    const leftColumn = document.createElement("div");
+    leftColumn.className = "generator-session-column";
+    const rightColumn = document.createElement("div");
+    rightColumn.className = "generator-session-column";
+    leftColumn.append(makeSectionSelect(state.currentConfig, actions));
+    leftColumn.append(
         makeChipSelector({
             title: "Topics",
             subtitle:
@@ -378,7 +224,7 @@ export const renderGeneratorView = (state, actions) => {
             showBeta: true
         })
     );
-    primary.append(
+    leftColumn.append(
         makeChipSelector({
             title: "Skills",
             subtitle: "Select one or more reasoning skills for this session.",
@@ -388,7 +234,7 @@ export const renderGeneratorView = (state, actions) => {
             showBeta: true
         })
     );
-    primary.append(
+    rightColumn.append(
         makeSegmentControl({
             title: "Difficulty",
             options: DIFFICULTIES.map((difficulty) => ({
@@ -398,8 +244,8 @@ export const renderGeneratorView = (state, actions) => {
             onChange: (difficulty) => actions.updateConfig({ difficulty })
         })
     );
-    primary.append(makeFormatSelect(state.currentConfig, actions));
-    primary.append(
+    rightColumn.append(makeFormatSelect(state.currentConfig, actions));
+    rightColumn.append(
         makeNumberField({
             id: "question-count",
             labelText: "Question count (1-50)",
@@ -409,7 +255,7 @@ export const renderGeneratorView = (state, actions) => {
             onChange: (questionCount) => actions.updateConfig({ questionCount })
         })
     );
-    primary.append(
+    rightColumn.append(
         makeSegmentControl({
             title: "Timing mode",
             options: TIMING_MODES,
@@ -418,7 +264,7 @@ export const renderGeneratorView = (state, actions) => {
         })
     );
     if (state.currentConfig.timingMode === "timed") {
-        primary.append(
+        rightColumn.append(
             makeNumberField({
                 id: "seconds-per-question",
                 labelText: "Seconds per question",
@@ -429,7 +275,7 @@ export const renderGeneratorView = (state, actions) => {
             })
         );
     }
-    primary.append(
+    rightColumn.append(
         makeSegmentControl({
             title: "Review mode",
             options: REVIEW_MODES,
@@ -444,7 +290,6 @@ export const renderGeneratorView = (state, actions) => {
     advanced.append(advancedSummary);
     const advancedWrap = document.createElement("div");
     advancedWrap.style.marginTop = "0.75rem";
-    advancedWrap.append(makeProviderSelect(state.currentConfig, state.settings, actions));
     const modelField = document.createElement("div");
     modelField.className = "field";
     const modelLabel = document.createElement("label");
@@ -502,67 +347,41 @@ export const renderGeneratorView = (state, actions) => {
         })
     );
     advanced.append(advancedWrap);
-    primary.append(advanced);
+    rightColumn.append(advanced);
     if (!state.currentConfig.topicIds.length) {
         const warning = document.createElement("p");
         warning.className = "warning-note";
         warning.textContent =
         "No topics selected. OpenMCAT will use all topics in this section, but targeted practice is recommended.";
-        primary.append(warning);
+        leftColumn.append(warning);
     }
     if (state.currentConfig.sectionId === "cars") {
         const carsWarning = document.createElement("p");
         carsWarning.className = "warning-note";
         carsWarning.textContent =
         "CARS generation is experimental. Passage reasoning is harder to validate than science content drills.";
-        primary.append(carsWarning);
+        leftColumn.append(carsWarning);
     }
+    sessionGrid.append(leftColumn, rightColumn);
+    primary.append(sessionGrid);
+    layout.append(primary);
+    root.append(layout);
+    const generatePanel = document.createElement("section");
+    generatePanel.className = "card card-pad generator-submit-panel";
     const generateRow = document.createElement("div");
-    generateRow.className = "question-actions";
+    generateRow.className = "question-actions generator-submit-row";
     const generateButton = document.createElement("button");
     generateButton.type = "button";
     generateButton.className = "btn btn-primary";
     generateButton.textContent = "Generate practice session";
     generateButton.disabled =
     state.generation.status === "compiling" ||
-    state.generation.status === "waiting" ||
     state.generation.status === "validating";
     generateButton.addEventListener("click", () => actions.generateSession());
     generateRow.append(generateButton);
-    primary.append(generateRow);
-    const secondary = document.createElement("aside");
-    secondary.style.display = "grid";
-    secondary.style.gap = "1rem";
-    secondary.append(makeGenerationStatus(state, actions));
-    const providerStatus = document.createElement("section");
-    providerStatus.className = "card card-pad";
-    providerStatus.append(makeCardTitle("Provider status"));
-    const providerOption = PROVIDER_OPTIONS.find((provider) => provider.id === state.currentConfig.providerId);
-    const providerName = document.createElement("p");
-    const providerLabel = document.createElement("strong");
-    providerLabel.textContent = "Active provider: ";
-    const providerValue = document.createElement("span");
-    providerValue.textContent = providerOption?.name ?? state.currentConfig.providerId;
-    providerName.append(providerLabel, providerValue);
-    providerStatus.append(providerName);
-    const providerWarning = document.createElement("p");
-    providerWarning.className = "muted-note";
-    providerWarning.textContent = "Your prompts are sent only to the provider mode you select. Use manual JSON for any external model.";
-    providerStatus.append(providerWarning);
-    secondary.append(providerStatus);
-    const disclaimer = document.createElement("section");
-    disclaimer.className = "card card-pad";
-    disclaimer.append(makeCardTitle("AI practice note"));
-    const disclaimerText = document.createElement("p");
-    disclaimerText.textContent = "AI-generated practice can contain errors. Use OpenMCAT for drilling and review, not official score prediction.";
-    disclaimer.append(disclaimerText);
-    secondary.append(disclaimer);
-    layout.append(primary, secondary);
-    root.append(layout);
-    const manualPanel = makeManualPanel(state, actions);
-    if (manualPanel) {
-        manualPanel.style.marginTop = "1rem";
-        root.append(manualPanel);
-    }
+    generatePanel.append(generateRow);
+    root.append(generatePanel);
+    const modal = makeGenerationPipelineModal(state, actions);
+    if (modal) root.append(modal);
     return root;
 };

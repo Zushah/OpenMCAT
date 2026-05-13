@@ -2,7 +2,6 @@ import { state, patchGeneration, resetGenerationState } from "./app.js";
 import { BATCH_SIZE_LIMITS, DEFAULT_CONFIG, QUESTION_COUNT_LIMITS } from "./data/defaults.js";
 import { CARS_SKILLS, SCIENCE_SKILLS, SECTIONS, TOPICS, getSkillsForSection, getTopicsBySection } from "./data/taxonomy.js";
 import { compilePracticePrompt } from "./prompts/compiler.js";
-import { getProvider } from "./providers/registry.js";
 import { extractJsonObject } from "./schema/repair.js";
 import { validatePracticeSession } from "./schema/validators.js";
 import { setHashForRoute } from "./router.js";
@@ -137,8 +136,12 @@ export const createActions = ({ render, applyTheme }) => {
         render();
     };
 
-    const toggleRawResponse = () => {
-        state.generation.showRawResponse = !state.generation.showRawResponse;
+    const closeGenerationPipeline = () => {
+        patchGeneration({
+            pipelineOpen: false,
+            error: null,
+            manualInput: ""
+        });
         render();
     };
 
@@ -204,7 +207,9 @@ export const createActions = ({ render, applyTheme }) => {
                 status: options.manualMode ? "manual" : "error",
                 error: validation.errors.join(" "),
                 warnings: validation.warnings,
-                parsedSession: null
+                parsedSession: null,
+                pipelineOpen: options.manualMode ? true : state.generation.pipelineOpen,
+                manualInput: options.manualMode ? "" : state.generation.manualInput
             });
             render();
             return false;
@@ -216,7 +221,9 @@ export const createActions = ({ render, applyTheme }) => {
             error: null,
             warnings: validation.warnings,
             configSnapshot: structuredClone(runtimeConfig),
-            providerMeta: structuredClone(providerMeta)
+            providerMeta: structuredClone(providerMeta),
+            pipelineOpen: options.manualMode ? false : state.generation.pipelineOpen,
+            manualInput: options.manualMode ? "" : state.generation.manualInput
         });
         if (options.deferStart) {
             render();
@@ -238,7 +245,9 @@ export const createActions = ({ render, applyTheme }) => {
             parsedSession: null,
             showRawResponse: false,
             configSnapshot: null,
-            providerMeta: null
+            providerMeta: null,
+            pipelineOpen: false,
+            manualInput: ""
         });
         render();
         const effectiveConfig = structuredClone(config);
@@ -248,167 +257,51 @@ export const createActions = ({ render, applyTheme }) => {
         }
         if (!effectiveConfig.skillIds.length) effectiveConfig.skillIds = getDefaultSkillsForSection(config.sectionId);
         const fullPrompt = compilePracticePrompt(effectiveConfig);
-        patchGeneration({ compiledPrompt: fullPrompt });
-        const provider = getProvider(config.providerId);
-        if (!provider) {
-            patchGeneration({
-                status: "error",
-                error: "Selected provider is unavailable."
-            });
-            render();
-            return;
-        }
-        if (provider.id === "manual_json") {
-            patchGeneration({
-                status: "manual",
-                error: null,
-                showRawResponse: false
-            });
-            render();
-            return;
-        }
-        patchGeneration({ status: "waiting" });
-        render();
-        const batchSize = cb.numb.constrain(effectiveConfig.batchSize, [1, 10]);
-        const totalBatches = Math.ceil(effectiveConfig.questionCount / batchSize);
-        const rawChunks = [];
-        let mergedSession = null;
-        let lastProviderMeta = null;
-        for (let batchIndex = 0; batchIndex < totalBatches; batchIndex += 1) {
-            const remaining = effectiveConfig.questionCount - batchIndex * batchSize;
-            const batchCount = cb.stat.min([batchSize, remaining]);
-            const batchConfig = { ...effectiveConfig, questionCount: batchCount };
-            const batchPrompt = compilePracticePrompt(batchConfig);
-            patchGeneration({
-                status: "waiting",
-                warnings: [`Generating batch ${batchIndex + 1} of ${totalBatches} (${batchCount} questions).`]
-            });
-            render();
-            const result = await provider.generatePracticeSession({
-                config: batchConfig,
-                systemPrompt: batchPrompt.system,
-                userPrompt: batchPrompt.user,
-                settings: state.settings
-            });
-            rawChunks.push(result.rawText ?? "");
-            lastProviderMeta = result.meta ?? lastProviderMeta;
-            if (result.error) {
-                patchGeneration({
-                    status: "error",
-                    error: result.error,
-                    rawText: rawChunks.join("\n\n")
-                });
-                render();
-                return;
-            }
-            let parsed = result.parsedJson;
-            if (!parsed && result.rawText) {
-                const extraction = extractJsonObject(result.rawText);
-                parsed = extraction.parsed;
-                if (extraction.error) {
-                    patchGeneration({
-                        status: "error",
-                        error: extraction.error,
-                        rawText: extraction.cleaned || rawChunks.join("\n\n")
-                    });
-                    render();
-                    return;
-                }
-            }
-            if (!parsed) {
-                patchGeneration({
-                    status: "error",
-                    error: "The provider response did not include parseable JSON.",
-                    rawText: rawChunks.join("\n\n")
-                });
-                render();
-                return;
-            }
-            const batchValidation = validatePracticeSession(parsed, getValidationContext(batchConfig));
-            if (!batchValidation.valid) {
-                patchGeneration({
-                    status: "error",
-                    error: batchValidation.errors.join(" "),
-                    warnings: batchValidation.warnings,
-                    rawText: rawChunks.join("\n\n")
-                });
-                render();
-                return;
-            }
-            const batchSession = batchValidation.normalized;
-            if (!mergedSession) {
-                mergedSession = structuredClone(batchSession);
-                mergedSession.questions = [];
-                mergedSession.passages = [];
-            }
-            const prefixIds = totalBatches > 1;
-            const passageIdMap = new Map();
-            (batchSession.passages ?? []).forEach((passage, passageIndex) => {
-                const passageCopy = structuredClone(passage);
-                if (prefixIds) {
-                    const oldId = passageCopy.id || `p${passageIndex + 1}`;
-                    passageCopy.id = `b${batchIndex + 1}_${oldId}`;
-                    passageIdMap.set(oldId, passageCopy.id);
-                };
-                mergedSession.passages.push(passageCopy);
-            });
-            batchSession.questions.forEach((question, questionIndex) => {
-                const questionCopy = structuredClone(question);
-                if (prefixIds) {
-                    const oldId = questionCopy.id || `q${questionIndex + 1}`;
-                    questionCopy.id = `b${batchIndex + 1}_${oldId}`;
-                    if (questionCopy.passageId) questionCopy.passageId = passageIdMap.get(questionCopy.passageId) ?? questionCopy.passageId;;
-                }
-                mergedSession.questions.push(questionCopy);
-            });
-        }
-        if (!mergedSession) {
-            patchGeneration({
-                status: "error",
-                error: "No generated content was returned by the provider."
-            });
-            render();
-            return;
-        }
-        mergedSession.questions = mergedSession.questions.slice(0, effectiveConfig.questionCount);
-        mergedSession.session.estimatedTimeMinutes = cb.stat.max([1, cb.numb.roundTo((mergedSession.questions.length * (effectiveConfig.secondsPerQuestion ?? (effectiveConfig.sectionId === "cars" ? 110 : 95))) / 60, 1)]);
         patchGeneration({
-            rawText: rawChunks.join("\n\n"),
+            status: "manual",
+            compiledPrompt: fullPrompt,
             error: null,
-            warnings: []
+            warnings: [],
+            configSnapshot: structuredClone(effectiveConfig),
+            providerMeta: { providerId: "manual_json" },
+            pipelineOpen: true,
+            manualInput: ""
         });
-        await validateAndStartSession(mergedSession, lastProviderMeta, { configOverride: effectiveConfig, deferStart: true });
+        render();
     }
 
     const submitManualJson = async (rawText) => {
         if (!rawText || !rawText.trim()) {
             patchGeneration({
                 status: "manual",
-                error: "Paste JSON before validating."
+                error: "Invalid output. Paste a valid JSON session object.",
+                manualInput: "",
+                pipelineOpen: true
             });
             render();
             return;
         }
         const extraction = extractJsonObject(rawText);
+        if (extraction.error || !extraction.parsed) {
+            patchGeneration({
+                status: "manual",
+                rawText: extraction.cleaned || rawText,
+                error: extraction.error || "Invalid output. Paste a valid JSON session object.",
+                manualInput: "",
+                pipelineOpen: true,
+                showRawResponse: false
+            });
+            render();
+            return;
+        }
         patchGeneration({
             rawText: extraction.cleaned || rawText,
-            error: extraction.error,
-            status: extraction.error ? "manual" : "validating",
+            error: null,
+            status: "validating",
             showRawResponse: false
         });
         render();
-        if (extraction.error || !extraction.parsed) return;
-        await validateAndStartSession(extraction.parsed, { providerId: "manual_json"}, { manualMode: true, deferStart: true });
-    }
-
-    const startSessionFromGeneration = async () => {
-        if (state.generation.status !== "ready" || !state.generation.parsedSession) {
-            showToast("Generate and validate a session first.", "error");
-            return;
-        };
-        const runtimeConfig = normalizeConfig(state.generation.configSnapshot ?? state.currentConfig);
-        const providerMeta = state.generation.providerMeta ?? {};
-        await startPracticeSession(structuredClone(state.generation.parsedSession), runtimeConfig, providerMeta);
+        await validateAndStartSession(extraction.parsed, { providerId: "manual_json"}, { manualMode: true, deferStart: false });
     }
 
     const getActiveQuestion = () => {
@@ -581,11 +474,20 @@ export const createActions = ({ render, applyTheme }) => {
     }
 
     const initApp = async () => {
-        state.settings.provider.selectedProviderId = state.settings.provider.selectedProviderId || state.currentConfig.providerId;
+        const initialModel = state.settings.provider.selectedModel || state.currentConfig.model || DEFAULT_CONFIG.model;
+        const nextModel = initialModel === "mock-mcat-v1" ? DEFAULT_CONFIG.model : initialModel;
+        state.settings = persistSettings({
+            ...state.settings,
+            provider: {
+                ...state.settings.provider,
+                selectedProviderId: "manual_json",
+                selectedModel: nextModel
+            }
+        });
         state.currentConfig = normalizeConfig({
             ...state.currentConfig,
-            providerId: state.settings.provider.selectedProviderId || state.currentConfig.providerId,
-            model: state.settings.provider.selectedModel || state.currentConfig.model
+            providerId: "manual_json",
+            model: nextModel
         });
         applyTheme(state.settings.theme, state.settings.reducedMotion);
         await refreshAnalytics();
@@ -608,8 +510,7 @@ export const createActions = ({ render, applyTheme }) => {
         generateSession,
         submitManualJson,
         resetManualGeneration,
-        toggleRawResponse,
-        startSessionFromGeneration,
+        closeGenerationPipeline,
         selectChoice,
         setConfidence,
         flagCurrentQuestion,

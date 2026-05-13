@@ -1,5 +1,5 @@
 @media (max-width: 900px) {
-    .generator-layout, .settings-grid, .dashboard-panels, .session-grid, .grid-two, .grid-three {
+    .generator-layout, .generator-session-grid, .settings-grid, .dashboard-panels, .session-grid, .grid-two, .grid-three {
         grid-template-columns: 1fr;
     }
 
@@ -46,6 +46,10 @@
 
     .btn {
         width: 100%;
+    }
+
+    .generation-pipeline-row {
+        justify-content: center;
     }
 }
 
