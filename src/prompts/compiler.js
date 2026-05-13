@@ -5,6 +5,7 @@ import { DIFFICULTY_PROMPTS } from "./difficulty.js";
 import { FORMAT_PROMPTS } from "./format.js";
 import { SECTION_PROMPTS } from "./section.js";
 import { buildSkillPrompt } from "./skill.js";
+import { buildTopicPrompt } from "./topic.js";
 
 const formatTopicList = (topicIds) => topicIds.map((topicId) => getTopicById(topicId)).filter(Boolean).map((topic) => `${topic.name} (${topic.id})`).join(", ");
 
@@ -14,7 +15,7 @@ export const compileSystemPrompt = (config) => {
     const sectionPrompt = SECTION_PROMPTS[config.sectionId] ?? "";
     const difficultyPrompt = DIFFICULTY_PROMPTS[config.difficulty] ?? "";
     const formatPrompt = FORMAT_PROMPTS[config.questionFormat] ?? "";
-    const selectedSkills = config.skillIds.map((skillId) => getSkillById(skillId));
+    const selectedSkills = config.skillIds.map((skillId) => getSkillById(skillId)).filter(Boolean);
     return [
         BASE_SYSTEM_PROMPT,
         "Legal and quality constraints:",
@@ -22,6 +23,7 @@ export const compileSystemPrompt = (config) => {
         "- Use selected topic IDs and skill IDs exactly in question tags.",
         "- Avoid unsupported claims and avoid medical advice.",
         sectionPrompt,
+        buildTopicPrompt(config.topicIds),
         buildSkillPrompt(selectedSkills),
         difficultyPrompt,
         formatPrompt

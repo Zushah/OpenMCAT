@@ -51,6 +51,10 @@
     .generation-pipeline-row {
         justify-content: center;
     }
+
+    .generator-compact-row {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

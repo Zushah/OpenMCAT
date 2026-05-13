@@ -1,6 +1,6 @@
 export const DEFAULT_CONFIG = {
     sectionId: "bb",
-    topicIds: ["bb_amino_acids_proteins"],
+    topicIds: ["bb_amino_acids"],
     skillIds: ["sirs_1", "sirs_2"],
     difficulty: "medium",
     questionFormat: "discrete",

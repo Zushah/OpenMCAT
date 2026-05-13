@@ -3,7 +3,7 @@ export const SAMPLE_SESSION = {
     session: {
         title: "B/B amino acids and enzymes mixed drill",
         sectionId: "bb",
-        topicIds: ["bb_amino_acids_proteins", "bb_enzymes"],
+        topicIds: ["bb_amino_acids", "bb_control_of_enzyme_activity"],
         skillIds: ["sirs_1", "sirs_2", "sirs_4"],
         difficulty: "medium",
         questionFormat: "mixed",
@@ -52,7 +52,7 @@ export const SAMPLE_SESSION = {
                 C: "Serine is polar but usually uncharged.",
                 D: "Valine is nonpolar and uncharged."
             },
-            testedTopicIds: ["bb_amino_acids_proteins"],
+            testedTopicIds: ["bb_amino_acids"],
             testedSkillIds: ["sirs_1"],
             estimatedDifficulty: "easy",
             commonMistake: "Mixing up polar side chains with ionizable basic side chains.",
@@ -83,7 +83,7 @@ export const SAMPLE_SESSION = {
                 C: "Pure noncompetitive inhibition lowers Vmax with little change in Km.",
                 D: "Irreversible inhibition usually lowers active enzyme concentration and effective Vmax."
             },
-            testedTopicIds: ["bb_enzymes"],
+            testedTopicIds: ["bb_control_of_enzyme_activity"],
             testedSkillIds: ["sirs_2"],
             estimatedDifficulty: "medium",
             commonMistake: "Confusing competitive and noncompetitive inhibition trends.",
@@ -114,7 +114,7 @@ export const SAMPLE_SESSION = {
                 C: "Velocities with Compound Q are lower than control in all rows.",
                 D: "The effect is substantial and consistent, not absent."
             },
-            testedTopicIds: ["bb_enzymes"],
+            testedTopicIds: ["bb_control_of_enzyme_activity"],
             testedSkillIds: ["sirs_4"],
             estimatedDifficulty: "medium",
             commonMistake: "Overfocusing on one row and ignoring the full trend.",
@@ -145,7 +145,7 @@ export const SAMPLE_SESSION = {
                 C: "An unrelated substrate may invalidate interpretation of active-site competition.",
                 D: "Shorter timing changes throughput, not mechanism inference."
             },
-            testedTopicIds: ["bb_enzymes"],
+            testedTopicIds: ["bb_control_of_enzyme_activity"],
             testedSkillIds: ["sirs_3"],
             estimatedDifficulty: "hard",
             commonMistake: "Choosing a procedural change that does not isolate mechanism.",
@@ -176,7 +176,7 @@ export const SAMPLE_SESSION = {
                 C: "Correct. Core polarity mismatch can destabilize the fold.",
                 D: "Catalytic rate depends on many factors and is not guaranteed by this change."
             },
-            testedTopicIds: ["bb_amino_acids_proteins"],
+            testedTopicIds: ["bb_protein_structure"],
             testedSkillIds: ["sirs_2"],
             estimatedDifficulty: "medium",
             commonMistake: "Assuming any mutation can improve function.",

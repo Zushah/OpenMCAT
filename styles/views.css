@@ -47,9 +47,21 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 1rem;
     align-items: start;
+    margin-top: var(--space-lg);
 }
 
 .generator-session-column {
+    min-width: 0;
+}
+
+.generator-compact-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(128px, 0.65fr);
+    gap: var(--space-sm);
+    align-items: start;
+}
+
+.generator-compact-row .field {
     min-width: 0;
 }
 

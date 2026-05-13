@@ -58,8 +58,12 @@ const makeChipSelector = ({ title, subtitle, selectedIds, options, onToggle, sho
             button.classList.add("is-selected");
             button.setAttribute("aria-pressed", "true");
         } else button.setAttribute("aria-pressed", "false");
-        button.textContent =
-        showBeta && option.beta ? `${option.shortName} (Beta)` : option.shortName;
+        const label = showBeta && option.beta ? `${option.shortName} (Beta)` : option.shortName;
+        button.textContent = label;
+        if (option.description) {
+            button.title = option.description;
+            button.setAttribute("aria-label", `${label}. ${option.description}`);
+        }
         button.addEventListener("click", () => onToggle(option.id));
         list.append(button);
     });
@@ -153,7 +157,7 @@ const makeGenerationPipelineModal = (state, actions) => {
     panel.append(top);
     const instructions = document.createElement("p");
     instructions.className = "generation-pipeline-instructions";
-    instructions.textContent = "Copy prompt -> Paste into an AI model chatbox of your choice -> Paste its output below:";
+    instructions.textContent = "Copy prompt → Paste into an AI model chatbox of your choice → Paste its output below:";
     panel.append(instructions);
     const controls = document.createElement("div");
     controls.className = "generation-pipeline-row";
@@ -206,83 +210,84 @@ export const renderGeneratorView = (state, actions) => {
     primary.append(makeCardTitle("Session generator"));
     const sectionTopics = getTopicsBySection(state.currentConfig.sectionId);
     const sectionSkills = getSkillsForSection(state.currentConfig.sectionId);
+    primary.append(makeSectionSelect(state.currentConfig, actions));
+    primary.append(makeChipSelector({
+        title: "Topics",
+        subtitle: "Select one or more topics. If none are selected, then all will be used.",
+        selectedIds: state.currentConfig.topicIds,
+        options: sectionTopics,
+        onToggle: (topicId) => actions.toggleMultiValue("topicIds", topicId),
+        showBeta: true
+    }));
+    if (!state.currentConfig.topicIds.length) {
+        const warning = document.createElement("p");
+        warning.className = "warning-note";
+        warning.textContent = "No topics selected, so all will be used, but targeted practice is recommended.";
+        primary.append(warning);
+    }
+    if (state.currentConfig.sectionId === "cars") {
+        const carsWarning = document.createElement("p");
+        carsWarning.className = "warning-note";
+        carsWarning.textContent = "CARS generation is experimental. Passage reasoning is harder to validate than science content drills.";
+        primary.append(carsWarning);
+    }
     const sessionGrid = document.createElement("div");
     sessionGrid.className = "generator-session-grid";
     const leftColumn = document.createElement("div");
     leftColumn.className = "generator-session-column";
     const rightColumn = document.createElement("div");
     rightColumn.className = "generator-session-column";
-    leftColumn.append(makeSectionSelect(state.currentConfig, actions));
-    leftColumn.append(
-        makeChipSelector({
-            title: "Topics",
-            subtitle:
-            "Select one or more topics. If none are selected, OpenMCAT falls back to section-wide mix.",
-            selectedIds: state.currentConfig.topicIds,
-            options: sectionTopics,
-            onToggle: (topicId) => actions.toggleMultiValue("topicIds", topicId),
-            showBeta: true
-        })
-    );
-    leftColumn.append(
-        makeChipSelector({
-            title: "Skills",
-            subtitle: "Select one or more reasoning skills for this session.",
-            selectedIds: state.currentConfig.skillIds,
-            options: sectionSkills,
-            onToggle: (skillId) => actions.toggleMultiValue("skillIds", skillId),
-            showBeta: true
-        })
-    );
-    rightColumn.append(
-        makeSegmentControl({
-            title: "Difficulty",
-            options: DIFFICULTIES.map((difficulty) => ({
-                        id: difficulty.id,
-                        label: difficulty.name})),
-            selectedId: state.currentConfig.difficulty,
-            onChange: (difficulty) => actions.updateConfig({ difficulty })
-        })
-    );
-    rightColumn.append(makeFormatSelect(state.currentConfig, actions));
-    rightColumn.append(
-        makeNumberField({
-            id: "question-count",
-            labelText: "Question count (1-50)",
-            value: state.currentConfig.questionCount,
-            min: 1,
-            max: 50,
-            onChange: (questionCount) => actions.updateConfig({ questionCount })
-        })
-    );
-    rightColumn.append(
-        makeSegmentControl({
-            title: "Timing mode",
-            options: TIMING_MODES,
-            selectedId: state.currentConfig.timingMode,
-            onChange: (timingMode) => actions.updateConfig({ timingMode })
-        })
-    );
+    leftColumn.append(makeChipSelector({
+        title: "Skills",
+        subtitle: "Select one or more reasoning skills for this session.",
+        selectedIds: state.currentConfig.skillIds,
+        options: sectionSkills,
+        onToggle: (skillId) => actions.toggleMultiValue("skillIds", skillId),
+        showBeta: true
+    }));
+    leftColumn.append(makeSegmentControl({
+        title: "Difficulty",
+        options: DIFFICULTIES.map((difficulty) => ({
+            id: difficulty.id,
+            label: difficulty.name
+        })),
+        selectedId: state.currentConfig.difficulty,
+        onChange: (difficulty) => actions.updateConfig({ difficulty })
+    }));
+    const formatCountRow = document.createElement("div");
+    formatCountRow.className = "generator-compact-row";
+    formatCountRow.append(makeFormatSelect(state.currentConfig, actions));
+    formatCountRow.append(makeNumberField({
+        id: "question-count",
+        labelText: "Question count (1-50)",
+        value: state.currentConfig.questionCount,
+        min: 1,
+        max: 50,
+        onChange: (questionCount) => actions.updateConfig({ questionCount })
+    }));
+    rightColumn.append(formatCountRow);
+    rightColumn.append(makeSegmentControl({
+        title: "Timing mode",
+        options: TIMING_MODES,
+        selectedId: state.currentConfig.timingMode,
+        onChange: (timingMode) => actions.updateConfig({ timingMode })
+    }));
     if (state.currentConfig.timingMode === "timed") {
-        rightColumn.append(
-            makeNumberField({
-                id: "seconds-per-question",
-                labelText: "Seconds per question",
-                value: state.currentConfig.secondsPerQuestion ?? 95,
-                min: 30,
-                max: 240,
-                onChange: (secondsPerQuestion) => actions.updateConfig({ secondsPerQuestion })
-            })
-        );
+        rightColumn.append(makeNumberField({
+            id: "seconds-per-question",
+            labelText: "Seconds per question",
+            value: state.currentConfig.secondsPerQuestion ?? 95,
+            min: 30,
+            max: 240,
+            onChange: (secondsPerQuestion) => actions.updateConfig({ secondsPerQuestion })
+        }));
     }
-    rightColumn.append(
-        makeSegmentControl({
-            title: "Review mode",
-            options: REVIEW_MODES,
-            selectedId: state.currentConfig.reviewMode,
-            onChange: (reviewMode) => actions.updateConfig({ reviewMode })
-        })
-    );
+    rightColumn.append(makeSegmentControl({
+        title: "Review mode",
+        options: REVIEW_MODES,
+        selectedId: state.currentConfig.reviewMode,
+        onChange: (reviewMode) => actions.updateConfig({ reviewMode })
+    }));
     const advanced = document.createElement("details");
     advanced.className = "advanced-panel";
     const advancedSummary = document.createElement("summary");
@@ -336,32 +341,16 @@ export const renderGeneratorView = (state, actions) => {
     depthSelect.addEventListener("change", () => actions.updateConfig({ explanationDepth: depthSelect.value }));
     depthField.append(depthLabel, depthSelect);
     advancedWrap.append(depthField);
-    advancedWrap.append(
-        makeNumberField({
-            id: "batch-size",
-            labelText: "Max generation batch size",
-            value: state.currentConfig.batchSize,
-            min: 1,
-            max: 10,
-            onChange: (batchSize) => actions.updateConfig({ batchSize })
-        })
-    );
+    advancedWrap.append(makeNumberField({
+        id: "batch-size",
+        labelText: "Max generation batch size",
+        value: state.currentConfig.batchSize,
+        min: 1,
+        max: 10,
+        onChange: (batchSize) => actions.updateConfig({ batchSize })
+    }));
     advanced.append(advancedWrap);
     rightColumn.append(advanced);
-    if (!state.currentConfig.topicIds.length) {
-        const warning = document.createElement("p");
-        warning.className = "warning-note";
-        warning.textContent =
-        "No topics selected. OpenMCAT will use all topics in this section, but targeted practice is recommended.";
-        leftColumn.append(warning);
-    }
-    if (state.currentConfig.sectionId === "cars") {
-        const carsWarning = document.createElement("p");
-        carsWarning.className = "warning-note";
-        carsWarning.textContent =
-        "CARS generation is experimental. Passage reasoning is harder to validate than science content drills.";
-        leftColumn.append(carsWarning);
-    }
     sessionGrid.append(leftColumn, rightColumn);
     primary.append(sessionGrid);
     layout.append(primary);
