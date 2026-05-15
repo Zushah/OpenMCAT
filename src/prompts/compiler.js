@@ -58,7 +58,7 @@ export const compileUserPrompt = (config) => {
     - If not using a passage, set passageId to null.
     - Include session.estimatedTimeMinutes.
     - Include selfCheck for each question.
-    - Do not include text outside JSON.`;
+    - Do not include text besides a single-line (i.e., no line breaks) JSON object.`;
 };
 
 export const compilePracticePrompt = (config) => { return { system: compileSystemPrompt(config), user: compileUserPrompt(config) }; };
