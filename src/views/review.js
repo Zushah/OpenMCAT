@@ -2,6 +2,20 @@ import { formatDurationMs } from "../components/timer.js";
 
 const cb = Chalkboard;
 
+const safeNumber = (value, fallback = 0) => { const number = Number(value); return Number.isFinite(number) ? number : fallback; };
+
+const round = (num, places = 0.01) => {
+    const rounded = cb.numb.roundTo(safeNumber(num), safeNumber(places));
+    const str = Math.abs(safeNumber(places)).toString().toLowerCase();
+    let decimalPlaces = 0;
+    if (str.includes("e-")) {
+        const [coefficient, exponent] = str.split("e-");
+        const coefficientDecimals = coefficient.split(".")[1]?.length ?? 0;
+        decimalPlaces = Number(exponent) + coefficientDecimals;
+    } else if (!str.includes("e+")) decimalPlaces = str.split(".")[1]?.length ?? 0;
+    return Number(rounded.toFixed(decimalPlaces));
+};
+
 const summarize = (activeSession) => {
     const questions = activeSession.generatedSession.questions;
     const states = activeSession.questionStateById;
@@ -52,16 +66,17 @@ const makeFilterButton = (label, filterId, currentFilter, onClick) => {
 const makeQuestionReviewBlock = (record, index, isFocused) => {
     const { question, state } = record;
     const card = document.createElement("article");
-    card.className = "card card-pad review-question";
+    const resultClass = state.submitted ? state.isCorrect ? "is-correct" : "is-incorrect" : "is-unanswered";
+    card.className = `card card-pad review-question ${resultClass}`;
     card.dataset.reviewIndex = String(index);
-    if (isFocused) card.style.borderColor = "var(--accent)";
+    if (isFocused) card.classList.add("is-focused");
     const heading = document.createElement("h4");
     heading.textContent = `Q${index + 1}. ${question.stem}`;
     card.append(heading);
     const meta = document.createElement("p");
     meta.className = "tiny";
     const selected = state.selectedChoiceId ?? "Unanswered";
-    const verdict = state.isCorrect ? "Correct" : "Incorrect";
+    const verdict = state.submitted ? state.isCorrect ? "Correct" : "Incorrect" : "Unanswered";
     meta.textContent = `Selected: ${selected} | Correct: ${question.correctChoiceId} | ${verdict} | ${formatDurationMs(state.elapsedMs ?? 0)}`;
     card.append(meta);
     const explanation = document.createElement("p");
@@ -119,14 +134,13 @@ export const renderReviewView = (state, actions) => {
     summaryGrid.className = "summary-grid";
     summaryGrid.append(
         makeSummaryCard("Score", `${summary.correct}/${summary.total}`),
-        makeSummaryCard("Accuracy", `${cb.numb.roundTo(summary.accuracy * 100, 1)}%`),
+        makeSummaryCard("Accuracy", `${round(summary.accuracy * 100, 0.1)}%`),
         makeSummaryCard("Total Time", formatDurationMs(summary.elapsedMs)),
         makeSummaryCard("Avg / Question", formatDurationMs(summary.avgMs))
     );
     root.append(summaryGrid);
     const controls = document.createElement("div");
-    controls.className = "button-row";
-    controls.style.marginTop = "1rem";
+    controls.className = "button-row review-controls";
     controls.append(
         makeFilterButton("All", "all", activeSession.reviewFilter, () => actions.setReviewFilter("all")),
         makeFilterButton("Incorrect only", "incorrect", activeSession.reviewFilter, () => actions.setReviewFilter("incorrect")),

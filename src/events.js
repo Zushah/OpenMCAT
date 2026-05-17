@@ -341,13 +341,21 @@ export const createActions = ({ render, applyTheme }) => {
         return active.generatedSession.questions[active.currentQuestionIndex] ?? null;
     };
 
-    const selectChoice = (choiceId) => {
+    const selectChoice = async (choiceId) => {
         const active = state.activeSession;
         const question = getActiveQuestion();
         if (!active || !question) return;
         const qState = active.questionStateById[question.id];
-        if (qState.submitted) return;
         qState.selectedChoiceId = choiceId;
+        if (qState.submitted) {
+            qState.isCorrect = choiceId === question.correctChoiceId;
+            if (qState.attemptId) {
+                await updateAttempt(qState.attemptId, {
+                    selectedChoiceId: choiceId,
+                    isCorrect: qState.isCorrect
+                });
+            }
+        }
         render();
     };
 
@@ -399,24 +407,22 @@ export const createActions = ({ render, applyTheme }) => {
         showToast("Question flagged for review.");
     }
 
-    const submitAnswer = async () => {
+    const saveCurrentAnswer = async () => {
         const active = state.activeSession;
         const question = getActiveQuestion();
-        if (!active || !question) return;
+        if (!active || !question) return false;
         const qState = active.questionStateById[question.id];
-        if (qState.submitted) return;
-        if (!qState.selectedChoiceId) { showToast("Select an answer before submitting.", "error"); return; }
+        if (!qState.selectedChoiceId) { showToast("Select an answer before continuing.", "error"); return false; }
         const startedAt = ensureQuestionStart(active, question.id);
         const startedMs = new Date(startedAt).getTime();
-        const answeredAt = new Date();
-        const elapsedMs = cb.stat.max([0, answeredAt.getTime() - startedMs]);
+        const answeredAt = qState.submitted && qState.answeredAt ? new Date(qState.answeredAt) : new Date();
+        const elapsedMs = qState.submitted && Number.isFinite(qState.elapsedMs) ? qState.elapsedMs : cb.stat.max([0, answeredAt.getTime() - startedMs]);
         const isCorrect = qState.selectedChoiceId === question.correctChoiceId;
         qState.submitted = true;
         qState.isCorrect = isCorrect;
         qState.answeredAt = answeredAt.toISOString();
         qState.elapsedMs = elapsedMs;
-        const attempt = {
-            id: id("attempt"),
+        const attemptPatch = {
             sessionId: active.id,
             questionId: question.id,
             sectionId: active.generatedSession.session.sectionId,
@@ -435,17 +441,51 @@ export const createActions = ({ render, applyTheme }) => {
             flagged: qState.flagged,
             flagReason: qState.flagReason
         };
-        qState.attemptId = attempt.id;
-        await saveAttempt(attempt);
-        if (active.config.reviewMode === "later") { await nextQuestion(); return; }
-        render();
+        if (qState.attemptId) await updateAttempt(qState.attemptId, attemptPatch);
+        else {
+            const attempt = { id: id("attempt"), ...attemptPatch };
+            qState.attemptId = attempt.id;
+            await saveAttempt(attempt);
+        }
+        return true;
+    };
+
+    const submitAnswer = async () => {
+        const saved = await saveCurrentAnswer();
+        if (saved) render();
     }
+
+    const previousQuestion = async () => {
+        const active = state.activeSession;
+        const question = getActiveQuestion();
+        if (!active || !question) return;
+        const qState = active.questionStateById[question.id];
+        if (qState.selectedChoiceId) {
+            const saved = await saveCurrentAnswer();
+            if (!saved) return;
+        }
+        const previousIndex = active.currentQuestionIndex - 1;
+        if (previousIndex < 0) return;
+        active.currentQuestionIndex = previousIndex;
+        const previousQuestionId = active.generatedSession.questions[previousIndex].id;
+        ensureQuestionStart(active, previousQuestionId);
+        render();
+    };
 
     const nextQuestion = async () => {
         const active = state.activeSession;
-        if (!active) return;
+        const question = getActiveQuestion();
+        if (!active || !question) return;
+        const qState = active.questionStateById[question.id];
+        const shouldRevealImmediateReview = active.config.reviewMode === "immediate" && !qState.submitted;
+        const saved = await saveCurrentAnswer();
+        if (!saved) return;
+        if (shouldRevealImmediateReview) {
+            render();
+            return;
+        }
         const nextIndex = active.currentQuestionIndex + 1;
-        if (nextIndex >= active.generatedSession.questions.length) { await finishSession(); return; };
+        if (nextIndex >= active.generatedSession.questions.length) { await finishSession(); return; }
         active.currentQuestionIndex = nextIndex;
         const nextQuestionId = active.generatedSession.questions[nextIndex].id;
         ensureQuestionStart(active, nextQuestionId);
@@ -567,6 +607,7 @@ export const createActions = ({ render, applyTheme }) => {
         setConfidence,
         flagCurrentQuestion,
         submitAnswer,
+        previousQuestion,
         nextQuestion,
         finishSession,
         setReviewFilter,

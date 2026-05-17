@@ -2,6 +2,20 @@ import { SAMPLE_SESSION } from "../data/samples.js";
 
 const cb = Chalkboard;
 
+const safeNumber = (value, fallback = 0) => { const number = Number(value); return Number.isFinite(number) ? number : fallback; };
+
+const round = (num, places = 0.01) => {
+    const rounded = cb.numb.roundTo(safeNumber(num), safeNumber(places));
+    const str = Math.abs(safeNumber(places)).toString().toLowerCase();
+    let decimalPlaces = 0;
+    if (str.includes("e-")) {
+        const [coefficient, exponent] = str.split("e-");
+        const coefficientDecimals = coefficient.split(".")[1]?.length ?? 0;
+        decimalPlaces = Number(exponent) + coefficientDecimals;
+    } else if (!str.includes("e+")) decimalPlaces = str.split(".")[1]?.length ?? 0;
+    return Number(rounded.toFixed(decimalPlaces));
+};
+
 export const mockProvider = {
     id: "mock",
     name: "Mock provider",
@@ -30,7 +44,7 @@ export const mockProvider = {
         }
         parsedJson.questions = expanded;
         if (config.questionFormat === "discrete") parsedJson.passages = [];
-        parsedJson.session.estimatedTimeMinutes = cb.stat.max([1, cb.numb.roundTo((requestedCount * 95) / 60, 1)]);
+        parsedJson.session.estimatedTimeMinutes = cb.stat.max([1, round((requestedCount * 95) / 60, 1)]);
         parsedJson.session.topicIds = effectiveTopicIds;
         parsedJson.session.skillIds = effectiveSkillIds;
         parsedJson.session.sectionId = config.sectionId;

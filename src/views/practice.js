@@ -65,6 +65,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
     const index = activeSession.currentQuestionIndex;
     const question = questions[index];
     const questionState = activeSession.questionStateById[question.id];
+    const showFeedback = questionState.submitted && activeSession.config.reviewMode === "immediate";
     const passage = question.passageId ? activeSession.generatedSession.passages.find((item) => item.id === question.passageId) : null;
     const top = document.createElement("section");
     top.className = "session-top card card-pad";
@@ -131,10 +132,10 @@ export const renderPracticeView = (state, actions, nowMs) => {
     question.choices.forEach((choice) => {
         const choiceElement = createChoiceCard(choice, {
             selectedId: questionState.selectedChoiceId,
-            submitted: questionState.submitted,
+            submitted: showFeedback,
             correctId: question.correctChoiceId
         });
-        choiceElement.disabled = questionState.submitted;
+        choiceElement.disabled = false;
         choiceElement.addEventListener("click", () => actions.selectChoice(choice.id));
         choiceList.append(choiceElement);
     });
@@ -156,29 +157,26 @@ export const renderPracticeView = (state, actions, nowMs) => {
     confidence.append(confidenceLegend, confidenceSegment);
     questionCard.append(confidence);
     const controls = document.createElement("div");
-    controls.className = "question-actions";
-    if (!questionState.submitted) {
-        const submit = document.createElement("button");
-        submit.type = "button";
-        submit.className = "btn btn-primary";
-        submit.textContent = activeSession.config.reviewMode === "later" ? "Submit and continue" : "Submit answer";
-        submit.addEventListener("click", () => actions.submitAnswer());
-        controls.append(submit);
-    } else {
-        const next = document.createElement("button");
-        next.type = "button";
-        next.className = "btn btn-primary";
-        next.textContent =
-        index + 1 === questions.length ? "Finish session" : "Next question";
-        next.addEventListener("click", () => actions.nextQuestion());
-        controls.append(next);
-    }
+    controls.className = "question-actions practice-navigation-actions";
+    const previous = document.createElement("button");
+    previous.type = "button";
+    previous.className = "btn btn-ghost";
+    previous.textContent = "Previous";
+    previous.disabled = index === 0;
+    previous.addEventListener("click", () => actions.previousQuestion());
+    const next = document.createElement("button");
+    next.type = "button";
+    next.className = "btn btn-primary";
+    next.textContent = "Next";
+    next.title = index + 1 === questions.length ? "Finish session" : "Next question";
+    next.addEventListener("click", () => actions.nextQuestion());
+    controls.append(previous, next);
     questionCard.append(controls);
     const shortcutHint = document.createElement("p");
     shortcutHint.className = "tiny practice-shortcuts";
-    shortcutHint.textContent = "Shortcuts: A/B/C/D select, Enter submit/next, F flag.";
+    shortcutHint.textContent = "Shortcuts: A/B/C/D select, Enter next, Left/Right navigate, F flag.";
     questionCard.append(shortcutHint);
-    if (questionState.submitted && activeSession.config.reviewMode === "immediate") {
+    if (showFeedback) {
         const explanation = document.createElement("div");
         explanation.className = "explanation-panel";
         const verdict = document.createElement("p");

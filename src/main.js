@@ -67,10 +67,11 @@ const setupKeyboardShortcuts = () => {
             if (["a", "b", "c", "d"].includes(key)) {
                 actions.selectChoice(key.toUpperCase());
                 event.preventDefault();
-            } else if (key === "enter") {
-                const question = state.activeSession.generatedSession.questions[state.activeSession.currentQuestionIndex];
-                const questionState = state.activeSession.questionStateById[question.id];
-                if (questionState.submitted) actions.nextQuestion(); else actions.submitAnswer();
+            } else if (key === "enter" || event.key === "ArrowRight") {
+                actions.nextQuestion();
+                event.preventDefault();
+            } else if (event.key === "ArrowLeft") {
+                actions.previousQuestion();
                 event.preventDefault();
             } else if (key === "f") {
                 actions.flagCurrentQuestion();

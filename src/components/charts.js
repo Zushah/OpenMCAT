@@ -54,6 +54,7 @@ const baseScales = (theme) => ({
 
 export const getDefaultChartOptions = (overrides = {}) => {
     const theme = getChartTheme();
+    const { replaceScales = false, ...optionOverrides } = overrides;
     return {
         responsive: true,
         maintainAspectRatio: false,
@@ -62,14 +63,14 @@ export const getDefaultChartOptions = (overrides = {}) => {
             intersect: false,
             mode: "index"
         },
-        ...overrides,
+        ...optionOverrides,
         plugins: {
             ...basePlugins(theme),
-            ...(overrides.plugins ?? {})
+            ...(optionOverrides.plugins ?? {})
         },
-        scales: {
+        scales: replaceScales ? (optionOverrides.scales ?? {}) : {
             ...baseScales(theme),
-            ...(overrides.scales ?? {})
+            ...(optionOverrides.scales ?? {})
         }
     };
 };
@@ -92,20 +93,24 @@ export const queueChartRender = (canvas, config) => {
     return true;
 };
 
-export const createChartShell = ({ title, subtitle = "", canvasLabel = "Dashboard chart", table = null }) => {
+export const createChartShell = ({ title, subtitle = "", canvasLabel = "Dashboard chart", table = null, headerControls = null }) => {
     const card = document.createElement("article");
     card.className = "card card-pad chart-card";
     const header = document.createElement("div");
     header.className = "chart-card-header";
+    const titleWrap = document.createElement("div");
+    titleWrap.className = "chart-card-title";
     const heading = document.createElement("h2");
     heading.textContent = title;
-    header.append(heading);
+    titleWrap.append(heading);
     if (subtitle) {
         const note = document.createElement("p");
         note.className = "tiny";
         note.textContent = subtitle;
-        header.append(note);
+        titleWrap.append(note);
     }
+    header.append(titleWrap);
+    if (headerControls) header.append(headerControls);
     const canvasWrap = document.createElement("div");
     canvasWrap.className = "chart-canvas-wrap";
     const canvas = document.createElement("canvas");

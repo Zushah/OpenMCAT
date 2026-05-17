@@ -26,7 +26,17 @@ const sectionOptions = new Set(["all", ...SECTIONS.map((section) => section.id)]
 
 const safeNumber = (value, fallback = 0) => { const number = Number(value); return Number.isFinite(number) ? number : fallback; };
 
-const round = (value, places = 0.01) => cb.numb.roundTo(safeNumber(value), places);
+const round = (num, places = 0.01) => {
+    const rounded = cb.numb.roundTo(safeNumber(num), safeNumber(places));
+    const str = Math.abs(safeNumber(places)).toString().toLowerCase();
+    let decimalPlaces = 0;
+    if (str.includes("e-")) {
+        const [coefficient, exponent] = str.split("e-");
+        const coefficientDecimals = coefficient.split(".")[1]?.length ?? 0;
+        decimalPlaces = Number(exponent) + coefficientDecimals;
+    } else if (!str.includes("e+")) decimalPlaces = str.split(".")[1]?.length ?? 0;
+    return Number(rounded.toFixed(decimalPlaces));
+};
 
 const constrain = (value, min, max) => cb.numb.constrain(safeNumber(value), [min, max]);
 
@@ -204,7 +214,7 @@ const finalizeAggregate = (record, minAttempts = DEFAULT_MIN_ATTEMPTS) => {
     const sortedTrendRows = record.attemptsForTrend.slice().sort((a, b) => a.answeredAtMs - b.answeredAtMs);
     let trendDelta = null;
     if (sortedTrendRows.length >= 4) {
-        const midpoint = cb.numb.roundTo((sortedTrendRows.length - 0.5) / 2, 1);
+        const midpoint = Math.floor(sortedTrendRows.length / 2);
         const older = sortedTrendRows.slice(0, midpoint);
         const newer = sortedTrendRows.slice(midpoint);
         trendDelta = accuracyFromRows(newer) - accuracyFromRows(older);
@@ -241,7 +251,7 @@ const finalizeAggregate = (record, minAttempts = DEFAULT_MIN_ATTEMPTS) => {
         lastSeenAt: record.lastSeenAtMs ? new Date(record.lastSeenAtMs).toISOString() : null,
         lastSeenAtMs: record.lastSeenAtMs ?? 0,
         trendDelta,
-        priorityScore: round(priorityScore, 0.1),
+        priorityScore: round(priorityScore, 0.01),
         signalStrength: attempts >= minAttempts || record.rawCount >= minAttempts ? "stable" : attempts >= 1 ? "early" : "none"
     };
 };
@@ -258,6 +268,47 @@ const aggregateAttempts = (attempts, getKeys, options = {}) => {
     });
     return Array.from(groups.values()).map((record) => finalizeAggregate(record, minAttempts));
 };
+
+const buildSectionTopicCoverage = (attempts) => {
+    const topicsBySection = new Map();
+    SECTIONS.forEach((section) => {
+        topicsBySection.set(section.id, TOPICS.filter((topic) => topic.sectionId === section.id).map((topic) => topic.id));
+    });
+    const coveredBySection = new Map(SECTIONS.map((section) => [section.id, new Set()]));
+    attempts.forEach((attempt) => {
+        const sectionId = attempt.sectionId;
+        if (!coveredBySection.has(sectionId)) coveredBySection.set(sectionId, new Set());
+        (attempt.topicIds ?? []).forEach((topicId) => {
+            const topic = TOPICS.find((item) => item.id === topicId);
+            const topicSectionId = topic?.sectionId ?? sectionId;
+            if (topicSectionId === sectionId && validTopicIds.has(topicId)) coveredBySection.get(sectionId).add(topicId);
+        });
+    });
+    return Object.fromEntries(SECTIONS.map((section) => {
+        const total = topicsBySection.get(section.id)?.length ?? 0;
+        const covered = coveredBySection.get(section.id)?.size ?? 0;
+        return [section.id, {
+            sectionId: section.id,
+            coveredTopicCount: covered,
+            totalTopicCount: total,
+            topicCoverageRate: total ? covered / total : 0
+        }];
+    }));
+};
+
+const applyTopicCoverageToSectionRows = (rows, coverageBySection) => rows.map((row) => {
+    const coverage = coverageBySection[row.id] ?? { coveredTopicCount: 0, totalTopicCount: 0, topicCoverageRate: 0 };
+    const coverageMultiplier = coverage.topicCoverageRate > 0 ? constrain(0.55 + (0.45 * cb.real.sqrt(coverage.topicCoverageRate)), 0, 1) : 0;
+    return {
+        ...row,
+        contentMastery: row.mastery,
+        topicCoverageMultiplier: round(coverageMultiplier, 0.01),
+        topicCoverageRate: coverage.topicCoverageRate,
+        coveredTopicCount: coverage.coveredTopicCount,
+        totalTopicCount: coverage.totalTopicCount,
+        mastery: round(row.mastery * coverageMultiplier, 0.01)
+    };
+});
 
 const buildTopicSkillPairs = (attempts, minAttempts) => {
     return aggregateAttempts(attempts, (attempt) => {
@@ -492,7 +543,9 @@ export const computeMetrics = ({ attempts = [], sessions = [], flags = [], filte
     const averageElapsedMs = elapsedValues.length ? mean(elapsedValues) : 0;
     const averageTargetTimeMs = filteredAttempts.length ? mean(filteredAttempts.map((attempt) => attempt.targetTimeMs).filter(Number.isFinite)) : DEFAULT_TARGET_TIME_MS;
     const overallMastery = computeMastery({ correct: totalCorrect, attempts: totalQuestionsAnswered, averageTimeMs: averageElapsedMs, targetTimeMs: averageTargetTimeMs });
-    const bySection = aggregateAttempts(filteredAttempts, (attempt) => [{ id: attempt.sectionId, sectionId: attempt.sectionId }], { minAttempts }).sort((a, b) => b.mastery - a.mastery || b.attempts - a.attempts);
+    const sectionTopicCoverage = buildSectionTopicCoverage(filteredAttempts);
+    const bySectionRaw = aggregateAttempts(filteredAttempts, (attempt) => [{ id: attempt.sectionId, sectionId: attempt.sectionId }], { minAttempts });
+    const bySection = applyTopicCoverageToSectionRows(bySectionRaw, sectionTopicCoverage).sort((a, b) => b.mastery - a.mastery || b.attempts - a.attempts);
     const byTopic = aggregateAttempts(filteredAttempts, (attempt) => attempt.topicIds.map((topicId) => ({ id: topicId, sectionId: attempt.sectionId })), { minAttempts }).sort((a, b) => b.priorityScore - a.priorityScore || b.attempts - a.attempts);
     const bySkill = aggregateAttempts(filteredAttempts, (attempt) => attempt.skillIds.map((skillId) => ({ id: skillId, sectionId: attempt.sectionId })), { minAttempts }).sort((a, b) => b.priorityScore - a.priorityScore || b.attempts - a.attempts);
     const byDifficulty = aggregateAttempts(filteredAttempts, (attempt) => [{ id: attempt.difficulty }], { minAttempts }).sort((a, b) => ["easy", "medium", "hard", "mixed"].indexOf(a.id) - ["easy", "medium", "hard", "mixed"].indexOf(b.id));
@@ -535,7 +588,7 @@ export const computeMetrics = ({ attempts = [], sessions = [], flags = [], filte
     const weakness = {
         topicSkillPairs,
         topicSkillMatrix,
-        weakestTopics: byTopic.slice().sort((a, b) => b.priorityScore - a.priorityScore).slice(0, 12),
+        weakestTopics: byTopic.slice().sort((a, b) => b.priorityScore - a.priorityScore),
         weakestSkills: bySkill.slice().sort((a, b) => b.priorityScore - a.priorityScore).slice(0, 10),
         weakestSections: bySection.slice().sort((a, b) => b.priorityScore - a.priorityScore)
     };

@@ -2,9 +2,23 @@ import { getSkillsForSection, getTopicsBySection } from "../data/taxonomy.js";
 
 const cb = Chalkboard;
 
-const pct = (value) => `${cb.numb.roundTo((value || 0) * 100, 1)}%`;
+const safeNumber = (value, fallback = 0) => { const number = Number(value); return Number.isFinite(number) ? number : fallback; };
 
-const msToSeconds = (ms) => Number.isFinite(ms) ? cb.numb.roundTo(ms / 1000, 1) : null;
+const round = (num, places = 0.01) => {
+    const rounded = cb.numb.roundTo(safeNumber(num), safeNumber(places));
+    const str = Math.abs(safeNumber(places)).toString().toLowerCase();
+    let decimalPlaces = 0;
+    if (str.includes("e-")) {
+        const [coefficient, exponent] = str.split("e-");
+        const coefficientDecimals = coefficient.split(".")[1]?.length ?? 0;
+        decimalPlaces = Number(exponent) + coefficientDecimals;
+    } else if (!str.includes("e+")) decimalPlaces = str.split(".")[1]?.length ?? 0;
+    return Number(rounded.toFixed(decimalPlaces));
+};
+
+const pct = (value) => `${round((value || 0) * 100, 0.1)}%`;
+
+const msToSeconds = (ms) => Number.isFinite(ms) ? round(ms / 1000, 0.1) : null;
 
 const getDefaultSectionId = (metrics) => {
     const filteredSection = metrics?.filters?.sectionId;
@@ -143,7 +157,7 @@ export const buildRecommendation = ({ topicsById, skillsById, sectionsById, metr
     const pairAttempts = getPairAttempts(topPair);
     const rationale = [
         `${topicLabel} with ${skillLabel} is the highest-priority topic-skill target in the current dashboard view.`,
-        `${cb.numb.roundTo(pairAttempts, pairAttempts % 1 ? 0.1 : 1)} related attempt${pairAttempts === 1 ? "" : "s"}, ${pct(topPair.accuracy)} raw accuracy, ${pct(topPair.smoothedAccuracy)} smoothed accuracy, and ${cb.numb.roundTo(topPair.mastery ?? 1, 0.1)} mastery.`
+        `${round(pairAttempts, pairAttempts % 1 ? 0.01 : 1)} related attempt${pairAttempts === 1 ? "" : "s"}, ${pct(topPair.accuracy)} raw accuracy, ${pct(topPair.smoothedAccuracy)} smoothed accuracy, and ${round(topPair.mastery ?? 1, 0.01)} mastery.`
     ];
     if (avgSeconds && targetSeconds && avgSeconds > targetSeconds) rationale.push(`Average time is ${avgSeconds}s against a ${targetSeconds}s target.`);
     if (timingGap) rationale.push("Timed accuracy is materially lower than untimed accuracy in the current view.");
@@ -152,12 +166,12 @@ export const buildRecommendation = ({ topicsById, skillsById, sectionsById, metr
     return {
         type: "weak_pair",
         headline: "Recommended next drill",
-        body: `Drill ${sectionLabel}: ${topicLabel} plus ${skillLabel}. Use ${questionCount} ${timed ? "timed" : "untimed"} medium questions with ${reviewMode === "later" ? "review after the set" : "immediate explanations"}.`,
+        body: `Drill ${sectionLabel}: ${topicLabel} with ${skillLabel}. Use ${questionCount} ${timed ? "timed" : "untimed"} medium questions with ${reviewMode === "later" ? "review after the set" : "immediate explanations"}.`,
         rationale,
         evidence: buildEvidence(topPair),
         config,
         alternatives: pairs.slice(1, 4).map((pair) => ({
-            label: `${getTopicLabel(topicsById, pair.topicId)} / ${getSkillLabel(skillsById, pair.skillId)}`,
+            label: `${getTopicLabel(topicsById, pair.topicId)} with ${getSkillLabel(skillsById, pair.skillId)}`,
             config: {
                 sectionId: pair.sectionId || topicsById?.[pair.topicId]?.sectionId || targetSectionId,
                 topicIds: [pair.topicId],

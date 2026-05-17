@@ -6,21 +6,35 @@ import { formatDurationMs } from "../components/timer.js";
 const cb = Chalkboard;
 const PAGE_SIZE = 10;
 
+const safeNumber = (value, fallback = 0) => { const number = Number(value); return Number.isFinite(number) ? number : fallback; };
+
+const round = (num, places = 0.01) => {
+    const rounded = cb.numb.roundTo(safeNumber(num), safeNumber(places));
+    const str = Math.abs(safeNumber(places)).toString().toLowerCase();
+    let decimalPlaces = 0;
+    if (str.includes("e-")) {
+        const [coefficient, exponent] = str.split("e-");
+        const coefficientDecimals = coefficient.split(".")[1]?.length ?? 0;
+        decimalPlaces = Number(exponent) + coefficientDecimals;
+    } else if (!str.includes("e+")) decimalPlaces = str.split(".")[1]?.length ?? 0;
+    return Number(rounded.toFixed(decimalPlaces));
+};
+
 const sectionsById = Object.fromEntries(SECTIONS.map((section) => [section.id, section]));
 const topicsById = Object.fromEntries(TOPICS.map((topic) => [topic.id, topic]));
 const skillsById = Object.fromEntries([...SCIENCE_SKILLS, ...CARS_SKILLS].map((skill) => [skill.id, skill]));
 const sectionOrder = Object.fromEntries(SECTIONS.map((section, index) => [section.id, index]));
 const skillOrder = Object.fromEntries([...SCIENCE_SKILLS, ...CARS_SKILLS].map((skill, index) => [skill.id, index]));
 
-const pct = (value) => `${cb.numb.roundTo((value || 0) * 100, 1)}%`;
+const pct = (value) => `${round((value || 0) * 100, 0.1)}%`;
 
-const pctPoints = (value) => value === null || value === undefined ? "n/a" : `${value >= 0 ? "+" : ""}${cb.numb.roundTo(value * 100, 0.1)} pts`;
+const pctPoints = (value) => value === null || value === undefined ? "n/a" : `${value >= 0 ? "+" : ""}${round(value * 100, 0.1)} pts`;
 
-const score = (value) => Number.isFinite(value) ? `${+(Math.round(value + "e+1") + "e-1")}` : "n/a";
+const score = (value) => Number.isFinite(value) ? `${round(value, 0.1)}` : "n/a";
 
-const seconds = (ms) => Number.isFinite(ms) && ms > 0 ? `${cb.numb.roundTo(ms / 1000, 1)}s` : "n/a";
+const seconds = (ms) => Number.isFinite(ms) && ms > 0 ? `${round(ms / 1000, 0.1)}s` : "n/a";
 
-const attemptCount = (value) => Number.isInteger(value) ? `${value}` : `${cb.numb.roundTo(value || 0, 0.1)}`;
+const attemptCount = (value) => Number.isInteger(value) ? `${value}` : `${round(value || 0, 0.01)}`;
 
 const wrapLabel = (label, maxLineLength = 18, maxLines = 3) => {
     const words = String(label ?? "n/a").split(/\s+/).filter(Boolean);
@@ -76,6 +90,8 @@ const rowNameFromId = (type, id) => {
 
 const topicSectionId = (topicId, fallback = "bb") => topicsById[topicId]?.sectionId ?? fallback;
 
+const topicLabelWithSection = (topicId, sectionId = null) => `${rowNameFromId("section", sectionId ?? topicSectionId(topicId))}: ${rowNameFromId("topic", topicId)}`;
+
 const getQuestionFormat = (sectionId) => sectionId === "cars" ? "cars_beta" : "mixed";
 
 const targetSecondsForSection = (sectionId) => sectionId === "cars" ? 110 : 95;
@@ -92,14 +108,7 @@ const getPaginatedRows = (rows, pages, key) => {
     const page = Math.max(0, Math.min(requestedPage, pageCount - 1));
     const start = page * PAGE_SIZE;
     const end = Math.min(start + PAGE_SIZE, totalItems);
-    return {
-        rows: allRows.slice(start, end),
-        totalItems,
-        page,
-        pageCount,
-        start,
-        end
-    };
+    return { rows: allRows.slice(start, end), totalItems, page, pageCount, start, end };
 };
 
 const createPaginationButton = (icon, label, disabled, onClick) => {
@@ -265,11 +274,7 @@ const renderSummaryGrid = (metrics, recommendation) => {
         createStatCard("Mastery estimate", `${score(totals.mastery)}/100`, "Smoothed accuracy plus volume and timing"),
         createStatCard("Avg time / question", formatDurationMs(totals.averageElapsedMs), `Target: ${seconds(totals.averageTargetTimeMs)}`),
         createStatCard("Completion rate", pct(totals.completionRate), `${totals.totalCompletedSessions} completed sessions stored`),
-        createStatCard(
-            "Timed vs untimed",
-            typeof totals.timedUntimedGap === "number" ? pctPoints(Math.abs(totals.timedUntimedGap)) : "n/a",
-            gapHint
-        ),
+        createStatCard("Timed vs untimed", typeof totals.timedUntimedGap === "number" ? pctPoints(Math.abs(totals.timedUntimedGap)) : "n/a", gapHint),
         createStatCard("Calibration", calibration, `${metrics.confidence.noConfidenceCount} attempts without confidence`),
         createStatCard("Active flags", `${totals.activeFlagCount}`, `${pct(totals.flaggedRate)} of filtered attempts`),
         createStatCard("Best section", rowNameFromId("section", bestSection?.id), bestSection ? `${score(bestSection.mastery)}/100 mastery` : "Need section data"),
@@ -348,9 +353,14 @@ const renderInsights = (metrics) => {
     return card;
 };
 
-const renderChartPanel = ({ title, subtitle, canvasLabel, tableColumns, tableRows, config }) => {
+const renderChartPanel = ({ title, subtitle, canvasLabel, tableColumns, tableRows, config, headerAction = null }) => {
     const table = createAccessibleDataTable(tableColumns, tableRows);
     const { card, canvas } = createChartShell({ title, subtitle, canvasLabel, table });
+    if (headerAction) {
+        const header = card.querySelector(".chart-card-header");
+        header?.classList.add("chart-card-header-with-action");
+        header?.append(headerAction);
+    }
     queueChartRender(canvas, config);
     return card;
 };
@@ -362,7 +372,7 @@ const renderTrendChart = (metrics) => {
     const usingRolling = rollingRows.length >= 3;
     const rows = usingRolling ? rollingRows : dailyRows;
     const labels = rows.map((row) => usingRolling ? row.label : row.date);
-    const accuracyData = rows.map((row) => cb.numb.roundTo(row.accuracy * 100, 0.1));
+    const accuracyData = rows.map((row) => round(row.accuracy * 100, 0.1));
     const tableRows = rows.map((row) => [usingRolling ? `Attempt ${row.label}` : row.date, `${row.attempts}`, pct(row.accuracy)]);
     return renderChartPanel({
         title: "Accuracy trend",
@@ -402,47 +412,70 @@ const renderSectionMasteryChart = (metrics) => {
     const rows = metrics.rows.bySection.slice().sort((a, b) => (sectionOrder[a.id] ?? 99) - (sectionOrder[b.id] ?? 99));
     return renderChartPanel({
         title: "Section mastery",
-        subtitle: "Mastery is a smoothed 0-100 estimate adjusted for volume and timing.",
-        canvasLabel: "Section mastery horizontal bar chart",
-        tableColumns: ["Section", "Attempts", "Accuracy", "Mastery"],
-        tableRows: rows.map((row) => [rowNameFromId("section", row.id), attemptCount(row.attempts), pct(row.accuracy), `${score(row.mastery)}/100`]),
+        subtitle: "Mastery is adjusted for accuracy, volume, timing, and topic coverage for each section.",
+        canvasLabel: "Section mastery radar chart",
+        tableColumns: ["Section", "Attempts", "Accuracy", "Coverage", "Mastery"],
+        tableRows: rows.map((row) => [rowNameFromId("section", row.id), attemptCount(row.attempts), pct(row.accuracy), `${row.coveredTopicCount ?? 0}/${row.totalTopicCount ?? 0}`, `${score(row.mastery)}/100`]),
         config: {
-            type: "bar",
+            type: "radar",
             data: {
                 labels: rows.map((row) => rowNameFromId("section", row.id)),
-                datasets: [{ label: "Mastery", data: rows.map((row) => row.mastery), backgroundColor: theme.accent }]
+                datasets: [{
+                    label: "Mastery",
+                    data: rows.map((row) => row.mastery),
+                    borderColor: theme.accent,
+                    backgroundColor: "rgba(143, 248, 188, 0.16)",
+                    pointBackgroundColor: theme.accent,
+                    pointBorderColor: theme.accent
+                }]
             },
             options: getDefaultChartOptions({
-                indexAxis: "y",
+                replaceScales: true,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `${context.dataset.label}: ${score(context.raw)}/100`
+                        }
+                    }
+                },
                 scales: {
-                    x: { min: 0, max: 100, ticks: { color: theme.textMuted }, grid: { color: theme.border } },
-                    y: { ticks: { color: theme.textMuted, autoSkip: false }, grid: { color: theme.border } }
+                    r: {
+                        min: 0,
+                        max: 100,
+                        angleLines: { color: theme.border },
+                        grid: { color: theme.border },
+                        pointLabels: { color: theme.textSecondary, font: { size: 12, weight: "650" } },
+                        ticks: { color: theme.textMuted, backdropColor: "transparent", callback: (value) => `${value}` }
+                    }
                 }
             })
         }
     });
 };
 
-const renderTopicWeaknessChart = (metrics) => {
+const renderTopicWeaknessChart = (metrics, actions, pages) => {
     const theme = getChartTheme();
-    const rows = metrics.weakness.weakestTopics.slice(0, 10).reverse();
+    const allRows = metrics.weakness.weakestTopics;
+    const pageInfo = getPaginatedRows(allRows, pages, "topicWeakness");
+    const rows = pageInfo.rows;
+    const pagination = createPaginationControls({ key: "topicWeakness", pageInfo, actions });
     return renderChartPanel({
         title: "Topic weakness priority",
         subtitle: "Higher priority combines low smoothed accuracy, slower timing, flags, volume, and confidence mismatch.",
         canvasLabel: "Topic weakness priority chart",
         tableColumns: ["Topic", "Attempts", "Accuracy", "Priority"],
-        tableRows: rows.slice().reverse().map((row) => [rowNameFromId("topic", row.id), attemptCount(row.attempts), pct(row.accuracy), score(row.priorityScore)]),
+        tableRows: rows.map((row) => [rowNameFromId("topic", row.id), attemptCount(row.attempts), pct(row.accuracy), score(row.priorityScore)]),
+        headerAction: pagination,
         config: {
             type: "bar",
             data: {
-                labels: rows.map((row) => chartLabel(rowNameFromId("topic", row.id), 18, 3)),
+                labels: rows.map((row) => chartLabel(rowNameFromId("topic", row.id), 14, 3)),
                 datasets: [{ label: "Priority", data: rows.map((row) => row.priorityScore), backgroundColor: theme.warning }]
             },
             options: getDefaultChartOptions({
-                indexAxis: "y",
                 scales: {
-                    x: { min: 0, max: 100, ticks: { color: theme.textMuted }, grid: { color: theme.border } },
-                    y: { ticks: { color: theme.textMuted, autoSkip: false }, grid: { color: theme.border } }
+                    x: { ticks: { color: theme.textMuted, autoSkip: false, maxRotation: 0, minRotation: 0 }, grid: { color: theme.border } },
+                    y: { min: 0, max: 100, ticks: { color: theme.textMuted }, grid: { color: theme.border } }
                 }
             })
         }
@@ -463,7 +496,7 @@ const renderSkillPerformanceChart = (metrics) => {
             data: {
                 labels: rows.map((row) => chartLabel(rowNameFromId("skill", row.id), 18, 3)),
                 datasets: [
-                    { label: "Accuracy", data: rows.map((row) => cb.numb.roundTo(row.accuracy * 100, 0.1)), backgroundColor: theme.accent },
+                    { label: "Accuracy", data: rows.map((row) => round(row.accuracy * 100, 0.1)), backgroundColor: theme.accent },
                     { label: "Mastery", data: rows.map((row) => row.mastery), backgroundColor: theme.accentTwo }
                 ]
             },
@@ -491,8 +524,8 @@ const renderConfidenceChart = (metrics) => {
             data: {
                 labels: rows.map((row) => row.id),
                 datasets: [
-                    { label: "Actual accuracy", data: rows.map((row) => row.attempts ? cb.numb.roundTo(row.accuracy * 100, 0.1) : null), borderColor: theme.accent, backgroundColor: theme.accent, tension: 0.2, pointRadius: 4 },
-                    { label: "Reference", data: rows.map((row) => cb.numb.roundTo(row.expectedAccuracy * 100, 1)), borderColor: theme.textMuted, backgroundColor: theme.textMuted, borderDash: [5, 5], tension: 0.2, pointRadius: 2 }
+                    { label: "Actual accuracy", data: rows.map((row) => row.attempts ? round(row.accuracy * 100, 0.1) : null), borderColor: theme.accent, backgroundColor: theme.accent, tension: 0.2, pointRadius: 4 },
+                    { label: "Reference", data: rows.map((row) => round(row.expectedAccuracy * 100, 0.1)), borderColor: theme.textMuted, backgroundColor: theme.textMuted, borderDash: [5, 5], tension: 0.2, pointRadius: 2 }
                 ]
             },
             options: getDefaultChartOptions({
@@ -518,8 +551,8 @@ const renderTimingChart = (metrics) => {
             data: {
                 labels: rows.map((row) => rowNameFromId("difficulty", row.id)),
                 datasets: [
-                    { label: "Average seconds", data: rows.map((row) => cb.numb.roundTo(row.averageElapsedMs / 1000, 1)), backgroundColor: theme.accentTwo },
-                    { label: "Target seconds", data: rows.map((row) => cb.numb.roundTo(row.targetTimeMs / 1000, 1)), backgroundColor: theme.textMuted }
+                    { label: "Average seconds", data: rows.map((row) => round(row.averageElapsedMs / 1000, 0.1)), backgroundColor: theme.accentTwo },
+                    { label: "Target seconds", data: rows.map((row) => round(row.targetTimeMs / 1000, 0.1)), backgroundColor: theme.textMuted }
                 ]
             },
             options: getDefaultChartOptions()
@@ -527,12 +560,12 @@ const renderTimingChart = (metrics) => {
     });
 };
 
-const renderChartGrid = (metrics) => {
+const renderChartGrid = (metrics, actions, pages) => {
     const grid = createElement("section", "dashboard-chart-grid");
     grid.append(
         renderTrendChart(metrics),
         renderSectionMasteryChart(metrics),
-        renderTopicWeaknessChart(metrics),
+        renderTopicWeaknessChart(metrics, actions, pages),
         renderSkillPerformanceChart(metrics),
         renderConfidenceChart(metrics),
         renderTimingChart(metrics)
@@ -582,7 +615,7 @@ const renderHeatmap = (metrics, actions, pages) => {
     appendText(headerRow, "th", "", "Topic");
     skills.forEach((skill) => {
         const th = createElement("th", "heatmap-skill-header");
-        appendWrappedLabel(th, skill.shortName, 24);
+        appendWrappedLabel(th, skill.shortName, 28);
         headerRow.append(th);
     });
     thead.append(headerRow);
@@ -592,7 +625,7 @@ const renderHeatmap = (metrics, actions, pages) => {
         const tr = document.createElement("tr");
         const topicCell = document.createElement("th");
         topicCell.scope = "row";
-        topicCell.textContent = rowNameFromId("topic", row.topicId);
+        topicCell.textContent = topicLabelWithSection(row.topicId, row.sectionId);
         tr.append(topicCell);
         skills.forEach((skill) => {
             const td = document.createElement("td");
@@ -801,7 +834,7 @@ export const renderDashboardView = (state, actions) => {
         renderSummaryGrid(metrics, analytics.recommendation),
         renderRecommendationCard(analytics.recommendation, actions),
         renderInsights(metrics),
-        renderChartGrid(metrics),
+        renderChartGrid(metrics, actions, pages),
         renderHeatmap(metrics, actions, pages),
         renderTables(metrics, actions, pages)
     );
