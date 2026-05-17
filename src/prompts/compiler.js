@@ -1,7 +1,7 @@
 import { getSectionById, getSkillById, getTopicById } from "../data/taxonomy.js";
 import { PRACTICE_SCHEMA_SUMMARY } from "../schema/practice.js";
 import { BASE_SYSTEM_PROMPT } from "./base.js";
-import { DIFFICULTY_PROMPTS } from "./difficulty.js";
+import { buildDifficultyPrompt } from "./difficulty.js";
 import { FORMAT_PROMPTS } from "./format.js";
 import { SECTION_PROMPTS } from "./section.js";
 import { buildSkillPrompt } from "./skill.js";
@@ -13,7 +13,7 @@ const formatSkillList = (skillIds) => skillIds.map((skillId) => getSkillById(ski
 
 export const compileSystemPrompt = (config) => {
     const sectionPrompt = SECTION_PROMPTS[config.sectionId] ?? "";
-    const difficultyPrompt = DIFFICULTY_PROMPTS[config.difficulty] ?? "";
+    const difficultyPrompt = buildDifficultyPrompt(config);
     const formatPrompt = FORMAT_PROMPTS[config.questionFormat] ?? "";
     const selectedSkills = config.skillIds.map((skillId) => getSkillById(skillId)).filter(Boolean);
     return [
