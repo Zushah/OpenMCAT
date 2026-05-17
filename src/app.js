@@ -2,6 +2,7 @@ import { DEFAULT_CONFIG } from "./data/defaults.js";
 import { loadSettings } from "./storage/settings.js";
 
 export const DEFAULT_DASHBOARD_FILTERS = { range: "all", sectionId: "all", timingMode: "all", reviewMode: "all", minAttempts: 3 };
+export const DEFAULT_DASHBOARD_PAGES = { heatmap: 0, weakPairs: 0, recentMisses: 0, recentSessions: 0 };
 
 export const state = {
     route: "landing",
@@ -24,7 +25,10 @@ export const state = {
     activeSession: null,
     activeAttempt: null,
     analytics: null,
-    dashboard: { filters: { ...DEFAULT_DASHBOARD_FILTERS } }
+    dashboard: {
+        filters: { ...DEFAULT_DASHBOARD_FILTERS },
+        pages: { ...DEFAULT_DASHBOARD_PAGES }
+    }
 };
 
 export const patchState = (patch) => { Object.assign(state, patch); };

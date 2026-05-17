@@ -4,6 +4,7 @@ import { createStatCard } from "../components/stats.js";
 import { formatDurationMs } from "../components/timer.js";
 
 const cb = Chalkboard;
+const PAGE_SIZE = 10;
 
 const sectionsById = Object.fromEntries(SECTIONS.map((section) => [section.id, section]));
 const topicsById = Object.fromEntries(TOPICS.map((topic) => [topic.id, topic]));
@@ -83,6 +84,46 @@ const createElement = (tag, className = "", text = "") => { const element = docu
 
 const appendText = (parent, tag, className, text) => { const element = createElement(tag, className, text); parent.append(element); return element; };
 
+const getPaginatedRows = (rows, pages, key) => {
+    const allRows = Array.isArray(rows) ? rows : [];
+    const totalItems = allRows.length;
+    const pageCount = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+    const requestedPage = Math.floor(Number(pages?.[key]) || 0);
+    const page = Math.max(0, Math.min(requestedPage, pageCount - 1));
+    const start = page * PAGE_SIZE;
+    const end = Math.min(start + PAGE_SIZE, totalItems);
+    return {
+        rows: allRows.slice(start, end),
+        totalItems,
+        page,
+        pageCount,
+        start,
+        end
+    };
+};
+
+const createPaginationButton = (icon, label, disabled, onClick) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "dashboard-page-button";
+    button.disabled = disabled;
+    button.title = label;
+    button.setAttribute("aria-label", label);
+    button.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${icon}</span>`;
+    button.addEventListener("click", onClick);
+    return button;
+};
+
+const createPaginationControls = ({ key, pageInfo, actions }) => {
+    if (!pageInfo || pageInfo.totalItems <= PAGE_SIZE) return null;
+    const controls = createElement("div", "dashboard-card-pagination");
+    const range = createElement("span", "dashboard-page-range", `${pageInfo.start + 1}-${pageInfo.end} of ${pageInfo.totalItems}`);
+    const previous = createPaginationButton("chevron_left", "Previous page", pageInfo.page <= 0, () => actions.setDashboardPage(key, pageInfo.page - 1, pageInfo.pageCount));
+    const next = createPaginationButton("chevron_right", "Next page", pageInfo.page >= pageInfo.pageCount - 1, () => actions.setDashboardPage(key, pageInfo.page + 1, pageInfo.pageCount));
+    controls.append(range, previous, next);
+    return controls;
+};
+
 const createDrillConfig = ({ sectionId, topicId = null, skillId = null, timed = false, count = null }) => ({
     sectionId,
     topicIds: topicId ? [topicId] : [],
@@ -135,7 +176,7 @@ const renderFilterBar = (filters, actions) => {
     const reset = document.createElement("button");
     reset.type = "button";
     reset.className = "btn btn-ghost btn-compact";
-    reset.textContent = "Reset filters";
+    reset.textContent = "Reset";
     reset.addEventListener("click", () => actions.resetDashboardFilters());
     header.append(titleWrap, reset);
     const controls = createElement("div", "dashboard-filter-grid");
@@ -190,24 +231,22 @@ const renderFilterBar = (filters, actions) => {
 
 const renderEmptyState = (actions, filtersActive) => {
     const empty = createElement("section", "card card-pad empty-state dashboard-empty");
-    const icon = createElement("span", "material-symbols-outlined", "insights");
-    icon.setAttribute("aria-hidden", "true");
-    const heading = createElement("h2", "", filtersActive ? "No attempts match these filters" : "No attempts yet");
+    const heading = createElement("h2", "", filtersActive ? "No data matches these filters" : "No data yet");
     const message = createElement("p", "", filtersActive ? "Reset filters or complete more practice to populate this slice of the dashboard." : "Complete a practice session to unlock trends, heatmaps, timing analysis, confidence calibration, and drill recommendations.");
-    const row = createElement("div", "button-row");
+    const row = createElement("div", "button-row dashboard-empty-actions");
     const create = document.createElement("button");
     create.className = "btn btn-primary";
-    create.textContent = "Create practice session";
+    create.textContent = "Generate practice session";
     create.addEventListener("click", () => actions.navigate("generator"));
     row.append(create);
     if (filtersActive) {
         const reset = document.createElement("button");
         reset.className = "btn btn-secondary";
-        reset.textContent = "Reset filters";
+        reset.textContent = "Reset";
         reset.addEventListener("click", () => actions.resetDashboardFilters());
         row.append(reset);
     }
-    empty.append(icon, heading, message, row);
+    empty.append(heading, message, row);
     return empty;
 };
 
@@ -226,7 +265,11 @@ const renderSummaryGrid = (metrics, recommendation) => {
         createStatCard("Mastery estimate", `${score(totals.mastery)}/100`, "Smoothed accuracy plus volume and timing"),
         createStatCard("Avg time / question", formatDurationMs(totals.averageElapsedMs), `Target: ${seconds(totals.averageTargetTimeMs)}`),
         createStatCard("Completion rate", pct(totals.completionRate), `${totals.totalCompletedSessions} completed sessions stored`),
-        createStatCard("Timed vs untimed", gapHint),
+        createStatCard(
+            "Timed vs untimed",
+            typeof totals.timedUntimedGap === "number" ? pctPoints(Math.abs(totals.timedUntimedGap)) : "n/a",
+            gapHint
+        ),
         createStatCard("Calibration", calibration, `${metrics.confidence.noConfidenceCount} attempts without confidence`),
         createStatCard("Active flags", `${totals.activeFlagCount}`, `${pct(totals.flaggedRate)} of filtered attempts`),
         createStatCard("Best section", rowNameFromId("section", bestSection?.id), bestSection ? `${score(bestSection.mastery)}/100 mastery` : "Need section data"),
@@ -515,16 +558,20 @@ const getMatrixSkills = (metrics) => {
     return [...SCIENCE_SKILLS, ...CARS_SKILLS].filter((skill) => usedIds.has(skill.id));
 };
 
-const renderHeatmap = (metrics, actions) => {
+const renderHeatmap = (metrics, actions, pages) => {
     const matrixSections = getMatrixSections(metrics);
     const skills = getMatrixSkills(metrics);
-    const rows = matrixSections.filter((matrix) => metrics.filters.sectionId === "all" || matrix.sectionId === metrics.filters.sectionId).flatMap((matrix) => (matrix.rows ?? []).map((row) => ({ ...row, matrixSkills: matrix.skills ?? [] }))).slice(0, 14);
+    const allRows = matrixSections.filter((matrix) => metrics.filters.sectionId === "all" || matrix.sectionId === metrics.filters.sectionId).flatMap((matrix) => (matrix.rows ?? []).map((row) => ({ ...row, matrixSkills: matrix.skills ?? [] })));
+    const pageInfo = getPaginatedRows(allRows, pages, "heatmap");
+    const rows = pageInfo.rows;
     const card = createElement("section", "card card-pad dashboard-heatmap-card");
     const header = createElement("div", "dashboard-section-header");
     const titleWrap = createElement("div");
     appendText(titleWrap, "h2", "", "Topic-skill heatmap");
     appendText(titleWrap, "p", "tiny", "Each cell is a drillable topic-skill pair. Darker cells have higher weakness priority. Low sample cells are marked as early signal.");
+    const pagination = createPaginationControls({ key: "heatmap", pageInfo, actions });
     header.append(titleWrap);
+    if (pagination) header.append(pagination);
     card.append(header);
     if (!rows.length || !skills.length) { appendText(card, "p", "tiny", "No topic-skill pairs match the active filters yet."); return card; }
     const wrap = createElement("div", "table-wrap heatmap-wrap");
@@ -587,16 +634,20 @@ const renderHeatmap = (metrics, actions) => {
     return card;
 };
 
-const renderWeakPairTable = (metrics, actions) => {
+const renderWeakPairTable = (metrics, actions, pages) => {
     const card = createElement("section", "card card-pad dashboard-table-card");
     const header = createElement("div", "dashboard-section-header");
     const titleWrap = createElement("div");
     appendText(titleWrap, "h2", "", "Weakest topic-skill pairs");
     appendText(titleWrap, "p", "tiny", "Ranked by priority score. Use Drill to turn a weakness into a prefilled practice generation.");
+    const allPairs = metrics.weakness.topicSkillPairs;
+    const pageInfo = getPaginatedRows(allPairs, pages, "weakPairs");
+    const pagination = createPaginationControls({ key: "weakPairs", pageInfo, actions });
     header.append(titleWrap);
+    if (pagination) header.append(pagination);
     card.append(header);
-    const pairs = metrics.weakness.topicSkillPairs.slice(0, 12);
-    if (!pairs.length) { appendText(card, "p", "tiny", "Not enough paired topic-skill data yet."); return card; }
+    const pairs = pageInfo.rows;
+    if (!allPairs.length) { appendText(card, "p", "tiny", "Not enough paired topic-skill data yet."); return card; }
     const wrap = createElement("div", "table-wrap");
     const table = document.createElement("table");
     table.className = "weak-pairs-table";
@@ -632,11 +683,19 @@ const renderWeakPairTable = (metrics, actions) => {
     return card;
 };
 
-const renderRecentMisses = (metrics, actions) => {
+const renderRecentMisses = (metrics, actions, pages) => {
     const card = createElement("section", "card card-pad dashboard-table-card");
-    appendText(card, "h2", "", "Recent missed questions");
-    const misses = metrics.recent.misses;
-    if (!misses.length) { appendText(card, "p", "tiny", "No missed questions match the active filters."); return card; }
+    const header = createElement("div", "dashboard-section-header");
+    const titleWrap = createElement("div");
+    appendText(titleWrap, "h2", "", "Recent missed questions");
+    const allMisses = metrics.recent.misses;
+    const pageInfo = getPaginatedRows(allMisses, pages, "recentMisses");
+    const pagination = createPaginationControls({ key: "recentMisses", pageInfo, actions });
+    header.append(titleWrap);
+    if (pagination) header.append(pagination);
+    card.append(header);
+    const misses = pageInfo.rows;
+    if (!allMisses.length) { appendText(card, "p", "tiny", "No missed questions match the active filters."); return card; }
     const wrap = createElement("div", "table-wrap recent-misses-wrap");
     const table = document.createElement("table");
     table.className = "recent-misses-table";
@@ -646,7 +705,7 @@ const renderRecentMisses = (metrics, actions) => {
     thead.append(headerRow);
     table.append(thead);
     const tbody = document.createElement("tbody");
-    misses.slice(0, 12).forEach((attempt) => {
+    misses.forEach((attempt) => {
         const row = document.createElement("tr");
         const firstTopic = attempt.topicIds?.[0];
         const firstSkill = attempt.skillIds?.[0];
@@ -672,11 +731,19 @@ const renderRecentMisses = (metrics, actions) => {
     return card;
 };
 
-const renderRecentSessions = (metrics, actions) => {
+const renderRecentSessions = (metrics, actions, pages) => {
     const card = createElement("section", "card card-pad dashboard-table-card dashboard-recent-sessions-card");
-    appendText(card, "h2", "", "Recent sessions");
-    const sessions = metrics.recent.sessions;
-    if (!sessions.length) { appendText(card, "p", "tiny", "No completed or attempted sessions match the active filters."); return card; }
+    const header = createElement("div", "dashboard-section-header");
+    const titleWrap = createElement("div");
+    appendText(titleWrap, "h2", "", "Recent sessions");
+    const allSessions = metrics.recent.sessions;
+    const pageInfo = getPaginatedRows(allSessions, pages, "recentSessions");
+    const pagination = createPaginationControls({ key: "recentSessions", pageInfo, actions });
+    header.append(titleWrap);
+    if (pagination) header.append(pagination);
+    card.append(header);
+    const sessions = pageInfo.rows;
+    if (!allSessions.length) { appendText(card, "p", "tiny", "No completed or attempted sessions match the active filters."); return card; }
     const wrap = createElement("div", "table-wrap recent-sessions-wrap");
     const table = document.createElement("table");
     table.className = "recent-sessions-table";
@@ -707,9 +774,9 @@ const renderRecentSessions = (metrics, actions) => {
     return card;
 };
 
-const renderTables = (metrics, actions) => {
+const renderTables = (metrics, actions, pages) => {
     const grid = createElement("section", "dashboard-detail-grid");
-    grid.append(renderWeakPairTable(metrics, actions), renderRecentMisses(metrics, actions), renderRecentSessions(metrics, actions));
+    grid.append(renderWeakPairTable(metrics, actions, pages), renderRecentMisses(metrics, actions, pages), renderRecentSessions(metrics, actions, pages));
     return grid;
 };
 
@@ -722,18 +789,21 @@ export const renderDashboardView = (state, actions) => {
     const analytics = state.analytics;
     const metrics = analytics?.metrics;
     const filters = metrics?.filters ?? state.dashboard.filters;
+    const pages = state.dashboard?.pages ?? {};
     const header = createElement("section", "hero dashboard-hero");
     appendText(header, "h1", "", "Analytics dashboard");
     appendText(header, "p", "", "Use your practice history to identify content gaps, skill vulnerabilities, timing pressure, confidence calibration, and more. Then get recommendations for the next drill to run.");
-    root.append(header, renderFilterBar(filters, actions));
-    if (!metrics || !metrics.totals.totalQuestionsAnswered) { root.append(renderEmptyState(actions, filtersAreActive(filters))); return root; }
+    root.append(header);
+    if (!metrics || !metrics.totals.totalAttemptsStored) { root.append(renderEmptyState(actions, false)); return root; }
+    root.append(renderFilterBar(filters, actions));
+    if (!metrics.totals.totalQuestionsAnswered) { root.append(renderEmptyState(actions, filtersAreActive(filters))); return root; }
     root.append(
         renderSummaryGrid(metrics, analytics.recommendation),
         renderRecommendationCard(analytics.recommendation, actions),
         renderInsights(metrics),
         renderChartGrid(metrics),
-        renderHeatmap(metrics, actions),
-        renderTables(metrics, actions)
+        renderHeatmap(metrics, actions, pages),
+        renderTables(metrics, actions, pages)
     );
     return root;
 };

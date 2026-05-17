@@ -156,7 +156,7 @@ const makeGenerationPipelineModal = (state, actions) => {
     panel.append(top);
     const instructions = document.createElement("p");
     instructions.className = "generation-pipeline-instructions";
-    instructions.textContent = "Copy prompt → Paste into an AI model chatbox of your choice → Paste its output below:";
+    instructions.textContent = "Copy prompt → Paste into your AI's chat → Copy its output → Paste here:";
     panel.append(instructions);
     const controls = document.createElement("div");
     controls.className = "generation-pipeline-row";

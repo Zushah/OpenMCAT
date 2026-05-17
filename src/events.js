@@ -1,4 +1,4 @@
-import { state, patchGeneration, resetGenerationState } from "./app.js";
+import { DEFAULT_DASHBOARD_PAGES, state, patchGeneration, resetGenerationState } from "./app.js";
 import { BATCH_SIZE_LIMITS, DEFAULT_CONFIG, QUESTION_COUNT_LIMITS } from "./data/defaults.js";
 import { CARS_SKILLS, SCIENCE_SKILLS, SECTIONS, TOPICS, getSkillsForSection, getTopicsBySection } from "./data/taxonomy.js";
 import { compilePracticePrompt } from "./prompts/compiler.js";
@@ -75,6 +75,7 @@ export const createActions = ({ render, applyTheme }) => {
     const refreshAnalytics = async () => {
         const data = await getAllData();
         state.dashboard.filters = normalizeDashboardFilters(state.dashboard.filters);
+        state.dashboard.pages = { ...DEFAULT_DASHBOARD_PAGES, ...(state.dashboard.pages ?? {}) };
         const metrics = computeMetrics({
             attempts: data.attempts,
             sessions: data.sessions,
@@ -111,13 +112,26 @@ export const createActions = ({ render, applyTheme }) => {
             ...state.dashboard.filters,
             ...patch
         });
+        state.dashboard.pages = { ...DEFAULT_DASHBOARD_PAGES };
         await refreshAnalytics();
         render();
     };
 
     const resetDashboardFilters = async () => {
         state.dashboard.filters = normalizeDashboardFilters();
+        state.dashboard.pages = { ...DEFAULT_DASHBOARD_PAGES };
         await refreshAnalytics();
+        render();
+    };
+
+    const setDashboardPage = (key, page, pageCount = 1) => {
+        const maxPage = cb.stat.max([0, Number(pageCount) - 1]);
+        const nextPage = Math.floor(clamp(Number(page) || 0, 0, maxPage));
+        state.dashboard.pages = {
+            ...DEFAULT_DASHBOARD_PAGES,
+            ...state.dashboard.pages,
+            [key]: nextPage
+        };
         render();
     };
 
@@ -563,6 +577,7 @@ export const createActions = ({ render, applyTheme }) => {
         refreshAnalytics,
         updateDashboardFilters,
         resetDashboardFilters,
+        setDashboardPage,
         applyDashboardDrill,
         applyRecommendation,
         resetToNewSession

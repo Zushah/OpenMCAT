@@ -558,9 +558,9 @@ export const computeMetrics = ({ attempts = [], sessions = [], flags = [], filte
         })).reverse()
     };
     const recent = {
-        attempts: filteredAttempts.slice().sort((a, b) => b.answeredAtMs - a.answeredAtMs).slice(0, 12),
-        misses: filteredAttempts.filter((attempt) => !attempt.isCorrect).sort((a, b) => b.answeredAtMs - a.answeredAtMs).slice(0, 20),
-        sessions: sessionSummaries.slice(0, 8)
+        attempts: filteredAttempts.slice().sort((a, b) => b.answeredAtMs - a.answeredAtMs),
+        misses: filteredAttempts.filter((attempt) => !attempt.isCorrect).sort((a, b) => b.answeredAtMs - a.answeredAtMs),
+        sessions: sessionSummaries
     };
     const dataHealth = buildDataHealth(filteredAttempts, bySection, minAttempts, totalAttemptsStored);
     const insights = buildInsights({ filteredAttempts, totals, weakness, confidence, minAttempts });

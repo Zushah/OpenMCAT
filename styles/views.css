@@ -1292,3 +1292,180 @@
         min-width: 760px;
     }
 }
+
+.generation-pipeline-instructions {
+    text-align: center;
+}
+
+.generation-pipeline-output {
+    text-align: center;
+    overflow: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.generation-pipeline-output::placeholder {
+    text-align: center;
+}
+
+.generation-pipeline-output::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.dashboard-filters {
+    gap: var(--space-sm);
+}
+
+.dashboard-filters .dashboard-section-header {
+    margin-bottom: 0;
+}
+
+.dashboard-filters .dashboard-section-header p {
+    margin-bottom: 0;
+}
+
+.dashboard-empty .button-row, .dashboard-empty-actions {
+    justify-content: center;
+}
+
+.weak-pairs-table th:last-child, .weak-pairs-table td:last-child, .recent-misses-table th:last-child, .recent-misses-table td:last-child, .recent-sessions-table th:last-child, .recent-sessions-table td:last-child {
+    width: 5.8rem;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.weak-pairs-table td:last-child .btn, .recent-misses-table td:last-child .btn, .recent-sessions-table td:last-child .btn {
+    width: auto;
+    min-width: 4.2rem;
+    padding-inline: 0.82rem;
+    white-space: nowrap;
+}
+
+.settings-data-card {
+    display: grid;
+    align-content: start;
+    gap: var(--space-md);
+}
+
+.settings-data-card h2, .settings-data-card .muted-note {
+    margin-bottom: 0;
+}
+
+.settings-data-actions {
+    display: grid;
+    gap: 0.72rem;
+}
+
+.settings-data-actions > .btn, .settings-import-row {
+    width: 100%;
+}
+
+.settings-import-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.65rem;
+    align-items: center;
+}
+
+.settings-file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.settings-file-picker {
+    min-width: 0;
+    justify-content: flex-start;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.settings-delete-button {
+    color: color-mix(in srgb, var(--danger), var(--text-primary) 12%);
+    border-color: color-mix(in srgb, var(--danger), transparent 62%);
+}
+
+.settings-delete-button:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--danger), transparent 42%);
+    background: color-mix(in srgb, var(--danger), transparent 91%);
+}
+
+@media (max-width: 560px) {
+    .settings-import-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.dashboard-card-pagination {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    flex: 0 0 auto;
+    margin-left: auto;
+    padding-top: 0.05rem;
+}
+
+.dashboard-page-range {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2rem;
+    padding: 0 0.45rem;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.dashboard-page-button {
+    display: inline-grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 1px solid color-mix(in srgb, var(--accent), transparent 78%);
+    border-radius: 999px;
+    background: rgba(236, 255, 248, 0.055);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: border-color 160ms ease, color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.dashboard-page-button:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--accent), transparent 45%);
+    background: rgba(143, 248, 188, 0.1);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+}
+
+.dashboard-page-button:disabled {
+    opacity: 0.38;
+    cursor: default;
+}
+
+.dashboard-page-button .material-symbols-outlined {
+    font-size: 1.12rem;
+}
+
+.dashboard-table-card .dashboard-section-header > div:first-child,
+.dashboard-heatmap-card .dashboard-section-header > div:first-child {
+    min-width: 0;
+}
+
+@media (max-width: 640px) {
+    .dashboard-card-pagination {
+        width: 100%;
+        justify-content: flex-start;
+        margin-left: 0;
+    }
+}
