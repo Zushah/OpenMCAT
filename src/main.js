@@ -1,6 +1,7 @@
 import { state } from "./app.js";
 import { createActions } from "./events.js";
 import { getRouteFromHash } from "./router.js";
+import { destroyDashboardCharts } from "./components/charts.js";
 import { renderAboutView } from "./views/about.js";
 import { renderDashboardView } from "./views/dashboard.js";
 import { renderGeneratorView } from "./views/generator.js";
@@ -34,6 +35,7 @@ const updateActiveNav = (route) => {
 };
 
 const render = () => {
+    destroyDashboardCharts();
     updateActiveNav(state.route);
     mainElement.replaceChildren();
     let view;
@@ -49,9 +51,7 @@ const render = () => {
 
 const actions = createActions({ render, applyTheme });
 
-const handleRouteFromLocation = () => {
-    state.route = getRouteFromHash(location.pathname || "/");
-};
+const handleRouteFromLocation = () => { state.route = getRouteFromHash(location.pathname || "/"); };
 
 const shouldIgnoreShortcut = (target) => {
     if (!(target instanceof HTMLElement)) return false;
@@ -101,15 +101,9 @@ const setupNavHandlers = () => {
     });
 };
 
-window.addEventListener("popstate", () => {
-    handleRouteFromLocation();
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    render();
-});
+window.addEventListener("popstate", () => { handleRouteFromLocation(); window.scrollTo({ top: 0, left: 0, behavior: "auto" }); render(); });
 
-window.addEventListener("storage", () => {
-    if (state.route === "dashboard") actions.refreshAnalytics().then(render);
-});
+window.addEventListener("storage", () => { if (state.route === "dashboard") actions.refreshAnalytics().then(render); });
 
 handleRouteFromLocation();
 setupNavHandlers();

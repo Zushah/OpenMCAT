@@ -6,9 +6,9 @@ import { extractJsonObject } from "./schema/repair.js";
 import { validatePracticeSession } from "./schema/validators.js";
 import { setHashForRoute } from "./router.js";
 import { buildExportPayload, downloadExport, importPayload, parseImportText } from "./storage/exportimport.js";
-import { clearAllData, getAllData, saveAttempt, saveFlag, saveSession, updateSession } from "./storage/db.js";
+import { clearAllData, deleteFlagForQuestion, getAllData, saveAttempt, saveFlag, saveSession, updateAttempt, updateSession } from "./storage/db.js";
 import { saveSettings as persistSettings } from "./storage/settings.js";
-import { computeMetrics } from "./analytics/metrics.js";
+import { computeMetrics, normalizeDashboardFilters } from "./analytics/metrics.js";
 import { buildRecommendation } from "./analytics/recommendations.js";
 import { showToast } from "./components/toast.js";
 
@@ -74,10 +74,12 @@ const buildMaps = () => {
 export const createActions = ({ render, applyTheme }) => {
     const refreshAnalytics = async () => {
         const data = await getAllData();
+        state.dashboard.filters = normalizeDashboardFilters(state.dashboard.filters);
         const metrics = computeMetrics({
             attempts: data.attempts,
             sessions: data.sessions,
-            flags: data.flags
+            flags: data.flags,
+            filters: state.dashboard.filters
         });
         const maps = buildMaps();
         const recommendation = buildRecommendation({
@@ -101,6 +103,21 @@ export const createActions = ({ render, applyTheme }) => {
     const updateConfig = (patch) => {
         const next = normalizeConfig({ ...state.currentConfig, ...patch });
         state.currentConfig = next;
+        render();
+    };
+
+    const updateDashboardFilters = async (patch) => {
+        state.dashboard.filters = normalizeDashboardFilters({
+            ...state.dashboard.filters,
+            ...patch
+        });
+        await refreshAnalytics();
+        render();
+    };
+
+    const resetDashboardFilters = async () => {
+        state.dashboard.filters = normalizeDashboardFilters();
+        await refreshAnalytics();
         render();
     };
 
@@ -320,12 +337,16 @@ export const createActions = ({ render, applyTheme }) => {
         render();
     };
 
-    const setConfidence = (value) => {
+    const setConfidence = async (value) => {
         const active = state.activeSession;
         const question = getActiveQuestion();
         if (!active || !question) return;
         const qState = active.questionStateById[question.id];
         qState.confidence = qState.confidence === value ? null : value;
+        if (qState.attemptId) {
+            await updateAttempt(qState.attemptId, { confidence: qState.confidence });
+            await refreshAnalytics();
+        }
         render();
     };
 
@@ -337,6 +358,9 @@ export const createActions = ({ render, applyTheme }) => {
         if (qState.flagged) {
             qState.flagged = false;
             qState.flagReason = null;
+            await deleteFlagForQuestion(active.id, question.id);
+            if (qState.attemptId) await updateAttempt(qState.attemptId, { flagged: false, flagReason: null });
+            await refreshAnalytics();
             render();
             showToast("Flag removed.");
             return;
@@ -353,7 +377,10 @@ export const createActions = ({ render, applyTheme }) => {
             reason: reasonInput,
             note: ""
         };
+        await deleteFlagForQuestion(active.id, question.id);
         await saveFlag(flagRecord);
+        if (qState.attemptId) await updateAttempt(qState.attemptId, { flagged: true, flagReason: reasonInput });
+        await refreshAnalytics();
         render();
         showToast("Question flagged for review.");
     }
@@ -461,16 +488,27 @@ export const createActions = ({ render, applyTheme }) => {
         showToast("All local study data deleted.");
     };
 
+    const applyDashboardDrill = (config = {}) => {
+        if (!config || typeof config !== "object") { showToast("No drill configuration is available yet."); return; }
+        const next = normalizeConfig({
+            ...state.currentConfig,
+            ...config,
+            providerId: state.currentConfig.providerId,
+            model: state.currentConfig.model,
+            batchSize: state.currentConfig.batchSize,
+            explanationDepth: state.currentConfig.explanationDepth,
+            promptStrictness: state.currentConfig.promptStrictness
+        });
+        state.currentConfig = next;
+        resetGenerationState();
+        navigate("generator");
+        showToast("Generator prefilled from dashboard analytics.", "success");
+    };
+
     const applyRecommendation = () => {
         const recommendation = state.analytics?.recommendation;
         if (!recommendation?.config) { showToast("No recommendation ready yet."); return; }
-        updateConfig({
-            ...recommendation.config,
-            reviewMode: "later",
-            providerId: state.currentConfig.providerId,
-            model: state.currentConfig.model
-        });
-        navigate("generator");
+        applyDashboardDrill(recommendation.config);
     }
 
     const initApp = async () => {
@@ -523,6 +561,9 @@ export const createActions = ({ render, applyTheme }) => {
         importDataFromText,
         deleteAllLocalData,
         refreshAnalytics,
+        updateDashboardFilters,
+        resetDashboardFilters,
+        applyDashboardDrill,
         applyRecommendation,
         resetToNewSession
     };

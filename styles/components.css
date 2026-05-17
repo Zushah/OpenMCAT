@@ -451,3 +451,428 @@ th {
     white-space: nowrap;
     border: 0;
 }
+
+.btn-compact {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+}
+
+.panel-heading {
+    display: grid;
+    gap: 0.25rem;
+    margin-bottom: 0.8rem;
+}
+
+.panel-heading h2, .chart-card-header h2 {
+    margin: 0;
+}
+
+.chart-card {
+    min-width: 0;
+}
+
+.chart-card-header {
+    display: grid;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.chart-canvas-wrap {
+    position: relative;
+    min-height: 280px;
+    width: 100%;
+}
+
+.chart-canvas-wrap canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.chart-fallback {
+    margin-top: 0.5rem;
+}
+
+.chart-data-table {
+    margin-top: 0.75rem;
+    max-height: 220px;
+}
+
+.evidence-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 0.85rem 0;
+}
+
+.evidence-chip {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 9px;
+    background: rgba(236, 255, 248, 0.05);
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+    font-weight: 640;
+}
+
+.btn-small {
+    padding: 7px 10px;
+    font-size: 0.76rem;
+}
+
+.dashboard-section-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.dashboard-section-header h2 {
+    margin-bottom: 0.25rem;
+}
+
+.evidence-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin: 0.95rem 0;
+}
+
+.evidence-chip {
+    display: inline-grid;
+    gap: 2px;
+    min-width: 92px;
+    padding: 0.58rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: rgba(236, 255, 248, 0.045);
+}
+
+.evidence-chip strong {
+    color: var(--text-primary);
+    font-weight: 740;
+    font-size: 0.9rem;
+}
+
+.evidence-chip span {
+    color: var(--text-muted);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.recommendation-rationale {
+    margin: 0.9rem 0 0;
+    padding-left: 1.15rem;
+    color: var(--text-secondary);
+}
+
+.recommendation-rationale li + li {
+    margin-top: 0.35rem;
+}
+
+.chart-card {
+    min-width: 0;
+}
+
+.chart-card-header {
+    margin-bottom: 0.85rem;
+}
+
+.chart-card-header h2 {
+    margin-bottom: 0.25rem;
+}
+
+.chart-canvas-wrap {
+    position: relative;
+    min-height: 280px;
+    height: 34vh;
+    max-height: 380px;
+    margin-bottom: 0.75rem;
+}
+
+.chart-canvas-wrap canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.chart-fallback {
+    margin: 0.2rem 0 0.75rem;
+    color: var(--warning);
+}
+
+.chart-data-table {
+    margin-top: 0.8rem;
+    max-height: 240px;
+}
+
+.chart-data-table table {
+    min-width: 420px;
+}
+
+.table-wrap table, .heatmap-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+}
+
+.table-wrap th, .table-wrap td, .heatmap-table th, .heatmap-table td {
+    padding: 0.55rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.table-wrap th, .heatmap-table th {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.heatmap-wrap {
+    overflow-x: auto;
+    margin-top: 0.8rem;
+}
+
+.heatmap-table {
+    min-width: 760px;
+    border-collapse: separate;
+    border-spacing: 6px;
+}
+
+.heatmap-table th, .heatmap-table td {
+    border-bottom: 0;
+}
+
+.heatmap-table th[scope="row"] {
+    min-width: 190px;
+    color: var(--text-primary);
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.heatmap-empty {
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.heatmap-cell {
+    width: 100%;
+    min-width: 82px;
+    min-height: 60px;
+    display: grid;
+    place-items: center;
+    gap: 2px;
+    border-radius: 14px;
+    border: 1px solid rgba(236, 255, 248, 0.14);
+    background: rgba(236, 255, 248, 0.04);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.heatmap-cell:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: rgba(143, 248, 188, 0.38);
+}
+
+.heatmap-cell-score {
+    font-size: 0.95rem;
+    font-weight: 750;
+}
+
+.heatmap-cell-meta {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+}
+
+.heatmap-level-1 {
+    background: rgba(143, 248, 188, 0.08);
+}
+
+.heatmap-level-2 {
+    background: rgba(248, 220, 143, 0.12);
+    border-color: rgba(248, 220, 143, 0.24);
+}
+
+.heatmap-level-3 {
+    background: rgba(248, 220, 143, 0.2);
+    border-color: rgba(248, 220, 143, 0.36);
+}
+
+.heatmap-level-4 {
+    background: rgba(255, 142, 161, 0.22);
+    border-color: rgba(255, 142, 161, 0.42);
+}
+
+.insight-list {
+    display: grid;
+    gap: 0.65rem;
+    margin-top: 0.9rem;
+}
+
+.insight-item {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.85rem;
+    background: rgba(236, 255, 248, 0.035);
+}
+
+.insight-item.is-warning {
+    border-color: color-mix(in srgb, var(--warning), transparent 58%);
+}
+
+.insight-item.is-info {
+    border-color: rgba(143, 248, 188, 0.22);
+}
+
+.insight-item h3 {
+    margin-bottom: 0.3rem;
+    font-size: 0.95rem;
+}
+
+.insight-item p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.84rem;
+}
+
+.btn-compact {
+    padding: 7px 10px;
+    font-size: 0.76rem;
+}
+
+.evidence-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.85rem 0;
+}
+
+.evidence-chip-list .evidence-chip {
+    display: inline-flex;
+    align-items: center;
+    min-width: auto;
+    padding: 0.42rem 0.65rem;
+    font-size: 0.78rem;
+}
+
+.chart-data-details {
+    margin-top: 0.65rem;
+}
+
+.chart-data-details summary {
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 680;
+}
+
+.chart-table-wrap {
+    margin-top: 0.75rem;
+    max-height: 260px;
+    overflow: auto;
+}
+
+.heatmap-cell.is-cool {
+    background: rgba(143, 248, 188, 0.08);
+}
+
+.heatmap-cell.is-warm {
+    background: rgba(248, 220, 143, 0.16);
+    border-color: color-mix(in srgb, var(--warning), transparent 58%);
+}
+
+.heatmap-cell.is-hot {
+    background: rgba(255, 142, 161, 0.22);
+    border-color: color-mix(in srgb, var(--danger), transparent 48%);
+}
+
+.heatmap-cell em {
+    color: var(--warning);
+    font-size: 0.65rem;
+    font-style: normal;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+select:not([multiple]) {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 2.45rem;
+    border: 1px solid rgba(236, 255, 248, 0.15);
+    border-radius: 13px;
+    background-color: rgba(236, 255, 248, 0.05);
+    background-image:
+    linear-gradient(45deg, transparent 50%, color-mix(in srgb, var(--text-primary), transparent 22%) 50%),
+    linear-gradient(135deg, color-mix(in srgb, var(--text-primary), transparent 22%) 50%, transparent 50%),
+    linear-gradient(120deg, rgba(236, 255, 248, 0.03), rgba(236, 255, 248, 0.055));
+    background-position: calc(100% - 15px) calc(50% - 2px), calc(100% - 9px) calc(50% - 2px), center;
+    background-size: 6px 6px, 6px 6px, 100% 100%;
+    background-repeat: no-repeat;
+    color: var(--text-primary);
+    color-scheme: dark;
+    transition: border-color 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+}
+
+select:not([multiple]):hover {
+    border-color: rgba(143, 248, 188, 0.38);
+}
+
+select:not([multiple]):focus {
+    border-color: rgba(143, 248, 188, 0.55);
+}
+
+select option {
+    background: #212625;
+    color: var(--text-primary);
+}
+
+[data-theme="light"] select:not([multiple]) {
+    background-color: rgba(20, 32, 29, 0.035);
+    background-image:
+    linear-gradient(45deg, transparent 50%, color-mix(in srgb, var(--text-primary), transparent 20%) 50%),
+    linear-gradient(135deg, color-mix(in srgb, var(--text-primary), transparent 20%) 50%, transparent 50%),
+    linear-gradient(120deg, rgba(20, 32, 29, 0.03), rgba(20, 32, 29, 0.06));
+    color-scheme: light;
+}
+
+[data-theme="light"] select option {
+    background: #ffffff;
+    color: var(--text-primary);
+}
+
+.table-wrap, .heatmap-wrap, .chart-table-wrap, .chart-data-table, .codeblock, dialog textarea, textarea {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--accent), transparent 45%) rgba(236, 255, 248, 0.06);
+}
+
+.table-wrap::-webkit-scrollbar, .heatmap-wrap::-webkit-scrollbar, .chart-table-wrap::-webkit-scrollbar, .chart-data-table::-webkit-scrollbar, .codeblock::-webkit-scrollbar, dialog textarea::-webkit-scrollbar, textarea::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.table-wrap::-webkit-scrollbar-track, .heatmap-wrap::-webkit-scrollbar-track, .chart-table-wrap::-webkit-scrollbar-track, .chart-data-table::-webkit-scrollbar-track, .codeblock::-webkit-scrollbar-track, dialog textarea::-webkit-scrollbar-track, textarea::-webkit-scrollbar-track {
+    border-radius: 999px;
+    background: rgba(236, 255, 248, 0.045);
+}
+
+.table-wrap::-webkit-scrollbar-thumb, .heatmap-wrap::-webkit-scrollbar-thumb, .chart-table-wrap::-webkit-scrollbar-thumb, .chart-data-table::-webkit-scrollbar-thumb, .codeblock::-webkit-scrollbar-thumb, dialog textarea::-webkit-scrollbar-thumb, textarea::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent), transparent 45%);
+    background-clip: padding-box;
+}
+
+.table-wrap::-webkit-scrollbar-thumb:hover, .heatmap-wrap::-webkit-scrollbar-thumb:hover, .chart-table-wrap::-webkit-scrollbar-thumb:hover, .chart-data-table::-webkit-scrollbar-thumb:hover, .codeblock::-webkit-scrollbar-thumb:hover, dialog textarea::-webkit-scrollbar-thumb:hover, textarea::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--accent), transparent 28%);
+    background-clip: padding-box;
+}
+
+.table-wrap th, .table-wrap td, .heatmap-table th, .heatmap-table td {
+    overflow-wrap: anywhere;
+}

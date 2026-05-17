@@ -57,6 +57,12 @@ export const saveFlag = async (flagRecord) => {
     return flagRecord;
 };
 
+export const deleteFlagForQuestion = async (sessionId, questionId) => {
+    const rows = readArray(DB_KEYS.flags);
+    const updated = rows.filter((row) => row.sessionId !== sessionId || row.questionId !== questionId);
+    writeArray(DB_KEYS.flags, updated);
+};
+
 export const clearAllData = async () => { Object.values(DB_KEYS).forEach((key) => localStorage.removeItem(key)); };
 
 export const replaceData = async (data) => {

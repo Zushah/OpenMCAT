@@ -72,3 +72,133 @@
     transition-duration: 1ms !important;
     scroll-behavior: auto !important;
 }
+
+@media (max-width: 1100px) {
+    .dashboard-filter-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-filter-grid {
+        grid-template-columns: repeat(3, minmax(130px, 1fr));
+    }
+
+    .dashboard-insight-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .dashboard-chart-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-filter-grid {
+        grid-template-columns: repeat(2, minmax(130px, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .dashboard-filter-grid, .dashboard-insight-strip {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-canvas-wrap {
+        min-height: 240px;
+    }
+
+    .heatmap-table {
+        min-width: 620px;
+    }
+
+    .heatmap-cell {
+        min-width: 100px;
+    }
+}
+
+@media (max-width: 1050px) {
+    .dashboard-filter-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .dashboard-top-row,
+    .dashboard-detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+    .dashboard-chart-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .dashboard-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-section-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .chart-canvas-wrap {
+        min-height: 230px;
+        height: 260px;
+    }
+}
+
+@media (max-width: 900px) {
+    .dashboard-filter-controls, .dashboard-chart-grid, .dashboard-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-filter-controls {
+        align-items: stretch;
+    }
+
+    .dashboard-filter-controls .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .chart-canvas-wrap {
+        min-height: 230px;
+        height: 280px;
+    }
+
+    .heatmap-table {
+        min-width: 680px;
+    }
+}
+
+@media (max-width: 1100px) {
+    .dashboard-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-recommendation {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .dashboard-summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .dashboard-recommendation {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-recommendation .button-row {
+        justify-content: stretch;
+    }
+
+    .dashboard-recommendation .button-row .btn {
+        width: 100%;
+    }
+}
