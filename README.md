@@ -1,6 +1,6 @@
 # OpenMCAT
 
-Open-source and local-first MCAT practice and analytics powered by your AI model.
+Free MCAT practice and analytics powered by your AI model.
 
 ## Status
 
@@ -38,7 +38,7 @@ No accounts, no telemetry, no server-side storage, all study data is local in th
 
 ## Disclaimer
 
-OpenMCAT is an independent free-and-open-source study tool. It is not affiliated with, endorsed by, or sponsored by the Association of American Medical Colleges (AAMC). MCAT is a registered trademark of the AAMC. OpenMCAT generates AI-powered practice for content drilling and reasoning practice. It is not intended to be used as a substitute for official AAMC practice materials and it does not predict MCAT scores.
+OpenMCAT is an independent free-and-open-source study tool. It is not affiliated with, endorsed by, or sponsored by the Association of American Medical Colleges (AAMC). MCAT is a registered trademark of the AAMC. OpenMCAT generates AI-powered practice sessions for drilling topics and skills. It is not intended to be used as a substitute for official AAMC practice materials and it does not guarantee any particular MCAT score.
 
 ## License
 

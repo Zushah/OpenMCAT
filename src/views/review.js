@@ -112,7 +112,7 @@ export const renderReviewView = (state, actions) => {
     sub.textContent = activeSession.generatedSession.session.title;
     const note = document.createElement("p");
     note.className = "muted-note";
-    note.textContent = "AI-generated. Use for drilling and review; verify uncertain explanations.";
+    note.textContent = "AI-generated. Use for drilling and review. Verify uncertain explanations.";
     headingWrap.append(heading, sub, note);
     root.append(headingWrap);
     const summaryGrid = document.createElement("section");

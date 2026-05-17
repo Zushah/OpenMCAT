@@ -132,7 +132,6 @@ const renderFilterBar = (filters, actions) => {
     const header = createElement("div", "dashboard-section-header");
     const titleWrap = createElement("div");
     appendText(titleWrap, "h2", "", "Filters");
-    appendText(titleWrap, "p", "tiny", "Use filters to isolate a recent time window, section, timing mode, or review mode. Minimum attempts controls which weak signals are emphasized.");
     const reset = document.createElement("button");
     reset.type = "button";
     reset.className = "btn btn-ghost btn-compact";
@@ -162,7 +161,7 @@ const renderFilterBar = (filters, actions) => {
             label: "Mode",
             value: filters.timingMode,
             options: [
-                { value: "all", label: "Timed + untimed" },
+                { value: "all", label: "Timed & untimed" },
                 { value: "timed", label: "Timed only" },
                 { value: "untimed", label: "Untimed only" }
             ],
@@ -725,7 +724,7 @@ export const renderDashboardView = (state, actions) => {
     const filters = metrics?.filters ?? state.dashboard.filters;
     const header = createElement("section", "hero dashboard-hero");
     appendText(header, "h1", "", "Analytics dashboard");
-    appendText(header, "p", "", "Use your local practice history to identify content gaps, reasoning-skill gaps, timing pressure, confidence calibration, and the next drill to run.");
+    appendText(header, "p", "", "Use your practice history to identify content gaps, skill vulnerabilities, timing pressure, confidence calibration, and more. Then get recommendations for the next drill to run.");
     root.append(header, renderFilterBar(filters, actions));
     if (!metrics || !metrics.totals.totalQuestionsAnswered) { root.append(renderEmptyState(actions, filtersAreActive(filters))); return root; }
     root.append(

@@ -12,10 +12,9 @@ const makeHero = () => {
     const hero = document.createElement("section");
     hero.className = "hero";
     const heading = document.createElement("h1");
-    heading.textContent = "Generate precise drills for your next MCAT study block.";
+    heading.textContent = "Generate drills";
     const sub = document.createElement("p");
-    sub.textContent =
-    "Generate targeted drills by section, topic, skill, and difficulty. Track accuracy, timing, and weak areas locally without paywalls.";
+    sub.textContent = "Generate targeted drills by section, topic, skill, difficulty, and format. Effectively unlimited practice without any paywalls.";
     hero.append(heading, sub);
     return hero;
 };

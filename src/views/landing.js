@@ -5,10 +5,10 @@ export const renderLandingView = (actions) => {
     hero.className = "landing-hero glass-panel";
     hero.setAttribute("data-reveal", "");
     const title = document.createElement("h1");
-    title.textContent = "Train MCAT weaknesses with targeted AI-generated drills.";
+    title.textContent = "Train on MCAT topics and skills with targeted drills.";
     const sub = document.createElement("p");
     sub.className = "landing-sub";
-    sub.textContent = "OpenMCAT compiles structured prompts, validates JSON output, and tracks your accuracy and timing locally. No account required.";
+    sub.textContent = "OpenMCAT compiles structured prompts, validates AI output, renders practice sessions and reviews, and provides actionable insights. No payment required.";
     const ctaRow = document.createElement("div");
     ctaRow.className = "button-row";
     const start = document.createElement("button");
@@ -24,7 +24,7 @@ export const renderLandingView = (actions) => {
     github.href = "https://github.com/Zushah/OpenMCAT";
     github.target = "_blank";
     github.rel = "noreferrer noopener";
-    github.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">code</span> GitHub';
+    github.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">code</span> Source Code';
     ctaRow.append(start, dashboard, github);
     const disclaimer = document.createElement("p");
     disclaimer.className = "landing-disclaimer";
@@ -35,9 +35,9 @@ export const renderLandingView = (actions) => {
     strip.className = "landing-strip";
     strip.setAttribute("data-reveal", "");
     strip.innerHTML = `
-        <div><span class="material-symbols-outlined" aria-hidden="true">schema</span><strong>Structured JSON generation</strong><p>Strict validation before questions render.</p></div>
-        <div><span class="material-symbols-outlined" aria-hidden="true">analytics</span><strong>Local analytics</strong><p>Track section, topic, skill, timing, and confidence.</p></div>
-        <div><span class="material-symbols-outlined" aria-hidden="true">privacy_tip</span><strong>Privacy-first</strong><p>No telemetry. Data stays in your browser.</p></div>
+        <div><span class="material-symbols-outlined" aria-hidden="true">schema</span><strong>Guided AI generation</strong><p>Prompts are produced based on your options. Just click a few buttons, copy-paste, and go.</p></div>
+        <div><span class="material-symbols-outlined" aria-hidden="true">analytics</span><strong>Analytics with a purpose</strong><p>Track dozens of stats on your performance. Get personalized recommendations for improvement.</p></div>
+        <div><span class="material-symbols-outlined" aria-hidden="true">privacy_tip</span><strong>Free and open for all</strong><p>No payments. No data collection. No hidden lines of code.</p></div>
     `;
     root.append(strip);
     const how = document.createElement("section");
@@ -48,10 +48,10 @@ export const renderLandingView = (actions) => {
     const list = document.createElement("div");
     list.className = "landing-steps";
     list.innerHTML = `
-        <article class="glass-panel"><span class="material-symbols-outlined" aria-hidden="true">tune</span><h3>1. Configure</h3><p>Pick section, topics, reasoning skills, difficulty, format, and timing mode.</p></article>
-        <article class="glass-panel"><span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span><h3>2. Generate</h3><p>Use mock, manual JSON, OpenAI-compatible, or Ollama providers with constrained prompts.</p></article>
-        <article class="glass-panel"><span class="material-symbols-outlined" aria-hidden="true">checklist_rtl</span><h3>3. Practice + Review</h3><p>Answer in immediate or delayed review mode with confidence and flagging controls.</p></article>
-        <article class="glass-panel"><span class="material-symbols-outlined" aria-hidden="true">monitoring</span><h3>4. Iterate</h3><p>Use weakest-area recommendations to plan your next focused drill.</p></article>
+        <article class="glass-panel"><span class="material-symbols-outlined" aria-hidden="true">tune</span><h3>1. Configure</h3><p>Pick section, topics, skills, difficulty, and format, all based on the real MCAT.</p></article>
+        <article class="glass-panel"><span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span><h3>2. Generate</h3><p>Use an AI model of your choice to copy the prompt and paste the output.</p></article>
+        <article class="glass-panel"><span class="material-symbols-outlined" aria-hidden="true">checklist_rtl</span><h3>3. Practice</h3><p>Answer the questions and review the explanations.</p></article>
+        <article class="glass-panel"><span class="material-symbols-outlined" aria-hidden="true">monitoring</span><h3>4. Repeat</h3><p>Use analytics-based recommendations to plan your next study session.</p></article>
     `;
     how.append(howTitle, list);
     root.append(how);

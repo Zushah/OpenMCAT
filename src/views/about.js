@@ -5,7 +5,7 @@ export const renderAboutView = () => {
     const title = document.createElement("h1");
     title.textContent = "About OpenMCAT";
     const sub = document.createElement("p");
-    sub.textContent = "OpenMCAT is a local-first, open-source MCAT practice generator focused on targeted drilling and helpful analytics.";
+    sub.textContent = "OpenMCAT is a free MCAT study tool focused on efficient studying and helpful analytics.";
     hero.append(title, sub);
     root.append(hero);
     const grid = document.createElement("section");
@@ -16,10 +16,10 @@ export const renderAboutView = () => {
     isTitle.textContent = "What OpenMCAT is";
     const isList = document.createElement("ul");
     [
-        "A free-and-open-source study tool for targeted MCAT-style practice.",
-        "A local-first app with no account system and no server-side analytics.",
-        "A configurable workflow that supports your own AI provider choice.",
-        "A way to drill weak content/skill areas and review timing trends."
+        "A free and independent study tool for targeted MCAT practice.",
+        "A privacy-first website with no account system and no data collection.",
+        "A configurable workflow that supports any AI of your choice.",
+        "A way to drill topics and skills and seriously review your weak areas."
     ].forEach((line) => { const li = document.createElement("li"); li.textContent = line; isList.append(li); });
     whatItIs.append(isTitle, isList);
     const whatItIsNot = document.createElement("article");
@@ -28,8 +28,8 @@ export const renderAboutView = () => {
     notTitle.textContent = "What OpenMCAT is not";
     const notList = document.createElement("ul");
     [
-        "Not affiliated with the Association of American Medical Colleges (AAMC).",
-        "Not official AAMC practice material.",
+        "Not affiliated with the AAMC.",
+        "Not official MCAT practice material.",
         "Not an MCAT score predictor.",
         "Not a medical advice or treatment system."
     ].forEach((line) => { const li = document.createElement("li"); li.textContent = line; notList.append(li); });
@@ -42,31 +42,31 @@ export const renderAboutView = () => {
     const disclaimerTitle = document.createElement("h2");
     disclaimerTitle.textContent = "Disclaimer";
     const disclaimerText = document.createElement("p");
-    disclaimerText.textContent = "OpenMCAT is an independent free-and-open-source study tool. It is not affiliated with, endorsed by, or sponsored by the Association of American Medical Colleges (AAMC). MCAT is a registered trademark of the AAMC. OpenMCAT generates AI-powered practice for content drilling and reasoning practice. It is not intended to be used as a substitute for official AAMC practice materials and it does not predict MCAT scores.";
+    disclaimerText.textContent = "OpenMCAT is an independent free-and-open-source study tool. It is not affiliated with, endorsed by, or sponsored by the Association of American Medical Colleges (AAMC). MCAT is a registered trademark of the AAMC. OpenMCAT generates AI-powered practice sessions for drilling topics and skills. It is not intended to be used as a substitute for official AAMC practice materials and it does not guarantee any particular MCAT score.";
     const aiNote = document.createElement("p");
-    aiNote.textContent = "AI-generated practice. Verify explanations when uncertain. Use official AAMC materials for representative exam practice.";
+    aiNote.textContent = "OpenMCAT uses generative AI for its practice questions. Use them for drilling and review but verify uncertain explanations. Use <a href=\"https://store.aamc.org/online-only-official-mcat-prep-bundle.html\" target=\"_blank\" rel=\"noreferrer noopener\">official AAMC materials</a> for representative MCAT practice.";
     const privacy = document.createElement("p");
-    privacy.textContent = "Privacy: OpenMCAT only stores your data in your own browser. No account or telemetry is required. Prompts only go to the provider you configure.";
+    privacy.textContent = "OpenMCAT highly values your privacy. Therefore, it only stores your data in your own web browser. No account is required. You can export and import your data via JSON files using the controls on the settings page.";
     const github = document.createElement("p");
     const githubLink = document.createElement("a");
     githubLink.href = "https://github.com/Zushah/OpenMCAT";
     githubLink.target = "_blank";
     githubLink.rel = "noreferrer noopener";
-    githubLink.textContent = "GitHub repository";
+    githubLink.textContent = "OpenMCAT has its source code openly available on a GitHub repository under the AGPL-3.0 license.";
     github.append(githubLink);
     disclaimer.append(disclaimerTitle, disclaimerText, aiNote, privacy, github);
     const linksHeading = document.createElement("h3");
-    linksHeading.textContent = "Official reference links";
+    linksHeading.textContent = "AAMC official reference links";
     const links = document.createElement("ul");
     const references = [
         {
-            label: "AAMC MCAT content outline overview",
+            label: "AAMC MCAT topics overview",
             href: "https://students-residents.aamc.org/prepare-mcat-exam/whats-mcat-exam-pdf-outline"},
         {
-            label: "AAMC Scientific Inquiry and Reasoning Skills PDF",
-            href: "https://students-residents.aamc.org/media/9061/download"},
+            label: "AAMC MCAT skills overview",
+            href: "https://students-residents.aamc.org/whats-mcat-exam/scientific-inquiry-reasoning-skills-overview"},
         {
-            label: "AAMC CARS overview",
+            label: "AAMC MCAT CARS overview",
             href: "https://students-residents.aamc.org/whats-mcat-exam/critical-analysis-and-reasoning-skills-section-overview"
         }
     ];

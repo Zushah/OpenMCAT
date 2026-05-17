@@ -52,7 +52,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
         const heading = document.createElement("h2");
         heading.textContent = "No active session";
         const text = document.createElement("p");
-        text.textContent = "Generate or paste a validated session to start practicing.";
+        text.textContent = "Generate and paste a validated session to start practicing.";
         const button = document.createElement("button");
         button.className = "btn btn-primary";
         button.textContent = "Go to generator";
@@ -87,7 +87,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
     const flagButton = document.createElement("button");
     flagButton.type = "button";
     flagButton.className = "btn btn-ghost";
-    flagButton.textContent = questionState.flagged ? "Unflag question" : "Flag issue (F)";
+    flagButton.textContent = questionState.flagged ? "Unflag" : "Flag";
     flagButton.addEventListener("click", () => actions.flagCurrentQuestion());
     actionRow.append(flagButton);
     top.append(title, progressText, progress, timer, actionRow);
@@ -161,7 +161,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
         const submit = document.createElement("button");
         submit.type = "button";
         submit.className = "btn btn-primary";
-        submit.textContent = activeSession.config.reviewMode === "later" ? "Submit and continue (Enter)" : "Submit answer (Enter)";
+        submit.textContent = activeSession.config.reviewMode === "later" ? "Submit and continue" : "Submit answer";
         submit.addEventListener("click", () => actions.submitAnswer());
         controls.append(submit);
     } else {
@@ -169,7 +169,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
         next.type = "button";
         next.className = "btn btn-primary";
         next.textContent =
-        index + 1 === questions.length ? "Finish session" : "Next question (Enter)";
+        index + 1 === questions.length ? "Finish session" : "Next question";
         next.addEventListener("click", () => actions.nextQuestion());
         controls.append(next);
     }
@@ -192,7 +192,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
     }
     const disclaimer = document.createElement("p");
     disclaimer.className = "muted-note practice-ai-note";
-    disclaimer.textContent = "AI-generated. Use for drilling and review; verify uncertain explanations.";
+    disclaimer.textContent = "AI-generated. Use for drilling and review. Verify uncertain explanations.";
     questionCard.append(disclaimer);
     grid.append(questionCard);
     root.append(grid);
