@@ -8,7 +8,7 @@ export const PRACTICE_SCHEMA_SUMMARY = `{
         "topicIds": ["topic_id"],
         "skillIds": ["skill_id"],
         "difficulty": "easy|medium|hard",
-        "questionFormat": "discrete|mini_passage|mixed|cars_beta",
+        "questionFormat": "discrete|passage|mixed|cars_beta",
         "estimatedTimeMinutes": 1,
         "aiModel": "string",
         "disclaimer": "string"

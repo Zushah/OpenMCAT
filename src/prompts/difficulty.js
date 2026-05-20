@@ -57,16 +57,18 @@ const DIFFICULTY_LEVELS = {
 
 const FORMAT_DIFFICULTY_CONTEXT = {
     discrete: [
-        "The selected format is discrete. Calibrate difficulty through the stem, answer choices, required MCAT knowledge, and reasoning steps, not through passage-like volume.",
-        "Do not rely on a long setup to create difficulty; keep the item standalone and focused."
+        "The selected format is discrete. Calibrate difficulty through a self-contained stem, answer choices, required MCAT knowledge, and reasoning steps, not through passage-like volume.",
+        "Use compact MCAT-style context when helpful, but keep all needed facts, values, variables, and constraints inside the question itself.",
+        "Do not make discrete items feel like trivia; the selected skills should still appear through application, prediction, calculation, interpretation, or concise experimental reasoning."
     ],
-    mini_passage: [
-        "The selected format is mini-passage. Calibrate difficulty through how much passage information must be selected, connected, and interpreted.",
-        "Use passage details, experiments, data, or scenarios as meaningful evidence for the answer rather than decorative background."
+    passage: [
+        "The selected format is passage. Calibrate difficulty through passage density, reasoning steps, data interpretation, experimental logic, and distractor subtlety.",
+        "Use the selected topics and skills as the basis for the passage and its linked questions, and make passage details meaningful evidence rather than decorative background."
     ],
     mixed: [
-        "The selected format is mixed. Apply the discrete guidance to standalone questions and the passage guidance to passage-linked questions.",
-        "Vary the structure naturally across questions so the set does not feel formulaic."
+        "The selected format is mixed. Build a genuine combination of standalone discrete questions and passage-linked questions.",
+        "Calibrate discrete items through self-contained stems and calibrate passage items through passage evidence, data, experiments, or scenarios.",
+        "Keep the selected topics, skills, and difficulty level consistent across both portions so neither portion feels like filler."
     ],
     cars_beta: [
         "The selected format is CARS beta. Do not use outside science knowledge to create difficulty.",
@@ -76,14 +78,14 @@ const FORMAT_DIFFICULTY_CONTEXT = {
 };
 
 const getFormatGuidance = (questionFormat) => {
-    if (questionFormat === "mini_passage") return FORMAT_DIFFICULTY_CONTEXT.mini_passage;
+    if (questionFormat === "passage") return FORMAT_DIFFICULTY_CONTEXT.passage;
     if (questionFormat === "mixed") return FORMAT_DIFFICULTY_CONTEXT.mixed;
     if (questionFormat === "cars_beta") return FORMAT_DIFFICULTY_CONTEXT.cars_beta;
     return FORMAT_DIFFICULTY_CONTEXT.discrete;
 };
 
 const getDifficultyFormatGuidance = (level, questionFormat) => {
-    if (questionFormat === "mini_passage" || questionFormat === "cars_beta") return level.passage;
+    if (questionFormat === "passage" || questionFormat === "cars_beta") return level.passage;
     if (questionFormat === "mixed") return [...level.discrete, ...level.passage];
     return level.discrete;
 };

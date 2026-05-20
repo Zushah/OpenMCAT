@@ -1025,9 +1025,9 @@ export const DIFFICULTIES = [
 ];
 
 export const QUESTION_FORMATS = [
-    { id: "discrete", name: "Discrete", description: "Short standalone items." },
-    { id: "mini_passage", name: "Mini-passage", description: "Short passage with related questions." },
-    { id: "mixed", name: "Mixed", description: "Blend of discrete and passage." },
+    { id: "discrete", name: "Discrete", description: "Short standalone questions." },
+    { id: "passage", name: "Passage", description: "Passage set with related questions." },
+    { id: "mixed", name: "Mixed", description: "Blend of discrete and passage-based questions." },
     { id: "cars_beta", name: "CARS beta", description: "Experimental passage reasoning workflow.", beta: true }
 ];
 
