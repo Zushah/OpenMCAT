@@ -225,6 +225,11 @@
     box-shadow: var(--glow-accent);
 }
 
+.segment button:disabled {
+    cursor: default;
+    pointer-events: none;
+}
+
 .status {
     font-size: 0.85rem;
     color: var(--text-muted);
@@ -293,6 +298,11 @@
 .choice-card.is-incorrect {
     border-color: color-mix(in srgb, var(--danger), transparent 30%);
     background: color-mix(in srgb, var(--danger), transparent 90%);
+}
+
+.choice-card:disabled {
+    cursor: default;
+    pointer-events: none;
 }
 
 .choice-label {

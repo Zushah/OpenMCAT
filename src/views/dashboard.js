@@ -146,6 +146,27 @@ const createDrillConfig = ({ sectionId, topicId = null, skillId = null, timed = 
 });
 
 const createSessionDrillConfig = (session) => {
+    const source = session.config && typeof session.config === "object" ? session.config : null;
+    if (source) {
+        const sectionId = source.sectionId ?? (session.sectionId && session.sectionId !== "unknown" ? session.sectionId : topicSectionId(session.missedTopicIds?.[0]));
+        const timingMode = source.timingMode ?? session.timingMode ?? "untimed";
+        return {
+            sectionId,
+            topicIds: Array.isArray(source.topicIds) ? source.topicIds.slice() : [],
+            skillIds: Array.isArray(source.skillIds) ? source.skillIds.slice() : [],
+            difficulty: source.difficulty ?? "medium",
+            questionFormat: source.questionFormat ?? getQuestionFormat(sectionId),
+            questionCount: source.questionCount ?? session.generatedQuestionCount ?? session.attempts ?? (timingMode === "timed" ? 8 : 6),
+            timingMode,
+            secondsPerQuestion: timingMode === "timed" ? source.secondsPerQuestion ?? targetSecondsForSection(sectionId) : null,
+            reviewMode: source.reviewMode ?? (timingMode === "timed" ? "later" : "immediate"),
+            explanationDepth: source.explanationDepth,
+            providerId: source.providerId,
+            model: source.model,
+            batchSize: source.batchSize,
+            promptStrictness: source.promptStrictness
+        };
+    }
     const sectionId = session.sectionId && session.sectionId !== "unknown" ? session.sectionId : topicSectionId(session.missedTopicIds?.[0]);
     const timed = session.timingMode === "timed";
     const count = cb.numb.constrain(session.generatedQuestionCount || session.attempts || (timed ? 8 : 6), [4, 12]);

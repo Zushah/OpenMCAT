@@ -6,7 +6,7 @@ import { renderAboutView } from "./views/about.js";
 import { renderDashboardView } from "./views/dashboard.js";
 import { renderGeneratorView } from "./views/generator.js";
 import { renderLandingView } from "./views/landing.js";
-import { renderPracticeView, updatePracticeTimerElement } from "./views/practice.js";
+import { renderPracticeView, updatePracticeTimerElement, updatePracticeTotalTimerElement } from "./views/practice.js";
 import { renderReviewView } from "./views/review.js";
 import { renderSettingsView } from "./views/settings.js";
 
@@ -113,7 +113,10 @@ actions.initApp();
 
 setInterval(() => {
     if (state.route === "practice" && state.activeSession) {
+        const nowMs = Date.now();
+        const totalTimerElement = document.getElementById("practice-total-timer");
         const timerElement = document.getElementById("practice-live-timer");
-        updatePracticeTimerElement(timerElement, Date.now());
+        updatePracticeTotalTimerElement(totalTimerElement, nowMs);
+        updatePracticeTimerElement(timerElement, nowMs);
     }
 }, 1000);

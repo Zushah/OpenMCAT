@@ -270,6 +270,38 @@
     margin-bottom: 6px;
 }
 
+.review-passage-dropdown {
+    margin-top: var(--space-md);
+    border-top: 1px solid var(--border);
+    padding-top: var(--space-sm);
+}
+
+.review-passage-summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--text-secondary);
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+}
+
+.review-passage-summary::-webkit-details-marker {
+    display: none;
+}
+
+.review-passage-summary::marker {
+    content: "";
+}
+
+.review-passage-summary .material-symbols-outlined {
+    font-size: 1.1rem;
+}
+
+.review-passage-card {
+    margin-top: var(--space-sm);
+}
+
 .pill {
     display: inline-flex;
     align-items: center;

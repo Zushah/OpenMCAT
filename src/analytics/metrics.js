@@ -463,6 +463,7 @@ const buildSessionSummaries = (attempts, sessions, filters) => {
             completedAt: toIsoOrNull(session.completedAt),
             createdAtMs,
             completedAtMs,
+            config: session.config ? structuredClone(session.config) : null,
             sectionId: session.generatedSession?.session?.sectionId ?? session.config?.sectionId ?? rows[0]?.sectionId ?? "unknown",
             timingMode: session.config?.timingMode ?? rows[0]?.timingMode ?? "untimed",
             reviewMode: session.config?.reviewMode ?? rows[0]?.reviewMode ?? "immediate",

@@ -54,3 +54,28 @@ export const createPassageTable = (tableData) => {
     wrap.append(table);
     return wrap;
 };
+
+export const createPassageCard = (passage, options = {}) => {
+    const card = document.createElement("article");
+    card.className = options.className ?? "card card-pad passage-card";
+    const passageTitle = document.createElement("h3");
+    passageTitle.textContent = passage.title ?? "Passage";
+    const passageText = document.createElement("p");
+    passageText.className = "passage-text";
+    passageText.textContent = passage.text ?? "";
+    card.append(passageTitle, passageText);
+    (passage.tables ?? []).forEach((tableData) => { card.append(createPassageTable(tableData)); });
+    (passage.figureDescriptions ?? []).forEach((figure) => {
+        const figureCard = document.createElement("div");
+        figureCard.className = "card card-pad";
+        figureCard.style.marginTop = "0.5rem";
+        const figureHeading = document.createElement("p");
+        figureHeading.className = "tiny";
+        figureHeading.textContent = figure.caption;
+        const figureText = document.createElement("p");
+        figureText.textContent = figure.description;
+        figureCard.append(figureHeading, figureText);
+        card.append(figureCard);
+    });
+    return card;
+};

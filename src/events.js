@@ -346,6 +346,7 @@ export const createActions = ({ render, applyTheme }) => {
         const question = getActiveQuestion();
         if (!active || !question) return;
         const qState = active.questionStateById[question.id];
+        if (qState.submitted && active.config.reviewMode === "immediate") return;
         qState.selectedChoiceId = choiceId;
         if (qState.submitted) {
             qState.isCorrect = choiceId === question.correctChoiceId;
@@ -364,6 +365,7 @@ export const createActions = ({ render, applyTheme }) => {
         const question = getActiveQuestion();
         if (!active || !question) return;
         const qState = active.questionStateById[question.id];
+        if (qState.submitted && active.config.reviewMode === "immediate") return;
         qState.confidence = qState.confidence === value ? null : value;
         if (qState.attemptId) {
             await updateAttempt(qState.attemptId, { confidence: qState.confidence });
@@ -547,11 +549,11 @@ export const createActions = ({ render, applyTheme }) => {
         const next = normalizeConfig({
             ...state.currentConfig,
             ...config,
-            providerId: state.currentConfig.providerId,
-            model: state.currentConfig.model,
-            batchSize: state.currentConfig.batchSize,
-            explanationDepth: state.currentConfig.explanationDepth,
-            promptStrictness: state.currentConfig.promptStrictness
+            providerId: config.providerId ?? state.currentConfig.providerId,
+            model: config.model ?? state.currentConfig.model,
+            batchSize: config.batchSize ?? state.currentConfig.batchSize,
+            explanationDepth: config.explanationDepth ?? state.currentConfig.explanationDepth,
+            promptStrictness: config.promptStrictness ?? state.currentConfig.promptStrictness
         });
         state.currentConfig = next;
         resetGenerationState();

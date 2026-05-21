@@ -1,5 +1,5 @@
 import { createProgressBar } from "../components/progress.js";
-import { createChoiceCard, createPassageTable } from "../components/questions.js";
+import { createChoiceCard, createPassageCard } from "../components/questions.js";
 import { formatDurationMs } from "../components/timer.js";
 
 const cb = Chalkboard;
@@ -10,7 +10,7 @@ const computeTimerText = (mode, submitted, elapsedMs, maxMs) => {
         if (remainingMs <= 0 && !submitted) return { text: `Time expired (${formatDurationMs(elapsedMs)} elapsed)`, expired: true };
         return { text: `Time left ${formatDurationMs(cb.stat.max([0, remainingMs]))}`, expired: false };
     }
-    return { text: `Elapsed ${formatDurationMs(elapsedMs)}`, expired: false };
+    return { text: `Time elapsed ${formatDurationMs(elapsedMs)}`, expired: false };
 };
 
 export const updatePracticeTimerElement = (timerElement, nowMs = Date.now()) => {
@@ -25,6 +25,21 @@ export const updatePracticeTimerElement = (timerElement, nowMs = Date.now()) => 
     timerElement.textContent = timerInfo.text;
     timerElement.className = timerInfo.expired ? "danger-note" : "tiny";
 };
+
+export const updatePracticeTotalTimerElement = (timerElement, nowMs = Date.now()) => {
+    if (!timerElement) return;
+    const storedElapsedMs = Number(timerElement.dataset.elapsedMs || 0);
+    const currentQuestionSubmitted = timerElement.dataset.currentQuestionSubmitted === "true";
+    const startedAtMs = Number(timerElement.dataset.startedAtMs || nowMs);
+    const elapsedMs = currentQuestionSubmitted ? storedElapsedMs : storedElapsedMs + cb.stat.max([0, nowMs - startedAtMs]);
+    timerElement.textContent = `Total time elapsed ${formatDurationMs(elapsedMs)}`;
+    timerElement.className = "tiny";
+};
+
+const getSubmittedElapsedMs = (activeSession) => Object.values(activeSession.questionStateById).reduce((sum, item) => {
+    const elapsedMs = Number(item.elapsedMs ?? 0);
+    return item.submitted && Number.isFinite(elapsedMs) ? sum + elapsedMs : sum;
+}, 0);
 
 const appendChoiceExplanations = (panel, question) => {
     if (!question.choiceExplanations || typeof question.choiceExplanations !== "object") return;
@@ -75,11 +90,18 @@ export const renderPracticeView = (state, actions, nowMs) => {
     progressText.className = "tiny";
     progressText.textContent = `Question ${index + 1} of ${questions.length}`;
     const progress = createProgressBar(index + 1, questions.length, "Session progress");
+    const startedAtMs = new Date(questionState.startedAt || Date.now()).getTime();
+    const totalTimer = document.createElement("p");
+    totalTimer.id = "practice-total-timer";
+    totalTimer.dataset.elapsedMs = String(getSubmittedElapsedMs(activeSession));
+    totalTimer.dataset.currentQuestionSubmitted = questionState.submitted ? "true" : "false";
+    totalTimer.dataset.startedAtMs = String(startedAtMs);
+    updatePracticeTotalTimerElement(totalTimer, nowMs);
     const timer = document.createElement("p");
     timer.id = "practice-live-timer";
     timer.dataset.timingMode = activeSession.config.timingMode;
     timer.dataset.submitted = questionState.submitted ? "true" : "false";
-    timer.dataset.startedAtMs = String(new Date(questionState.startedAt || Date.now()).getTime());
+    timer.dataset.startedAtMs = String(startedAtMs);
     timer.dataset.elapsedMs = String(questionState.elapsedMs ?? 0);
     timer.dataset.maxMs = String((activeSession.config.secondsPerQuestion ?? (activeSession.config.sectionId === "cars" ? 110 : 95)) * 1000);
     updatePracticeTimerElement(timer, nowMs);
@@ -91,35 +113,12 @@ export const renderPracticeView = (state, actions, nowMs) => {
     flagButton.textContent = questionState.flagged ? "Unflag" : "Flag";
     flagButton.addEventListener("click", () => actions.flagCurrentQuestion());
     actionRow.append(flagButton);
-    top.append(title, progressText, progress, timer, actionRow);
+    top.append(title, progressText, progress, totalTimer, timer, actionRow);
     root.append(top);
     const grid = document.createElement("section");
     grid.className = "session-grid";
     if (!passage) grid.classList.add("is-single");
-    if (passage) {
-        const passageCard = document.createElement("article");
-        passageCard.className = "card card-pad passage-card";
-        const passageTitle = document.createElement("h3");
-        passageTitle.textContent = passage.title;
-        const passageText = document.createElement("p");
-        passageText.className = "passage-text";
-        passageText.textContent = passage.text;
-        passageCard.append(passageTitle, passageText);
-        (passage.tables ?? []).forEach((tableData) => { passageCard.append(createPassageTable(tableData)); });
-        (passage.figureDescriptions ?? []).forEach((figure) => {
-            const figureCard = document.createElement("div");
-            figureCard.className = "card card-pad";
-            figureCard.style.marginTop = "0.5rem";
-            const figureHeading = document.createElement("p");
-            figureHeading.className = "tiny";
-            figureHeading.textContent = figure.caption;
-            const figureText = document.createElement("p");
-            figureText.textContent = figure.description;
-            figureCard.append(figureHeading, figureText);
-            passageCard.append(figureCard);
-        });
-        grid.append(passageCard);
-    }
+    if (passage) grid.append(createPassageCard(passage));
     const questionCard = document.createElement("article");
     questionCard.className = "card card-pad question-card";
     const questionHeading = document.createElement("h3");
@@ -129,14 +128,15 @@ export const renderPracticeView = (state, actions, nowMs) => {
     questionCard.append(questionHeading, stem);
     const choiceList = document.createElement("div");
     choiceList.className = "choice-list";
+    const controlsLocked = questionState.submitted && activeSession.config.reviewMode === "immediate";
     question.choices.forEach((choice) => {
         const choiceElement = createChoiceCard(choice, {
             selectedId: questionState.selectedChoiceId,
             submitted: showFeedback,
             correctId: question.correctChoiceId
         });
-        choiceElement.disabled = false;
-        choiceElement.addEventListener("click", () => actions.selectChoice(choice.id));
+        choiceElement.disabled = controlsLocked;
+        if (!controlsLocked) choiceElement.addEventListener("click", () => actions.selectChoice(choice.id));
         choiceList.append(choiceElement);
     });
     questionCard.append(choiceList);
@@ -151,7 +151,8 @@ export const renderPracticeView = (state, actions, nowMs) => {
         button.type = "button";
         button.textContent = String(value);
         if (questionState.confidence === value) button.classList.add("is-selected");
-        button.addEventListener("click", () => actions.setConfidence(value));
+        button.disabled = controlsLocked;
+        if (!controlsLocked) button.addEventListener("click", () => actions.setConfidence(value));
         confidenceSegment.append(button);
     }
     confidence.append(confidenceLegend, confidenceSegment);
