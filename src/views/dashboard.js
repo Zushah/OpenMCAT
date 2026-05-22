@@ -1,4 +1,4 @@
-import { CARS_SKILLS, DIFFICULTIES, SCIENCE_SKILLS, SECTIONS, TOPICS } from "../data/taxonomy.js";
+import { DIFFICULTIES, SCIENCE_SKILLS, SECTIONS, TOPICS } from "../data/taxonomy.js";
 import { createAccessibleDataTable, createChartShell, destroyDashboardCharts, getChartTheme, getDefaultChartOptions, queueChartRender } from "../components/charts.js";
 import { createStatCard } from "../components/stats.js";
 import { formatDurationMs } from "../components/timer.js";
@@ -23,9 +23,9 @@ const round = (num, places = 0.01) => {
 
 const sectionsById = Object.fromEntries(SECTIONS.map((section) => [section.id, section]));
 const topicsById = Object.fromEntries(TOPICS.map((topic) => [topic.id, topic]));
-const skillsById = Object.fromEntries([...SCIENCE_SKILLS, ...CARS_SKILLS].map((skill) => [skill.id, skill]));
+const skillsById = Object.fromEntries(SCIENCE_SKILLS.map((skill) => [skill.id, skill]));
 const sectionOrder = Object.fromEntries(SECTIONS.map((section, index) => [section.id, index]));
-const skillOrder = Object.fromEntries([...SCIENCE_SKILLS, ...CARS_SKILLS].map((skill, index) => [skill.id, index]));
+const skillOrder = Object.fromEntries(SCIENCE_SKILLS.map((skill, index) => [skill.id, index]));
 
 const pct = (value) => `${round((value || 0) * 100, 0.1)}%`;
 
@@ -76,7 +76,7 @@ const makeEmptySkillRow = (skill) => ({ id: skill.id, sectionId: null, attempts:
 
 const makeEmptyDifficultyRow = (difficulty) => ({ id: difficulty.id, attempts: 0, correct: 0, accuracy: null, averageElapsedMs: null });
 
-const getSkillChartCategories = (metrics) => metrics.filters?.sectionId === "cars" ? CARS_SKILLS : SCIENCE_SKILLS;
+const getSkillChartCategories = () => SCIENCE_SKILLS;
 
 const wrapBalancedLabel = (label, maxLineLength = 24) => {
     const words = String(label ?? "n/a").split(/\s+/).filter(Boolean);
@@ -114,9 +114,9 @@ const topicSectionId = (topicId, fallback = "bb") => topicsById[topicId]?.sectio
 
 const topicLabelWithSection = (topicId, sectionId = null) => `${rowNameFromId("section", sectionId ?? topicSectionId(topicId))}: ${rowNameFromId("topic", topicId)}`;
 
-const getQuestionFormat = (sectionId) => sectionId === "cars" ? "cars_beta" : "mixed";
+const getQuestionFormat = () => "mixed";
 
-const targetSecondsForSection = (sectionId) => sectionId === "cars" ? 110 : 95;
+const targetSecondsForSection = () => 95;
 
 const createElement = (tag, className = "", text = "") => { const element = document.createElement(tag); if (className) element.className = className; if (text) element.textContent = text; return element; };
 
@@ -650,17 +650,16 @@ const getMatrixSections = (metrics) => {
     if (Array.isArray(matrix)) return matrix;
     return [{
         sectionId: metrics.filters.sectionId,
-        skills: [...SCIENCE_SKILLS, ...CARS_SKILLS].filter((skill) => (matrix?.skillIds ?? []).includes(skill.id)),
+        skills: SCIENCE_SKILLS.filter((skill) => (matrix?.skillIds ?? []).includes(skill.id)),
         rows: matrix?.rows ?? []
     }];
 };
 
 const getMatrixSkills = (metrics) => {
     const filterSection = metrics.filters.sectionId;
-    if (filterSection === "cars") return CARS_SKILLS;
     if (["cp", "bb", "ps"].includes(filterSection)) return SCIENCE_SKILLS;
     const usedIds = new Set(getMatrixSections(metrics).flatMap((matrix) => (matrix.skills ?? []).map((skill) => typeof skill === "string" ? skill : skill.id)));
-    return [...SCIENCE_SKILLS, ...CARS_SKILLS].filter((skill) => usedIds.has(skill.id));
+    return SCIENCE_SKILLS.filter((skill) => usedIds.has(skill.id));
 };
 
 const renderHeatmap = (metrics, actions, pages) => {

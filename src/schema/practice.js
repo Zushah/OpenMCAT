@@ -4,11 +4,11 @@ export const PRACTICE_SCHEMA_SUMMARY = `{
     "schemaVersion": "1.0",
     "session": {
         "title": "string",
-        "sectionId": "cp|bb|ps|cars",
+        "sectionId": "cp|bb|ps",
         "topicIds": ["topic_id"],
         "skillIds": ["skill_id"],
         "difficulty": "easy|medium|hard",
-        "questionFormat": "discrete|passage|mixed|cars_beta",
+        "questionFormat": "discrete|passage|mixed",
         "estimatedTimeMinutes": 1,
         "aiModel": "string",
         "disclaimer": "string"

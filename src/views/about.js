@@ -74,11 +74,7 @@ export const renderAboutView = () => {
             href: "https://students-residents.aamc.org/prepare-mcat-exam/whats-mcat-exam-pdf-outline"},
         {
             label: "AAMC MCAT skills overview",
-            href: "https://students-residents.aamc.org/whats-mcat-exam/scientific-inquiry-reasoning-skills-overview"},
-        {
-            label: "AAMC MCAT CARS overview",
-            href: "https://students-residents.aamc.org/whats-mcat-exam/critical-analysis-and-reasoning-skills-section-overview"
-        }
+            href: "https://students-residents.aamc.org/whats-mcat-exam/scientific-inquiry-reasoning-skills-overview"}
     ];
     references.forEach((reference) => {
         const item = document.createElement("li");

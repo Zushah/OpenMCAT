@@ -7,8 +7,8 @@ const DEFAULT_ALPHA = 2;
 const DEFAULT_BETA = 2;
 const DEFAULT_MIN_ATTEMPTS = 3;
 const DEFAULT_TARGET_TIME_MS = 95000;
-const CARS_TARGET_TIME_MS = 110000;
 const DAY_MS = 24 * 60 * 60 * 1000;
+const validSectionIds = new Set(SECTIONS.map((section) => section.id));
 const validTopicIds = new Set(TOPICS.map((topic) => topic.id));
 
 export const DEFAULT_DASHBOARD_FILTERS = {
@@ -51,6 +51,8 @@ const toIsoOrNull = (value) => { const parsed = dateMs(value, NaN); return Numbe
 const getDateKey = (ms) => { if (!Number.isFinite(ms) || ms <= 0) return "unknown"; const date = new Date(ms); const month = String(date.getMonth() + 1).padStart(2, "0"); const day = String(date.getDate()).padStart(2, "0"); return `${date.getFullYear()}-${month}-${day}`; };
 
 const uniqueValues = (values) => Array.from(new Set((values ?? []).filter(Boolean)));
+
+const getSessionSectionId = (session) => session?.config?.sectionId ?? session?.generatedSession?.session?.sectionId ?? "unknown";
 
 const accuracyFromRows = (rows) => { if (!rows.length) return 0; return rows.filter((row) => row.isCorrect).length / rows.length; };
 
@@ -101,9 +103,8 @@ const buildFlagIndex = (flags = []) => {
 const getTargetTimeMs = ({ sectionId, timingMode, config, attempt }) => {
     const configuredSeconds = safeNumber(attempt.secondsPerQuestion, safeNumber(config?.secondsPerQuestion, 0));
     if (configuredSeconds > 0) return configuredSeconds * 1000;
-    if (sectionId === "cars") return CARS_TARGET_TIME_MS;
     if (timingMode === "timed") return DEFAULT_TARGET_TIME_MS;
-    return sectionId === "cars" ? CARS_TARGET_TIME_MS : DEFAULT_TARGET_TIME_MS;
+    return DEFAULT_TARGET_TIME_MS;
 };
 
 const normalizeAttempt = (attempt, sessionIndex, flagIndex) => {
@@ -520,9 +521,10 @@ const buildDataHealth = (filteredAttempts, bySection, minAttempts, totalStoredAn
 
 export const computeMetrics = ({ attempts = [], sessions = [], flags = [], filters = {} }) => {
     const normalizedFilters = normalizeDashboardFilters(filters);
-    const sessionIndex = buildSessionIndex(sessions);
+    const supportedSessions = sessions.filter((session) => validSectionIds.has(getSessionSectionId(session)));
+    const sessionIndex = buildSessionIndex(supportedSessions);
     const flagIndex = buildFlagIndex(flags);
-    const answeredAttempts = attempts.filter((attempt) => Boolean(attempt.selectedChoiceId)).map((attempt) => normalizeAttempt(attempt, sessionIndex, flagIndex)).sort((a, b) => a.answeredAtMs - b.answeredAtMs);
+    const answeredAttempts = attempts.filter((attempt) => Boolean(attempt.selectedChoiceId)).map((attempt) => normalizeAttempt(attempt, sessionIndex, flagIndex)).filter((attempt) => validSectionIds.has(attempt.sectionId)).sort((a, b) => a.answeredAtMs - b.answeredAtMs);
     const filteredAttempts = filterAttempts(answeredAttempts, normalizedFilters);
     const minAttempts = normalizedFilters.minAttempts;
     const coveredTopicIds = new Set(answeredAttempts.flatMap((attempt) => attempt.topicIds ?? []).filter((topicId) => validTopicIds.has(topicId)));
@@ -536,8 +538,8 @@ export const computeMetrics = ({ attempts = [], sessions = [], flags = [], filte
     const totalQuestionsAnswered = filteredAttempts.length;
     const totalCorrect = filteredAttempts.filter((attempt) => attempt.isCorrect).length;
     const elapsedValues = filteredAttempts.map((attempt) => attempt.elapsedMs).filter(Number.isFinite);
-    const totalStoredGeneratedQuestions = sessions.reduce((total, session) => total + (session.generatedSession?.questions?.length ?? 0), 0);
-    const completedSessions = sessions.filter((session) => Boolean(session.completedAt));
+    const totalStoredGeneratedQuestions = supportedSessions.reduce((total, session) => total + (session.generatedSession?.questions?.length ?? 0), 0);
+    const completedSessions = supportedSessions.filter((session) => Boolean(session.completedAt));
     const activeFlagKeys = new Set(filteredAttempts.filter((attempt) => attempt.flagged).map((attempt) => `${attempt.sessionId}__${attempt.questionId}`));
     const timedAttempts = filteredAttempts.filter((attempt) => attempt.timingMode === "timed");
     const untimedAttempts = filteredAttempts.filter((attempt) => attempt.timingMode === "untimed");
@@ -558,13 +560,13 @@ export const computeMetrics = ({ attempts = [], sessions = [], flags = [], filte
     const topicSkillPairs = buildTopicSkillPairs(filteredAttempts, minAttempts);
     const topicSkillMatrix = buildTopicSkillMatrix(topicSkillPairs);
     const confidence = buildConfidenceAnalytics(filteredAttempts);
-    const sessionSummaries = buildSessionSummaries(filteredAttempts, sessions, normalizedFilters);
+    const sessionSummaries = buildSessionSummaries(filteredAttempts, supportedSessions, normalizedFilters);
     const totalGeneratedQuestions = sessionSummaries.reduce((total, session) => total + (session.generatedQuestionCount || 0), 0);
     const totals = {
         totalAttemptsStored,
         totalQuestionsAnswered,
         totalCorrect,
-        totalSessions: sessions.length,
+        totalSessions: supportedSessions.length,
         totalCompletedSessions: completedSessions.length,
         totalGeneratedQuestions,
         totalStoredGeneratedQuestions,

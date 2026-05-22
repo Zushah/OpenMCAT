@@ -30,7 +30,7 @@ const makeSectionSelect = (config, actions) => {
     SECTIONS.forEach((section) => {
         const option = document.createElement("option");
         option.value = section.id;
-        option.textContent = section.beta ? `${section.shortName} - ${section.name} (Beta)` : `${section.shortName} - ${section.name}`;
+        option.textContent = `${section.shortName} - ${section.name}`;
         if (config.sectionId === section.id) option.selected = true;
         select.append(option);
     });
@@ -39,7 +39,7 @@ const makeSectionSelect = (config, actions) => {
     return wrap;
 };
 
-const makeChipSelector = ({ title, subtitle, selectedIds, options, onToggle, showBeta = false }) => {
+const makeChipSelector = ({ title, subtitle, selectedIds, options, onToggle }) => {
     const wrap = document.createElement("fieldset");
     wrap.className = "field";
     const legend = document.createElement("legend");
@@ -57,7 +57,7 @@ const makeChipSelector = ({ title, subtitle, selectedIds, options, onToggle, sho
             button.classList.add("is-selected");
             button.setAttribute("aria-pressed", "true");
         } else button.setAttribute("aria-pressed", "false");
-        const label = showBeta && option.beta ? `${option.shortName} (Beta)` : option.shortName;
+        const label = option.shortName;
         button.textContent = label;
         if (option.description) {
             button.title = option.description;
@@ -117,10 +117,10 @@ const makeFormatSelect = (config, actions) => {
     label.textContent = "Question format";
     const select = document.createElement("select");
     select.id = "format-select";
-    QUESTION_FORMATS.filter((format) => config.sectionId === "cars" ? true : format.id !== "cars_beta").forEach((format) => {
+    QUESTION_FORMATS.forEach((format) => {
         const option = document.createElement("option");
         option.value = format.id;
-        option.textContent = format.beta ? `${format.name} (Beta)` : format.name;
+        option.textContent = format.name;
         if (config.questionFormat === format.id) option.selected = true;
         select.append(option);
     });
@@ -215,20 +215,13 @@ export const renderGeneratorView = (state, actions) => {
         subtitle: "Select one or more topics. If none are selected, then all will be used.",
         selectedIds: state.currentConfig.topicIds,
         options: sectionTopics,
-        onToggle: (topicId) => actions.toggleMultiValue("topicIds", topicId),
-        showBeta: true
+        onToggle: (topicId) => actions.toggleMultiValue("topicIds", topicId)
     }));
     if (!state.currentConfig.topicIds.length) {
         const warning = document.createElement("p");
         warning.className = "warning-note";
         warning.textContent = "No topics selected, so all will be used, but targeted practice is recommended.";
         primary.append(warning);
-    }
-    if (state.currentConfig.sectionId === "cars") {
-        const carsWarning = document.createElement("p");
-        carsWarning.className = "warning-note";
-        carsWarning.textContent = "CARS generation is experimental. Passage reasoning is harder to validate than science content drills.";
-        primary.append(carsWarning);
     }
     const sessionGrid = document.createElement("div");
     sessionGrid.className = "generator-session-grid";
@@ -241,8 +234,7 @@ export const renderGeneratorView = (state, actions) => {
         subtitle: "Select one or more reasoning skills for this session.",
         selectedIds: state.currentConfig.skillIds,
         options: sectionSkills,
-        onToggle: (skillId) => actions.toggleMultiValue("skillIds", skillId),
-        showBeta: true
+        onToggle: (skillId) => actions.toggleMultiValue("skillIds", skillId)
     }));
     leftColumn.append(makeSegmentControl({
         title: "Difficulty",

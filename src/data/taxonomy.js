@@ -16,13 +16,6 @@ export const SECTIONS = [
         shortName: "P/S",
         name: "Psychological, Social, and Biological Foundations of Behavior",
         description: "Tests how psychological, social, and biological factors shape behavior, health, well-being, identity, culture, and access to resources."
-    },
-    {
-        id: "cars",
-        shortName: "CARS",
-        name: "Critical Analysis and Reasoning Skills",
-        description: "Tests critical analysis and reasoning skills through close reading of humanities and social science passages, emphasizing comprehension and reasoning both within and beyond the text. Currently an experimental section in OpenMCAT.",
-        beta: true
     }
 ];
 
@@ -53,26 +46,6 @@ export const SCIENCE_SKILLS = [
     }
 ];
 
-export const CARS_SKILLS = [
-    {
-        id: "cars_1",
-        name: "Foundations of comprehension",
-        shortName: "Comprehension",
-        description: "Identify meaning, structure, tone, and author intent in local context."
-    },
-    {
-        id: "cars_2",
-        name: "Reasoning within the text",
-        shortName: "Within text",
-        description: "Integrate passage claims and evidence into broader interpretations."
-    },
-    {
-        id: "cars_3",
-        name: "Reasoning beyond the text",
-        shortName: "Beyond text",
-        description: "Apply passage ideas to new information, scenarios, or implications."
-    }
-];
 
 const buildTopic = (topic) => {
     const subtopics = topic.subtopics ?? [];
@@ -969,54 +942,7 @@ const SCIENCE_TOPIC_DATA = [
     }
 ];
 
-export const TOPICS = [
-    ...SCIENCE_TOPIC_DATA.map(buildTopic),
-    {
-        id: "cars_humanities",
-        sectionId: "cars",
-        name: "Humanities passages",
-        shortName: "Humanities",
-        description: "Reading and argument interpretation in humanities contexts.",
-        tags: ["cars"],
-        beta: true
-    },
-    {
-        id: "cars_social_sciences",
-        sectionId: "cars",
-        name: "Social sciences passages",
-        shortName: "Social sciences",
-        description: "Reading and interpretation in social science contexts.",
-        tags: ["cars"],
-        beta: true
-    },
-    {
-        id: "cars_author_argument",
-        sectionId: "cars",
-        name: "Author argument and tone",
-        shortName: "Argument/tone",
-        description: "Main idea, argument form, and author perspective.",
-        tags: ["cars"],
-        beta: true
-    },
-    {
-        id: "cars_evidence_structure",
-        sectionId: "cars",
-        name: "Evidence and structure",
-        shortName: "Evidence/structure",
-        description: "How evidence and structure support claims.",
-        tags: ["cars"],
-        beta: true
-    },
-    {
-        id: "cars_application",
-        sectionId: "cars",
-        name: "Application and implications",
-        shortName: "Application",
-        description: "Applying passage logic to new scenarios.",
-        tags: ["cars"],
-        beta: true
-    }
-];
+export const TOPICS = SCIENCE_TOPIC_DATA.map(buildTopic);
 
 export const DIFFICULTIES = [
     { id: "easy", name: "Easy" },
@@ -1027,16 +953,15 @@ export const DIFFICULTIES = [
 export const QUESTION_FORMATS = [
     { id: "discrete", name: "Discrete", description: "Short standalone questions." },
     { id: "passage", name: "Passage", description: "Passage set with related questions." },
-    { id: "mixed", name: "Mixed", description: "Blend of discrete and passage-based questions." },
-    { id: "cars_beta", name: "CARS beta", description: "Experimental passage reasoning workflow.", beta: true }
+    { id: "mixed", name: "Mixed", description: "Blend of discrete and passage-based questions." }
 ];
 
 export const getSectionById = (sectionId) => SECTIONS.find((section) => section.id === sectionId) ?? null;
 
 export const getTopicsBySection = (sectionId) => TOPICS.filter((topic) => topic.sectionId === sectionId);
 
-export const getSkillsForSection = (sectionId) => sectionId === "cars" ? CARS_SKILLS : SCIENCE_SKILLS;
+export const getSkillsForSection = () => SCIENCE_SKILLS;
 
 export const getTopicById = (topicId) => TOPICS.find((topic) => topic.id === topicId) ?? null;
 
-export const getSkillById = (skillId) => [...SCIENCE_SKILLS, ...CARS_SKILLS].find((skill) => skill.id === skillId);
+export const getSkillById = (skillId) => SCIENCE_SKILLS.find((skill) => skill.id === skillId);

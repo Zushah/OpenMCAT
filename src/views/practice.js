@@ -103,7 +103,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
     timer.dataset.submitted = questionState.submitted ? "true" : "false";
     timer.dataset.startedAtMs = String(startedAtMs);
     timer.dataset.elapsedMs = String(questionState.elapsedMs ?? 0);
-    timer.dataset.maxMs = String((activeSession.config.secondsPerQuestion ?? (activeSession.config.sectionId === "cars" ? 110 : 95)) * 1000);
+    timer.dataset.maxMs = String((activeSession.config.secondsPerQuestion ?? 95) * 1000);
     updatePracticeTimerElement(timer, nowMs);
     const actionRow = document.createElement("div");
     actionRow.className = "button-row";

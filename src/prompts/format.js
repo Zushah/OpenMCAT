@@ -16,9 +16,5 @@ export const FORMAT_PROMPTS = {
     - Make both portions follow the selected section, topic, skill, and difficulty guidance already provided, rather than using one portion as filler or unrelated review.
     - For discrete questions, use concise self-contained MCAT-style stems that test application or reasoning without requiring passage context.
     - For passage-linked questions, use original fictional MCAT-style passages that support multiple related questions when practical and require passage evidence plus MCAT-level knowledge.
-    - Use passage text, tables, or figureDescriptions for any needed passage data or visual information, and do not use real studies or official/proprietary passage content.`,
-    cars_beta: `Question format: CARS beta.
-    - Include passage-based reasoning.
-    - Do not require outside factual knowledge.
-    - Focus on meaning, structure, tone, inference, and application.`
+    - Use passage text, tables, or figureDescriptions for any needed passage data or visual information, and do not use real studies or official/proprietary passage content.`
 };

@@ -39,7 +39,7 @@ export const mockProvider = {
             template.testedTopicIds = topic ? [topic] : template.testedTopicIds;
             template.testedSkillIds = skill ? [skill] : template.testedSkillIds;
             if (config.questionFormat === "discrete") { template.passageId = null; template.type = "discrete"; }
-            if (config.questionFormat === "mini_passage" || config.questionFormat === "cars_beta") { template.passageId = "p1"; template.type = "passage_based"; }
+            if (config.questionFormat === "passage") { template.passageId = "p1"; template.type = "passage_based"; }
             expanded.push(template);
         }
         parsedJson.questions = expanded;

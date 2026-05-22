@@ -34,9 +34,9 @@ const getDefaultTopicIds = (sectionId, count = 2) => getTopicsBySection(sectionI
 
 const getDefaultSkillIds = (sectionId, count = 2) => getSkillsForSection(sectionId).slice(0, count).map((skill) => skill.id);
 
-const getQuestionFormat = (sectionId) => sectionId === "cars" ? "cars_beta" : "mixed";
+const getQuestionFormat = () => "mixed";
 
-const getTargetSeconds = (sectionId) => sectionId === "cars" ? 110 : 95;
+const getTargetSeconds = () => 95;
 
 const getSectionLabel = (sectionsById, sectionId) => sectionsById?.[sectionId]?.shortName ?? sectionId ?? "section";
 
@@ -46,8 +46,8 @@ const getSkillLabel = (skillsById, skillId) => skillsById?.[skillId]?.shortName 
 
 const buildBaselineConfig = (sectionId, { timed = false, count = 8 } = {}) => ({
     sectionId,
-    topicIds: getDefaultTopicIds(sectionId, sectionId === "cars" ? 5 : 2),
-    skillIds: getDefaultSkillIds(sectionId, sectionId === "cars" ? 3 : 2),
+    topicIds: getDefaultTopicIds(sectionId, 2),
+    skillIds: getDefaultSkillIds(sectionId, 2),
     questionCount: count,
     timingMode: timed ? "timed" : "untimed",
     secondsPerQuestion: timed ? getTargetSeconds(sectionId) : null,

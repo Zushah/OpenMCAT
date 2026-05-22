@@ -1,6 +1,6 @@
 import { DEFAULT_DASHBOARD_PAGES, state, patchGeneration, resetGenerationState } from "./app.js";
 import { BATCH_SIZE_LIMITS, DEFAULT_CONFIG, QUESTION_COUNT_LIMITS } from "./data/defaults.js";
-import { CARS_SKILLS, SCIENCE_SKILLS, SECTIONS, TOPICS, getSkillsForSection, getTopicsBySection } from "./data/taxonomy.js";
+import { SCIENCE_SKILLS, SECTIONS, TOPICS, getSkillsForSection, getTopicsBySection } from "./data/taxonomy.js";
 import { compilePracticePrompt } from "./prompts/compiler.js";
 import { extractJsonObject } from "./schema/repair.js";
 import { validatePracticeSession } from "./schema/validators.js";
@@ -34,14 +34,12 @@ const normalizeConfig = (config) => {
     const sectionSkills = getSkillsForSection(normalized.sectionId).map((skill) => skill.id);
     normalized.skillIds = (normalized.skillIds ?? []).filter((skillId) => sectionSkills.includes(skillId));
     if (normalized.skillIds.length === 0) normalized.skillIds = sectionSkills;
-    if (normalized.sectionId === "cars" && normalized.questionFormat === "discrete") normalized.questionFormat = "cars_beta";
-    if (normalized.sectionId !== "cars" && normalized.questionFormat === "cars_beta") normalized.questionFormat = "mixed";
     return normalized;
 };
 
 const getValidationContext = (config) => {
     const validTopicIds = TOPICS.filter((topic) => topic.sectionId === config.sectionId).map((topic) => topic.id);
-    const validSkillIds = config.sectionId === "cars" ? CARS_SKILLS.map((skill) => skill.id) : SCIENCE_SKILLS.map((skill) => skill.id);
+    const validSkillIds = SCIENCE_SKILLS.map((skill) => skill.id);
     return { requestedCount: config.questionCount, validTopicIds, validSkillIds };
 };
 
@@ -66,8 +64,7 @@ const ensureQuestionStart = (activeSession, questionId) => {
 const buildMaps = () => {
     const sectionsById = Object.fromEntries(SECTIONS.map((section) => [section.id, section]));
     const topicsById = Object.fromEntries(TOPICS.map((topic) => [topic.id, topic]));
-    const skills = [...SCIENCE_SKILLS, ...CARS_SKILLS];
-    const skillsById = Object.fromEntries(skills.map((skill) => [skill.id, skill]));
+    const skillsById = Object.fromEntries(SCIENCE_SKILLS.map((skill) => [skill.id, skill]));
     return { sectionsById, topicsById, skillsById };
 };
 
@@ -141,8 +138,8 @@ export const createActions = ({ render, applyTheme }) => {
             sectionId,
             topicIds: getDefaultTopicsForSection(sectionId).slice(0, 1),
             skillIds: getDefaultSkillsForSection(sectionId).slice(0, 2),
-            questionFormat: sectionId === "cars" ? "cars_beta" : "mixed",
-            secondsPerQuestion: sectionId === "cars" ? 110 : 95
+            questionFormat: "mixed",
+            secondsPerQuestion: 95
         });
         state.currentConfig = next;
         render();
