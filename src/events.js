@@ -157,7 +157,7 @@ export const createActions = ({ render, applyTheme }) => {
 
     const saveAppSettings = async (nextSettings) => {
         state.settings = persistSettings(nextSettings);
-        applyTheme(state.settings.theme, state.settings.reducedMotion);
+        applyTheme(state.settings.theme);
         render();
         showToast("Settings saved.", "success");
     };
@@ -583,7 +583,7 @@ export const createActions = ({ render, applyTheme }) => {
             providerId: "manual_json",
             model: nextModel
         });
-        applyTheme(state.settings.theme, state.settings.reducedMotion);
+        applyTheme(state.settings.theme);
         await refreshAnalytics();
         render();
     };

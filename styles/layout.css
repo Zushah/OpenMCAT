@@ -1,10 +1,7 @@
 .app-background {
     position: fixed;
     inset: 0;
-    background:
-    radial-gradient(circle at 15% 10%, rgba(255, 255, 255, 0.04), transparent 38%),
-    radial-gradient(circle at 85% 0%, rgba(255, 255, 255, 0.025), transparent 40%),
-    linear-gradient(150deg, #151718, #1b1e1f 40%, #161819);
+    background: var(--app-background);
     pointer-events: none;
     z-index: 0;
 }
@@ -26,8 +23,8 @@
     align-items: center;
     gap: var(--space-lg);
     padding: 0.86rem 1.1rem;
-    border: 1px solid rgba(236, 255, 248, 0.11);
-    background: linear-gradient(130deg, rgba(32, 37, 37, 0.78), rgba(28, 32, 32, 0.52));
+    border: 1px solid color-mix(in srgb, var(--surface-tint), transparent 89%);
+    background: var(--nav-background);
     backdrop-filter: blur(18px) saturate(122%);
     border-radius: 20px;
     box-shadow: var(--shadow-soft);
@@ -35,8 +32,8 @@
 }
 
 .top-nav:hover {
-    border-color: rgba(143, 248, 188, 0.35);
-    box-shadow: var(--shadow-soft), 0 0 0 1px rgba(143, 248, 188, 0.18);
+    border-color: color-mix(in srgb, var(--accent), transparent 65%);
+    box-shadow: var(--shadow-soft), 0 0 0 1px color-mix(in srgb, var(--accent), transparent 82%);
 }
 
 .brand-wrap {
@@ -87,19 +84,19 @@
 
 .nav-links a:hover {
     color: var(--text-primary);
-    background: rgba(236, 255, 248, 0.08);
+    background: color-mix(in srgb, var(--surface-tint), transparent 92%);
     transform: translateY(-1px);
 }
 
 .nav-links a.is-active {
-    color: #10251b;
+    color: var(--accent-contrast-strong);
     background: linear-gradient(115deg, var(--accent), var(--accent-2));
     box-shadow: var(--glow-accent);
 }
 
 .nav-links .nav-github {
     border: 1px solid var(--border);
-    background: rgba(236, 255, 248, 0.05);
+    background: color-mix(in srgb, var(--surface-tint), transparent 95%);
 }
 
 .main-content {

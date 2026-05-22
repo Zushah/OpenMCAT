@@ -1,18 +1,22 @@
 import { DEFAULT_SETTINGS } from "../data/defaults.js";
 
 const SETTINGS_KEY = "openmcat_settings_v1";
+const THEME_OPTIONS = new Set(["system", "dark", "light"]);
 
-const deepMerge = (base, patch) => {
-    if (!patch || typeof patch !== "object") return structuredClone(base);
-    const merged = structuredClone(base);
-    Object.entries(patch).forEach(([key, value]) => {
-        if (value && typeof value === "object" && !Array.isArray(value) && merged[key] && typeof merged[key] === "object" && !Array.isArray(merged[key])) merged[key] = deepMerge(merged[key], value);
-        else merged[key] = value;
-    });
-    return merged;
-}
-
-const sanitizeSettings = (settings) => deepMerge(DEFAULT_SETTINGS, settings ?? {});
+const sanitizeSettings = (settings) => {
+    const source = settings && typeof settings === "object" ? settings : {};
+    const provider = source.provider && typeof source.provider === "object" ? source.provider : {};
+    const theme = THEME_OPTIONS.has(source.theme) ? source.theme : DEFAULT_SETTINGS.theme;
+    const selectedProviderId = typeof provider.selectedProviderId === "string" && provider.selectedProviderId.trim() ? provider.selectedProviderId : DEFAULT_SETTINGS.provider.selectedProviderId;
+    const selectedModel = typeof provider.selectedModel === "string" && provider.selectedModel.trim() ? provider.selectedModel : DEFAULT_SETTINGS.provider.selectedModel;
+    return {
+        theme,
+        provider: {
+            selectedProviderId,
+            selectedModel
+        }
+    };
+};
 
 export const loadSettings = () => {
     if (typeof localStorage === "undefined") return structuredClone(DEFAULT_SETTINGS);

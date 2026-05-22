@@ -78,7 +78,7 @@ ul {
     left: 16px;
     top: 16px;
     background: var(--accent);
-    color: #00131a;
+    color: var(--accent-contrast-strong);
     padding: 8px 12px;
     border-radius: var(--radius-sm);
 }

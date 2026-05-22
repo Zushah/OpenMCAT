@@ -1,9 +1,9 @@
 .card {
-    border: 1px solid rgba(236, 255, 248, 0.09);
+    border: 1px solid color-mix(in srgb, var(--surface-tint), transparent 91%);
     border-radius: var(--radius-md);
-    background: linear-gradient(140deg, rgba(236, 255, 248, 0.055), rgba(236, 255, 248, 0.02));
+    background: linear-gradient(140deg, color-mix(in srgb, var(--surface-tint), transparent 94.5%), color-mix(in srgb, var(--surface-tint), transparent 98%));
     backdrop-filter: blur(16px) saturate(120%);
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--card-shadow);
     transition: border-color 250ms ease, background 260ms ease, transform 260ms ease,
     box-shadow 260ms ease;
 }
@@ -13,12 +13,12 @@
 }
 
 .card:hover {
-    border-color: rgba(143, 248, 188, 0.22);
+    border-color: color-mix(in srgb, var(--accent), transparent 78%);
 }
 
 .glass-panel {
-    border: 1px solid rgba(236, 255, 248, 0.14);
-    background: linear-gradient(120deg, rgba(236, 255, 248, 0.085), rgba(236, 255, 248, 0.028));
+    border: 1px solid color-mix(in srgb, var(--surface-tint), transparent 86%);
+    background: linear-gradient(120deg, color-mix(in srgb, var(--surface-tint), transparent 91.5%), color-mix(in srgb, var(--surface-tint), transparent 97.2%));
     backdrop-filter: blur(24px) saturate(130%);
     box-shadow: var(--shadow-soft);
     border-radius: 24px;
@@ -67,21 +67,21 @@
 }
 
 .btn-primary {
-    color: #12271d;
+    color: var(--accent-contrast);
     background: linear-gradient(114deg, var(--accent), var(--accent-2));
     box-shadow: var(--glow-accent);
 }
 
 .btn-secondary {
     color: var(--text-primary);
-    background: rgba(236, 255, 248, 0.08);
-    border-color: rgba(236, 255, 248, 0.22);
+    background: color-mix(in srgb, var(--surface-tint), transparent 92%);
+    border-color: color-mix(in srgb, var(--surface-tint), transparent 78%);
 }
 
 .btn-ghost {
     color: var(--text-secondary);
     background: transparent;
-    border-color: rgba(236, 255, 248, 0.14);
+    border-color: color-mix(in srgb, var(--surface-tint), transparent 86%);
 }
 
 .badge {
@@ -122,8 +122,8 @@
     width: 100%;
     padding: 10px 12px;
     border-radius: 13px;
-    border: 1px solid rgba(236, 255, 248, 0.15);
-    background: rgba(236, 255, 248, 0.05);
+    border: 1px solid color-mix(in srgb, var(--surface-tint), transparent 85%);
+    background: color-mix(in srgb, var(--surface-tint), transparent 95%);
     transition: border-color 220ms ease, box-shadow 220ms ease, background 220ms ease;
 }
 
@@ -133,32 +133,26 @@
     -moz-appearance: none;
     padding-right: 2.45rem;
     background-image:
-    linear-gradient(45deg, transparent 50%, rgba(236, 255, 248, 0.72) 50%),
-    linear-gradient(135deg, rgba(236, 255, 248, 0.72) 50%, transparent 50%),
-    linear-gradient(120deg, rgba(236, 255, 248, 0.03), rgba(236, 255, 248, 0.05));
+    linear-gradient(45deg, transparent 50%, color-mix(in srgb, var(--surface-tint), transparent 28%) 50%),
+    linear-gradient(135deg, color-mix(in srgb, var(--surface-tint), transparent 28%) 50%, transparent 50%),
+    linear-gradient(120deg, color-mix(in srgb, var(--surface-tint), transparent 97%), color-mix(in srgb, var(--surface-tint), transparent 95%));
     background-position: calc(100% - 15px) calc(50% - 2px), calc(100% - 9px) calc(50% - 2px), center;
     background-size: 6px 6px, 6px 6px, 100% 100%;
     background-repeat: no-repeat;
 }
 
-[data-theme="light"] .field select {
-    background-image:
-    linear-gradient(45deg, transparent 50%, rgba(20, 32, 29, 0.75) 50%),
-    linear-gradient(135deg, rgba(20, 32, 29, 0.75) 50%, transparent 50%),
-    linear-gradient(120deg, rgba(20, 32, 29, 0.03), rgba(20, 32, 29, 0.06));
-}
 
 .field select option {
-    background: #212625;
+    background: var(--control-option-background);
     color: var(--text-primary);
 }
 
 .field input:hover, .field select:hover, .field textarea:hover {
-    border-color: rgba(143, 248, 188, 0.38);
+    border-color: color-mix(in srgb, var(--accent), transparent 62%);
 }
 
 .field input:focus, .field select:focus, .field textarea:focus {
-    border-color: rgba(143, 248, 188, 0.55);
+    border-color: color-mix(in srgb, var(--accent), transparent 45%);
 }
 
 .help {
@@ -173,8 +167,8 @@
 }
 
 .chip {
-    border: 1px solid rgba(236, 255, 248, 0.15);
-    background: rgba(236, 255, 248, 0.05);
+    border: 1px solid color-mix(in srgb, var(--surface-tint), transparent 85%);
+    background: color-mix(in srgb, var(--surface-tint), transparent 95%);
     color: var(--text-secondary);
     border-radius: 999px;
     padding: 8px 11px;
@@ -186,11 +180,11 @@
 
 .chip:hover {
     transform: translateY(-1px);
-    border-color: rgba(143, 248, 188, 0.34);
+    border-color: color-mix(in srgb, var(--accent), transparent 66%);
 }
 
 .chip.is-selected {
-    color: #12271d;
+    color: var(--accent-contrast);
     border-color: transparent;
     background: linear-gradient(114deg, var(--accent), var(--accent-2));
     box-shadow: var(--glow-accent);
@@ -203,10 +197,10 @@
 }
 
 .segment button {
-    border: 1px solid rgba(236, 255, 248, 0.13);
+    border: 1px solid color-mix(in srgb, var(--surface-tint), transparent 87%);
     border-radius: 999px;
     padding: 7px 12px;
-    background: rgba(236, 255, 248, 0.04);
+    background: color-mix(in srgb, var(--surface-tint), transparent 96%);
     color: var(--text-secondary);
     cursor: pointer;
     font-weight: 540;
@@ -215,11 +209,11 @@
 
 .segment button:hover {
     transform: translateY(-1px);
-    border-color: rgba(143, 248, 188, 0.32);
+    border-color: color-mix(in srgb, var(--accent), transparent 68%);
 }
 
 .segment button.is-selected {
-    color: #12271d;
+    color: var(--accent-contrast);
     border-color: transparent;
     background: linear-gradient(114deg, var(--accent), var(--accent-2));
     box-shadow: var(--glow-accent);
@@ -270,9 +264,9 @@
 }
 
 .choice-card {
-    border: 1px solid rgba(236, 255, 248, 0.12);
+    border: 1px solid color-mix(in srgb, var(--surface-tint), transparent 88%);
     border-radius: 16px;
-    background: rgba(236, 255, 248, 0.035);
+    background: color-mix(in srgb, var(--surface-tint), transparent 96.5%);
     padding: 12px;
     cursor: pointer;
     transition: transform 200ms ease, border-color 200ms ease, background 200ms ease,
@@ -281,13 +275,13 @@
 
 .choice-card:hover {
     transform: translateY(-1px);
-    border-color: rgba(143, 248, 188, 0.34);
+    border-color: color-mix(in srgb, var(--accent), transparent 66%);
 }
 
 .choice-card.is-selected {
-    border-color: rgba(143, 248, 188, 0.56);
-    background: rgba(143, 248, 188, 0.14);
-    box-shadow: 0 5px 20px rgba(143, 248, 188, 0.22);
+    border-color: color-mix(in srgb, var(--accent), transparent 44%);
+    background: color-mix(in srgb, var(--accent), transparent 86%);
+    box-shadow: 0 5px 20px color-mix(in srgb, var(--accent), transparent 78%);
 }
 
 .choice-card.is-correct {
@@ -358,7 +352,7 @@
 .bar-track {
     height: 8px;
     border-radius: 999px;
-    background: rgba(148, 163, 184, 0.15);
+    background: color-mix(in srgb, var(--text-muted), transparent 85%);
     overflow: hidden;
 }
 
@@ -381,9 +375,8 @@
     margin: 0;
     padding: 0.9rem 1rem;
     border-radius: 14px;
-    border: 1px solid rgba(236, 255, 248, 0.18);
-    background:
-    linear-gradient(180deg, rgba(23, 26, 27, 0.96), rgba(20, 23, 24, 0.95));
+    border: 1px solid color-mix(in srgb, var(--surface-tint), transparent 82%);
+    background: var(--codeblock-background);
     overflow: auto;
     max-height: 340px;
     width: 100%;
@@ -395,44 +388,37 @@
     "Liberation Mono", "Courier New", monospace;
     font-size: 0.82rem;
     line-height: 1.5;
-    color: #eef9f5;
+    color: var(--codeblock-text);
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     word-break: break-word;
 }
 
 .json-token.key {
-    color: #95ffc2;
+    color: var(--json-key);
 }
 
 .json-token.string {
-    color: #ecfff8;
+    color: var(--json-string);
 }
 
 .json-token.number {
-    color: #a8d8ff;
+    color: var(--json-number);
 }
 
 .json-token.boolean {
-    color: #ffe39d;
+    color: var(--json-boolean);
 }
 
 .json-token.null {
-    color: #f7b4c0;
+    color: var(--json-null);
 }
 
 .json-token.punctuation {
-    color: #95aea6;
+    color: var(--json-punctuation);
 }
 
-[data-theme="light"] .codeblock {
-    background: linear-gradient(180deg, #f2f7f5, #ecf3f0);
-    border-color: rgba(20, 32, 29, 0.16);
-}
 
-[data-theme="light"] .codeblock-code {
-    color: #1b2723;
-}
 
 table {
     width: 100%;
@@ -520,7 +506,7 @@ th {
     border: 1px solid var(--border);
     border-radius: 999px;
     padding: 5px 9px;
-    background: rgba(236, 255, 248, 0.05);
+    background: color-mix(in srgb, var(--surface-tint), transparent 95%);
     color: var(--text-secondary);
     font-size: 0.76rem;
     font-weight: 640;
@@ -557,7 +543,7 @@ th {
     padding: 0.58rem 0.7rem;
     border: 1px solid var(--border);
     border-radius: 14px;
-    background: rgba(236, 255, 248, 0.045);
+    background: color-mix(in srgb, var(--surface-tint), transparent 95.5%);
 }
 
 .evidence-chip strong {
@@ -677,8 +663,8 @@ th {
     place-items: center;
     gap: 2px;
     border-radius: 14px;
-    border: 1px solid rgba(236, 255, 248, 0.14);
-    background: rgba(236, 255, 248, 0.04);
+    border: 1px solid color-mix(in srgb, var(--surface-tint), transparent 86%);
+    background: color-mix(in srgb, var(--surface-tint), transparent 96%);
     color: var(--text-primary);
     cursor: pointer;
     transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
@@ -686,7 +672,7 @@ th {
 
 .heatmap-cell:hover:not(:disabled) {
     transform: translateY(-1px);
-    border-color: rgba(143, 248, 188, 0.38);
+    border-color: color-mix(in srgb, var(--accent), transparent 62%);
 }
 
 .heatmap-cell-score {
@@ -700,22 +686,22 @@ th {
 }
 
 .heatmap-level-1 {
-    background: rgba(143, 248, 188, 0.08);
+    background: color-mix(in srgb, var(--accent), transparent 92%);
 }
 
 .heatmap-level-2 {
-    background: rgba(248, 220, 143, 0.12);
-    border-color: rgba(248, 220, 143, 0.24);
+    background: color-mix(in srgb, var(--warning), transparent 88%);
+    border-color: color-mix(in srgb, var(--warning), transparent 76%);
 }
 
 .heatmap-level-3 {
-    background: rgba(248, 220, 143, 0.2);
-    border-color: rgba(248, 220, 143, 0.36);
+    background: color-mix(in srgb, var(--warning), transparent 80%);
+    border-color: color-mix(in srgb, var(--warning), transparent 64%);
 }
 
 .heatmap-level-4 {
-    background: rgba(255, 142, 161, 0.22);
-    border-color: rgba(255, 142, 161, 0.42);
+    background: color-mix(in srgb, var(--danger), transparent 78%);
+    border-color: color-mix(in srgb, var(--danger), transparent 58%);
 }
 
 .insight-list {
@@ -728,7 +714,7 @@ th {
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     padding: 0.85rem;
-    background: rgba(236, 255, 248, 0.035);
+    background: color-mix(in srgb, var(--surface-tint), transparent 96.5%);
 }
 
 .insight-item.is-warning {
@@ -736,7 +722,7 @@ th {
 }
 
 .insight-item.is-info {
-    border-color: rgba(143, 248, 188, 0.22);
+    border-color: color-mix(in srgb, var(--accent), transparent 78%);
 }
 
 .insight-item h3 {
@@ -788,16 +774,16 @@ th {
 }
 
 .heatmap-cell.is-cool {
-    background: rgba(143, 248, 188, 0.08);
+    background: color-mix(in srgb, var(--accent), transparent 92%);
 }
 
 .heatmap-cell.is-warm {
-    background: rgba(248, 220, 143, 0.16);
+    background: color-mix(in srgb, var(--warning), transparent 84%);
     border-color: color-mix(in srgb, var(--warning), transparent 58%);
 }
 
 .heatmap-cell.is-hot {
-    background: rgba(255, 142, 161, 0.22);
+    background: color-mix(in srgb, var(--danger), transparent 78%);
     border-color: color-mix(in srgb, var(--danger), transparent 48%);
 }
 
@@ -814,51 +800,39 @@ select:not([multiple]) {
     -webkit-appearance: none;
     -moz-appearance: none;
     padding-right: 2.45rem;
-    border: 1px solid rgba(236, 255, 248, 0.15);
+    border: 1px solid color-mix(in srgb, var(--surface-tint), transparent 85%);
     border-radius: 13px;
-    background-color: rgba(236, 255, 248, 0.05);
+    background-color: color-mix(in srgb, var(--surface-tint), transparent 95%);
     background-image:
     linear-gradient(45deg, transparent 50%, color-mix(in srgb, var(--text-primary), transparent 22%) 50%),
     linear-gradient(135deg, color-mix(in srgb, var(--text-primary), transparent 22%) 50%, transparent 50%),
-    linear-gradient(120deg, rgba(236, 255, 248, 0.03), rgba(236, 255, 248, 0.055));
+    linear-gradient(120deg, color-mix(in srgb, var(--surface-tint), transparent 97%), color-mix(in srgb, var(--surface-tint), transparent 94.5%));
     background-position: calc(100% - 15px) calc(50% - 2px), calc(100% - 9px) calc(50% - 2px), center;
     background-size: 6px 6px, 6px 6px, 100% 100%;
     background-repeat: no-repeat;
     color: var(--text-primary);
-    color-scheme: dark;
+    color-scheme: var(--native-color-scheme);
     transition: border-color 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
 }
 
 select:not([multiple]):hover {
-    border-color: rgba(143, 248, 188, 0.38);
+    border-color: color-mix(in srgb, var(--accent), transparent 62%);
 }
 
 select:not([multiple]):focus {
-    border-color: rgba(143, 248, 188, 0.55);
+    border-color: color-mix(in srgb, var(--accent), transparent 45%);
 }
 
 select option {
-    background: #212625;
+    background: var(--control-option-background);
     color: var(--text-primary);
 }
 
-[data-theme="light"] select:not([multiple]) {
-    background-color: rgba(20, 32, 29, 0.035);
-    background-image:
-    linear-gradient(45deg, transparent 50%, color-mix(in srgb, var(--text-primary), transparent 20%) 50%),
-    linear-gradient(135deg, color-mix(in srgb, var(--text-primary), transparent 20%) 50%, transparent 50%),
-    linear-gradient(120deg, rgba(20, 32, 29, 0.03), rgba(20, 32, 29, 0.06));
-    color-scheme: light;
-}
 
-[data-theme="light"] select option {
-    background: #ffffff;
-    color: var(--text-primary);
-}
 
 .table-wrap, .heatmap-wrap, .chart-table-wrap, .chart-data-table, .codeblock, dialog textarea, textarea {
     scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--accent), transparent 45%) rgba(236, 255, 248, 0.06);
+    scrollbar-color: color-mix(in srgb, var(--accent), transparent 45%) color-mix(in srgb, var(--surface-tint), transparent 94%);
 }
 
 .table-wrap::-webkit-scrollbar, .heatmap-wrap::-webkit-scrollbar, .chart-table-wrap::-webkit-scrollbar, .chart-data-table::-webkit-scrollbar, .codeblock::-webkit-scrollbar, dialog textarea::-webkit-scrollbar, textarea::-webkit-scrollbar {
@@ -868,7 +842,7 @@ select option {
 
 .table-wrap::-webkit-scrollbar-track, .heatmap-wrap::-webkit-scrollbar-track, .chart-table-wrap::-webkit-scrollbar-track, .chart-data-table::-webkit-scrollbar-track, .codeblock::-webkit-scrollbar-track, dialog textarea::-webkit-scrollbar-track, textarea::-webkit-scrollbar-track {
     border-radius: 999px;
-    background: rgba(236, 255, 248, 0.045);
+    background: color-mix(in srgb, var(--surface-tint), transparent 95.5%);
 }
 
 .table-wrap::-webkit-scrollbar-thumb, .heatmap-wrap::-webkit-scrollbar-thumb, .chart-table-wrap::-webkit-scrollbar-thumb, .chart-data-table::-webkit-scrollbar-thumb, .codeblock::-webkit-scrollbar-thumb, dialog textarea::-webkit-scrollbar-thumb, textarea::-webkit-scrollbar-thumb {

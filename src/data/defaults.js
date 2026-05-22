@@ -27,7 +27,6 @@ export const BATCH_SIZE_LIMITS = {
 
 export const DEFAULT_SETTINGS = {
     theme: "system",
-    reducedMotion: "system",
     provider: {
         selectedProviderId: "manual_json",
         selectedModel: "any"

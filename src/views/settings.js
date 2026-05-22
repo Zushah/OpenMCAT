@@ -55,15 +55,12 @@ export const renderSettingsView = (state, actions) => {
     providerCard.append(divider);
     const themeSelect = createSelect("settings-theme", [{ value: "system", label: "System" }, { value: "dark", label: "Dark" }, { value: "light", label: "Light" }], state.settings.theme);
     providerCard.append(makeField("Theme", themeSelect));
-    const motionSelect = createSelect("settings-motion", [{ value: "system", label: "System" }, { value: "on", label: "Reduced motion on" }, { value: "off", label: "Reduced motion off" }], state.settings.reducedMotion ?? "system");
-    providerCard.append(makeField("Reduced motion", motionSelect));
     const saveButton = document.createElement("button");
     saveButton.className = "btn btn-primary";
     saveButton.textContent = "Save settings";
     saveButton.addEventListener("click", () => {
         const updatedSettings = structuredClone(state.settings);
         updatedSettings.theme = themeSelect.value;
-        updatedSettings.reducedMotion = motionSelect.value;
         updatedSettings.provider.selectedProviderId = providerSelect.value;
         updatedSettings.provider.selectedModel = modelInput.value.trim();
         actions.updateConfig({ providerId: providerSelect.value, model: modelInput.value.trim() || state.currentConfig.model });

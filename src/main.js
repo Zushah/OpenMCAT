@@ -12,17 +12,13 @@ import { renderSettingsView } from "./views/settings.js";
 
 const mainElement = document.getElementById("main-content");
 
-const resolveThemeValue = (theme) => {
-    if (theme === "light") return "light";
-    if (theme === "dark") return "dark";
-    return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-};
+const THEME_OPTIONS = new Set(["system", "dark", "light"]);
+const systemThemeQuery = window.matchMedia("(prefers-color-scheme: light)");
 
-const applyTheme = (theme = "system", reducedMotion = "system") => {
-    const html = document.documentElement;
-    html.setAttribute("data-theme", resolveThemeValue(theme));
-    const shouldReduce = reducedMotion === "on" || (reducedMotion === "system" && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-    html.dataset.reduceMotion = shouldReduce ? "true" : "false";
+const normalizeTheme = (theme) => THEME_OPTIONS.has(theme) ? theme : "system";
+
+const applyTheme = (theme = "system") => {
+    document.documentElement.setAttribute("data-theme", normalizeTheme(theme));
 };
 
 const updateActiveNav = (route) => {
@@ -109,6 +105,13 @@ window.addEventListener("storage", () => { if (state.route === "dashboard") acti
 handleRouteFromLocation();
 setupNavHandlers();
 setupKeyboardShortcuts();
+const handleSystemThemeChange = () => {
+    if (state.settings.theme !== "system") return;
+    applyTheme(state.settings.theme);
+    render();
+};
+if (typeof systemThemeQuery.addEventListener === "function") systemThemeQuery.addEventListener("change", handleSystemThemeChange);
+else systemThemeQuery.addListener(handleSystemThemeChange);
 actions.initApp();
 
 setInterval(() => {

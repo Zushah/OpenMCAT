@@ -2,8 +2,6 @@ const dashboardCharts = new Set();
 
 const readCssValue = (name, fallback) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 
-const getReducedMotion = () => document.documentElement?.dataset?.reduceMotion === "true";
-
 export const destroyDashboardCharts = () => { dashboardCharts.forEach((chart) => { try { chart.destroy(); } catch (error) { console.warn("OpenMCAT: failed to destroy chart", error); } }); dashboardCharts.clear(); };
 
 export const hasChartRuntime = () => typeof window !== "undefined" && typeof window.Chart === "function";
@@ -18,7 +16,7 @@ export const getChartTheme = () => ({
     danger: readCssValue("--danger", "#ff8fa3"),
     warning: readCssValue("--warning", "#ffd166"),
     success: readCssValue("--success", "#8ff8bc"),
-    reducedMotion: getReducedMotion()
+    tooltipBackground: readCssValue("--chart-tooltip-background", "rgba(12, 18, 17, 0.95)")
 });
 
 const normalizeTooltipTitle = (label) => Array.isArray(label) ? label.flat(Infinity).filter(Boolean).join(" ") : String(label ?? "");
@@ -34,7 +32,7 @@ const basePlugins = (theme) => ({
         }
     },
     tooltip: {
-        backgroundColor: "rgba(12, 18, 17, 0.95)",
+        backgroundColor: theme.tooltipBackground,
         titleColor: theme.textPrimary,
         bodyColor: theme.textSecondary,
         borderColor: theme.border,
@@ -71,7 +69,7 @@ export const getDefaultChartOptions = (overrides = {}) => {
     return {
         responsive: true,
         maintainAspectRatio: false,
-        animation: theme.reducedMotion ? false : { duration: 450 },
+        animation: { duration: 450 },
         interaction: {
             intersect: false,
             mode: "index"

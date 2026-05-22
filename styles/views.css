@@ -90,7 +90,7 @@
     display: grid;
     place-items: center;
     padding: 1rem;
-    background: rgba(7, 11, 10, 0.74);
+    background: var(--overlay-background);
 }
 
 .generation-pipeline-panel {
@@ -133,15 +133,15 @@
     height: 42px;
     padding: 10px 12px;
     border-radius: 999px;
-    border: 1px solid rgba(236, 255, 248, 0.15);
-    background: rgba(236, 255, 248, 0.05);
+    border: 1px solid color-mix(in srgb, var(--surface-tint), transparent 85%);
+    background: color-mix(in srgb, var(--surface-tint), transparent 95%);
     color: var(--text-primary);
     resize: none;
     overflow: hidden;
     white-space: nowrap;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    scrollbar-color: color-mix(in srgb, var(--accent), transparent 45%) rgba(236, 255, 248, 0.06);
+    scrollbar-color: color-mix(in srgb, var(--accent), transparent 45%) color-mix(in srgb, var(--surface-tint), transparent 94%);
     text-align: center;
 }
 
@@ -157,7 +157,7 @@
 
 .generation-pipeline-output::-webkit-scrollbar-track {
     border-radius: 999px;
-    background: rgba(236, 255, 248, 0.045);
+    background: color-mix(in srgb, var(--surface-tint), transparent 95.5%);
 }
 
 .generation-pipeline-output::-webkit-scrollbar-thumb {
@@ -176,11 +176,11 @@
 }
 
 .generation-pipeline-output:hover {
-    border-color: rgba(143, 248, 188, 0.38);
+    border-color: color-mix(in srgb, var(--accent), transparent 62%);
 }
 
 .generation-pipeline-output:focus {
-    border-color: rgba(143, 248, 188, 0.55);
+    border-color: color-mix(in srgb, var(--accent), transparent 45%);
     box-shadow: var(--ring);
 }
 
@@ -244,7 +244,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     padding: var(--space-md);
-    background: rgba(148, 163, 184, 0.07);
+    background: color-mix(in srgb, var(--text-muted), transparent 93%);
 }
 
 .practice-confidence {
@@ -374,10 +374,10 @@
     gap: 0.4rem;
     padding: 0.42rem 0.7rem;
     border-radius: 999px;
-    border: 1px solid rgba(236, 255, 248, 0.16);
+    border: 1px solid color-mix(in srgb, var(--surface-tint), transparent 84%);
     font-size: 0.76rem;
     color: var(--accent-2);
-    background: rgba(236, 255, 248, 0.04);
+    background: color-mix(in srgb, var(--surface-tint), transparent 96%);
 }
 
 .landing-hero h1 {
@@ -407,8 +407,8 @@
 .landing-strip > div {
     padding: 0.95rem 1rem;
     border-radius: 18px;
-    border: 1px solid rgba(236, 255, 248, 0.12);
-    background: rgba(236, 255, 248, 0.03);
+    border: 1px solid color-mix(in srgb, var(--surface-tint), transparent 88%);
+    background: color-mix(in srgb, var(--surface-tint), transparent 97%);
 }
 
 .landing-strip strong {
@@ -512,7 +512,7 @@
 
 .heatmap-cell:not(:disabled):hover {
     transform: translateY(-1px);
-    border-color: rgba(143, 248, 188, 0.38);
+    border-color: color-mix(in srgb, var(--accent), transparent 62%);
 }
 
 .heatmap-cell:disabled {
@@ -531,20 +531,20 @@
 }
 
 .heatmap-level-1 {
-    background: rgba(99, 255, 180, 0.08);
+    background: color-mix(in srgb, var(--success), transparent 92%);
 }
 
 .heatmap-level-2 {
-    background: rgba(248, 220, 143, 0.1);
+    background: color-mix(in srgb, var(--warning), transparent 90%);
 }
 
 .heatmap-level-3 {
-    background: rgba(248, 220, 143, 0.18);
+    background: color-mix(in srgb, var(--warning), transparent 82%);
     border-color: color-mix(in srgb, var(--warning), transparent 62%);
 }
 
 .heatmap-level-4 {
-    background: rgba(255, 142, 161, 0.18);
+    background: color-mix(in srgb, var(--danger), transparent 82%);
     border-color: color-mix(in srgb, var(--danger), transparent 56%);
 }
 
@@ -668,16 +668,16 @@
 }
 
 .heatmap-low {
-    background: rgba(99, 255, 180, 0.08);
+    background: color-mix(in srgb, var(--success), transparent 92%);
 }
 
 .heatmap-medium {
-    background: rgba(248, 220, 143, 0.15);
+    background: color-mix(in srgb, var(--warning), transparent 85%);
     border-color: color-mix(in srgb, var(--warning), transparent 60%);
 }
 
 .heatmap-high {
-    background: rgba(255, 142, 161, 0.2);
+    background: color-mix(in srgb, var(--danger), transparent 80%);
     border-color: color-mix(in srgb, var(--danger), transparent 52%);
 }
 
@@ -746,17 +746,17 @@
 }
 
 .heatmap-cell.is-hot {
-    background: rgba(255, 142, 161, 0.22);
+    background: color-mix(in srgb, var(--danger), transparent 78%);
     border-color: color-mix(in srgb, var(--danger), transparent 54%);
 }
 
 .heatmap-cell.is-warm {
-    background: rgba(248, 220, 143, 0.17);
+    background: color-mix(in srgb, var(--warning), transparent 83%);
     border-color: color-mix(in srgb, var(--warning), transparent 58%);
 }
 
 .heatmap-cell.is-cool {
-    background: rgba(143, 248, 188, 0.08);
+    background: color-mix(in srgb, var(--accent), transparent 92%);
     border-color: color-mix(in srgb, var(--accent), transparent 76%);
 }
 
@@ -788,11 +788,11 @@
     width: 100%;
     padding: 9px 2.45rem 9px 11px;
     border-radius: 13px;
-    border: 1px solid rgba(236, 255, 248, 0.15);
-    background: rgba(236, 255, 248, 0.05);
+    border: 1px solid color-mix(in srgb, var(--surface-tint), transparent 85%);
+    background: color-mix(in srgb, var(--surface-tint), transparent 95%);
     color: var(--text-primary);
     min-height: 42px;
-    background-color: rgba(236, 255, 248, 0.055);
+    background-color: color-mix(in srgb, var(--surface-tint), transparent 94.5%);
 }
 
 .dashboard-recommendation {
@@ -842,7 +842,7 @@
 .recommendation-chip-button {
     max-width: min(100%, 360px);
     justify-content: flex-start;
-    border-color: rgba(143, 248, 188, 0.18);
+    border-color: color-mix(in srgb, var(--accent), transparent 82%);
     line-height: 1.25;
     text-align: left;
     white-space: normal;
@@ -890,7 +890,7 @@
     padding: 0.48rem;
     border: 1px solid var(--border);
     border-radius: 12px;
-    background: rgba(236, 255, 248, 0.035);
+    background: color-mix(in srgb, var(--surface-tint), transparent 96.5%);
     color: var(--text-secondary);
     cursor: pointer;
     text-align: left;
@@ -1221,7 +1221,7 @@
     padding: 0;
     border: 1px solid color-mix(in srgb, var(--accent), transparent 78%);
     border-radius: 999px;
-    background: rgba(236, 255, 248, 0.055);
+    background: color-mix(in srgb, var(--surface-tint), transparent 94.5%);
     color: var(--text-secondary);
     cursor: pointer;
     transition: border-color 160ms ease, color 160ms ease, background 160ms ease, transform 160ms ease;
@@ -1229,7 +1229,7 @@
 
 .dashboard-page-button:hover:not(:disabled) {
     border-color: color-mix(in srgb, var(--accent), transparent 45%);
-    background: rgba(143, 248, 188, 0.1);
+    background: color-mix(in srgb, var(--accent), transparent 90%);
     color: var(--text-primary);
     transform: translateY(-1px);
 }
@@ -1290,12 +1290,12 @@
 
 .review-question.is-correct {
     border-color: color-mix(in srgb, var(--success), transparent 54%);
-    background: linear-gradient(180deg, color-mix(in srgb, var(--success), transparent 93%), rgba(236, 255, 248, 0.035));
+    background: linear-gradient(180deg, color-mix(in srgb, var(--success), transparent 93%), color-mix(in srgb, var(--surface-tint), transparent 96.5%));
 }
 
 .review-question.is-incorrect {
     border-color: color-mix(in srgb, var(--danger), transparent 48%);
-    background: linear-gradient(180deg, color-mix(in srgb, var(--danger), transparent 92%), rgba(236, 255, 248, 0.032));
+    background: linear-gradient(180deg, color-mix(in srgb, var(--danger), transparent 92%), color-mix(in srgb, var(--surface-tint), transparent 96.8%));
 }
 
 .review-question.is-focused.is-correct {
@@ -1319,6 +1319,7 @@
         justify-content: flex-start;
         margin-left: 0;
     }
+
     .chart-card-header-with-action {
         grid-template-columns: 1fr;
     }
@@ -1349,5 +1350,5 @@
 }
 
 .review-question.is-unanswered {
-    border-color: rgba(236, 255, 248, 0.12);
+    border-color: color-mix(in srgb, var(--surface-tint), transparent 88%);
 }
