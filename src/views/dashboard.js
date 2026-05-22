@@ -1,10 +1,11 @@
-import { CARS_SKILLS, SCIENCE_SKILLS, SECTIONS, TOPICS } from "../data/taxonomy.js";
+import { CARS_SKILLS, DIFFICULTIES, SCIENCE_SKILLS, SECTIONS, TOPICS } from "../data/taxonomy.js";
 import { createAccessibleDataTable, createChartShell, destroyDashboardCharts, getChartTheme, getDefaultChartOptions, queueChartRender } from "../components/charts.js";
 import { createStatCard } from "../components/stats.js";
 import { formatDurationMs } from "../components/timer.js";
 
 const cb = Chalkboard;
-const PAGE_SIZE = 10;
+const DEFAULT_PAGE_SIZE = 10;
+const COMPACT_PAGE_SIZE = 5;
 
 const safeNumber = (value, fallback = 0) => { const number = Number(value); return Number.isFinite(number) ? number : fallback; };
 
@@ -56,6 +57,27 @@ const chartLabel = (label, maxLineLength = 18, maxLines = 3) => {
     return lines.length === 1 ? lines[0] : lines;
 };
 
+const hasAttempts = (row) => safeNumber(row?.attempts, 0) > 0;
+
+const metricValue = (row, value) => hasAttempts(row) && Number.isFinite(value) ? value : null;
+
+const accuracyLabel = (row) => hasAttempts(row) ? pct(row.accuracy) : "n/a";
+
+const masteryLabel = (row) => Number.isFinite(metricValue(row, row.mastery)) ? `${score(metricValue(row, row.mastery))}/100` : "n/a";
+
+const makeCompleteRows = (categories, rows, createEmptyRow) => {
+    const rowsById = new Map((rows ?? []).map((row) => [row.id, row]));
+    return categories.map((category) => rowsById.get(typeof category === "string" ? category : category.id) ?? createEmptyRow(category));
+};
+
+const makeEmptySectionRow = (section) => ({ id: section.id, sectionId: section.id, attempts: 0, correct: 0, accuracy: null, mastery: null, coveredTopicCount: 0, totalTopicCount: TOPICS.filter((topic) => topic.sectionId === section.id).length });
+
+const makeEmptySkillRow = (skill) => ({ id: skill.id, sectionId: null, attempts: 0, correct: 0, accuracy: null, mastery: null });
+
+const makeEmptyDifficultyRow = (difficulty) => ({ id: difficulty.id, attempts: 0, correct: 0, accuracy: null, averageElapsedMs: null });
+
+const getSkillChartCategories = (metrics) => metrics.filters?.sectionId === "cars" ? CARS_SKILLS : SCIENCE_SKILLS;
+
 const wrapBalancedLabel = (label, maxLineLength = 24) => {
     const words = String(label ?? "n/a").split(/\s+/).filter(Boolean);
     if (words.length <= 1) return words.length ? words : ["n/a"];
@@ -100,15 +122,16 @@ const createElement = (tag, className = "", text = "") => { const element = docu
 
 const appendText = (parent, tag, className, text) => { const element = createElement(tag, className, text); parent.append(element); return element; };
 
-const getPaginatedRows = (rows, pages, key) => {
+const getPaginatedRows = (rows, pages, key, pageSize = DEFAULT_PAGE_SIZE) => {
     const allRows = Array.isArray(rows) ? rows : [];
+    const size = Math.max(1, Math.floor(Number(pageSize) || DEFAULT_PAGE_SIZE));
     const totalItems = allRows.length;
-    const pageCount = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+    const pageCount = Math.max(1, Math.ceil(totalItems / size));
     const requestedPage = Math.floor(Number(pages?.[key]) || 0);
     const page = Math.max(0, Math.min(requestedPage, pageCount - 1));
-    const start = page * PAGE_SIZE;
-    const end = Math.min(start + PAGE_SIZE, totalItems);
-    return { rows: allRows.slice(start, end), totalItems, page, pageCount, start, end };
+    const start = page * size;
+    const end = Math.min(start + size, totalItems);
+    return { rows: allRows.slice(start, end), totalItems, page, pageCount, start, end, pageSize: size };
 };
 
 const createPaginationButton = (icon, label, disabled, onClick) => {
@@ -124,7 +147,7 @@ const createPaginationButton = (icon, label, disabled, onClick) => {
 };
 
 const createPaginationControls = ({ key, pageInfo, actions }) => {
-    if (!pageInfo || pageInfo.totalItems <= PAGE_SIZE) return null;
+    if (!pageInfo || pageInfo.totalItems <= pageInfo.pageSize) return null;
     const controls = createElement("div", "dashboard-card-pagination");
     const range = createElement("span", "dashboard-page-range", `${pageInfo.start + 1}-${pageInfo.end} of ${pageInfo.totalItems}`);
     const previous = createPaginationButton("chevron_left", "Previous page", pageInfo.page <= 0, () => actions.setDashboardPage(key, pageInfo.page - 1, pageInfo.pageCount));
@@ -288,12 +311,14 @@ const renderSummaryGrid = (metrics, recommendation) => {
     const gapHint = typeof totals.timedUntimedGap === "number" ? totals.timedUntimedGap > 0 ? `Untimed accuracy is ${pctPoints(totals.timedUntimedGap)} higher` : totals.timedUntimedGap < 0 ? `Timed accuracy is ${pctPoints(Math.abs(totals.timedUntimedGap))} higher` : "Timed and untimed accuracy are equal" : "Need both timed and untimed data";
     const coveredTopicCount = totals.coveredTopicCount ?? 0;
     const totalTopicCount = totals.totalTopicCount ?? TOPICS.length;
+    const masteryCoveredTopicCount = totals.masteryCoveredTopicCount ?? 0;
+    const masteryTotalTopicCount = totals.masteryTotalTopicCount ?? totalTopicCount;
     const grid = createElement("section", "dashboard-grid dashboard-summary-grid");
     grid.append(
         createStatCard("Questions answered", `${totals.totalQuestionsAnswered}`, `${totals.totalCorrect} correct in the active filter`),
         createStatCard("Overall accuracy", pct(totals.overallAccuracy), `Smoothed: ${pct(totals.smoothedAccuracy)}`),
-        createStatCard("Mastery estimate", `${score(totals.mastery)}/100`, "Smoothed accuracy plus volume and timing"),
-        createStatCard("Avg time / question", formatDurationMs(totals.averageElapsedMs), `Target: ${seconds(totals.averageTargetTimeMs)}`),
+        createStatCard("Mastery estimate", `${score(totals.mastery)}/100`, "Overall"),
+        createStatCard("Average time per question", formatDurationMs(totals.averageElapsedMs), `Target: ${seconds(totals.averageTargetTimeMs)}`),
         createStatCard("Completion rate", pct(totals.completionRate), `${totals.totalCompletedSessions} completed sessions stored`),
         createStatCard("Timed vs untimed", typeof totals.timedUntimedGap === "number" ? pctPoints(Math.abs(totals.timedUntimedGap)) : "n/a", gapHint),
         createStatCard("Calibration", calibration, `${metrics.confidence.noConfidenceCount} attempts without confidence`),
@@ -311,11 +336,10 @@ const renderEvidenceChips = (evidence = {}) => {
     const entries = [
         ["Attempts", evidence.attempts !== undefined ? attemptCount(evidence.attempts) : null],
         ["Raw accuracy", evidence.accuracy !== undefined ? pct(evidence.accuracy) : null],
-        ["Smoothed", evidence.smoothedAccuracy !== undefined ? pct(evidence.smoothedAccuracy) : null],
+        ["Smoothed accuracy", evidence.smoothedAccuracy !== undefined ? pct(evidence.smoothedAccuracy) : null],
         ["Mastery", evidence.mastery !== undefined ? `${score(evidence.mastery)}/100` : null],
-        ["Avg time", evidence.averageElapsedMs !== undefined ? seconds(evidence.averageElapsedMs) : null],
-        ["Target", evidence.targetTimeMs !== undefined ? seconds(evidence.targetTimeMs) : null],
-        ["Priority", evidence.priorityScore !== undefined ? score(evidence.priorityScore) : null],
+        ["Average time", evidence.averageElapsedMs !== undefined ? seconds(evidence.averageElapsedMs) : null],
+        ["Priority score", evidence.priorityScore !== undefined ? score(evidence.priorityScore) : null],
         ["Signal", evidence.signalStrength ?? null]
     ].filter(([, value]) => value !== null && value !== undefined);
     entries.forEach(([label, value]) => {
@@ -430,20 +454,20 @@ const renderTrendChart = (metrics) => {
 
 const renderSectionMasteryChart = (metrics) => {
     const theme = getChartTheme();
-    const rows = metrics.rows.bySection.slice().sort((a, b) => (sectionOrder[a.id] ?? 99) - (sectionOrder[b.id] ?? 99));
+    const rows = makeCompleteRows(SECTIONS, metrics.rows.bySection, makeEmptySectionRow).sort((a, b) => (sectionOrder[a.id] ?? 99) - (sectionOrder[b.id] ?? 99));
     return renderChartPanel({
         title: "Section mastery",
         subtitle: "Mastery is adjusted for accuracy, volume, timing, and topic coverage for each section.",
         canvasLabel: "Section mastery radar chart",
         tableColumns: ["Section", "Attempts", "Accuracy", "Coverage", "Mastery"],
-        tableRows: rows.map((row) => [rowNameFromId("section", row.id), attemptCount(row.attempts), pct(row.accuracy), `${row.coveredTopicCount ?? 0}/${row.totalTopicCount ?? 0}`, `${score(row.mastery)}/100`]),
+        tableRows: rows.map((row) => [rowNameFromId("section", row.id), attemptCount(row.attempts), accuracyLabel(row), `${row.coveredTopicCount ?? 0}/${row.totalTopicCount ?? 0}`, masteryLabel(row)]),
         config: {
             type: "radar",
             data: {
                 labels: rows.map((row) => rowNameFromId("section", row.id)),
                 datasets: [{
                     label: "Mastery",
-                    data: rows.map((row) => row.mastery),
+                    data: rows.map((row) => metricValue(row, row.mastery)),
                     borderColor: theme.accent,
                     backgroundColor: "rgba(143, 248, 188, 0.16)",
                     pointBackgroundColor: theme.accent,
@@ -455,7 +479,7 @@ const renderSectionMasteryChart = (metrics) => {
                 plugins: {
                     tooltip: {
                         callbacks: {
-                            label: (context) => `${context.dataset.label}: ${score(context.raw)}/100`
+                            label: (context) => `${context.dataset.label}: ${Number.isFinite(context.raw) ? `${score(context.raw)}/100` : "n/a"}`
                         }
                     }
                 },
@@ -477,7 +501,7 @@ const renderSectionMasteryChart = (metrics) => {
 const renderTopicWeaknessChart = (metrics, actions, pages) => {
     const theme = getChartTheme();
     const allRows = metrics.weakness.weakestTopics;
-    const pageInfo = getPaginatedRows(allRows, pages, "topicWeakness");
+    const pageInfo = getPaginatedRows(allRows, pages, "topicWeakness", COMPACT_PAGE_SIZE);
     const rows = pageInfo.rows;
     const pagination = createPaginationControls({ key: "topicWeakness", pageInfo, actions });
     return renderChartPanel({
@@ -505,20 +529,20 @@ const renderTopicWeaknessChart = (metrics, actions, pages) => {
 
 const renderSkillPerformanceChart = (metrics) => {
     const theme = getChartTheme();
-    const rows = metrics.rows.bySkill.slice().sort((a, b) => (skillOrder[a.id] ?? 99) - (skillOrder[b.id] ?? 99));
+    const rows = makeCompleteRows(getSkillChartCategories(metrics), metrics.rows.bySkill, makeEmptySkillRow).sort((a, b) => (skillOrder[a.id] ?? 99) - (skillOrder[b.id] ?? 99));
     return renderChartPanel({
         title: "Skill performance",
         subtitle: "Compare raw accuracy with the mastery estimate for each reasoning skill.",
         canvasLabel: "Skill performance bar chart",
         tableColumns: ["Skill", "Attempts", "Accuracy", "Mastery"],
-        tableRows: rows.map((row) => [rowNameFromId("skill", row.id), attemptCount(row.attempts), pct(row.accuracy), `${score(row.mastery)}/100`]),
+        tableRows: rows.map((row) => [rowNameFromId("skill", row.id), attemptCount(row.attempts), accuracyLabel(row), masteryLabel(row)]),
         config: {
             type: "bar",
             data: {
                 labels: rows.map((row) => chartLabel(rowNameFromId("skill", row.id), 18, 3)),
                 datasets: [
-                    { label: "Accuracy", data: rows.map((row) => round(row.accuracy * 100, 0.1)), backgroundColor: theme.accent },
-                    { label: "Mastery", data: rows.map((row) => row.mastery), backgroundColor: theme.accentTwo }
+                    { label: "Accuracy", data: rows.map((row) => metricValue(row, round(row.accuracy * 100, 0.1))), backgroundColor: theme.accent },
+                    { label: "Mastery", data: rows.map((row) => metricValue(row, row.mastery)), backgroundColor: theme.accentTwo }
                 ]
             },
             options: getDefaultChartOptions({
@@ -560,23 +584,50 @@ const renderConfidenceChart = (metrics) => {
 
 const renderTimingChart = (metrics) => {
     const theme = getChartTheme();
-    const rows = metrics.rows.byDifficulty;
+    const rows = makeCompleteRows(DIFFICULTIES, metrics.rows.byDifficulty, makeEmptyDifficultyRow);
     return renderChartPanel({
-        title: "Timing by difficulty",
-        subtitle: "Average seconds per question compared with the effective target time.",
-        canvasLabel: "Timing by difficulty chart",
-        tableColumns: ["Difficulty", "Attempts", "Average time", "Target"],
-        tableRows: rows.map((row) => [rowNameFromId("difficulty", row.id), attemptCount(row.attempts), seconds(row.averageElapsedMs), seconds(row.targetTimeMs)]),
+        title: "Timing and accuracy by difficulty",
+        subtitle: "Average seconds per question compared with accuracy for each difficulty level.",
+        canvasLabel: "Timing and accuracy by difficulty chart",
+        tableColumns: ["Difficulty", "Attempts", "Correct", "Accuracy", "Average time"],
+        tableRows: rows.map((row) => [rowNameFromId("difficulty", row.id), attemptCount(row.attempts), attemptCount(row.correct), accuracyLabel(row), hasAttempts(row) ? seconds(row.averageElapsedMs) : "n/a"]),
         config: {
             type: "bar",
             data: {
                 labels: rows.map((row) => rowNameFromId("difficulty", row.id)),
                 datasets: [
-                    { label: "Average seconds", data: rows.map((row) => round(row.averageElapsedMs / 1000, 0.1)), backgroundColor: theme.accentTwo },
-                    { label: "Target seconds", data: rows.map((row) => round(row.targetTimeMs / 1000, 0.1)), backgroundColor: theme.textMuted }
+                    { label: "Average seconds", data: rows.map((row) => metricValue(row, round(row.averageElapsedMs / 1000, 0.1))), backgroundColor: theme.accentTwo, yAxisID: "seconds" },
+                    { label: "Accuracy", data: rows.map((row) => metricValue(row, round(row.accuracy * 100, 0.1))), backgroundColor: theme.accent, yAxisID: "accuracy" }
                 ]
             },
-            options: getDefaultChartOptions()
+            options: getDefaultChartOptions({
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => context.dataset.label === "Accuracy" ? `${context.dataset.label}: ${score(context.raw)}%` : `${context.dataset.label}: ${score(context.raw)}s`
+                        }
+                    }
+                },
+                scales: {
+                    seconds: {
+                        type: "linear",
+                        position: "left",
+                        min: 0,
+                        ticks: { color: theme.textMuted, callback: (value) => `${value}s` },
+                        grid: { color: theme.border }
+                    },
+                    accuracy: {
+                        type: "linear",
+                        position: "right",
+                        min: 0,
+                        max: 100,
+                        ticks: { color: theme.textMuted, callback: (value) => `${value}%` },
+                        grid: { drawOnChartArea: false }
+                    },
+                    x: { ticks: { color: theme.textMuted }, grid: { color: theme.border } },
+                    y: { display: false, grid: { display: false } }
+                }
+            })
         }
     });
 };
@@ -616,7 +667,7 @@ const renderHeatmap = (metrics, actions, pages) => {
     const matrixSections = getMatrixSections(metrics);
     const skills = getMatrixSkills(metrics);
     const allRows = matrixSections.filter((matrix) => metrics.filters.sectionId === "all" || matrix.sectionId === metrics.filters.sectionId).flatMap((matrix) => (matrix.rows ?? []).map((row) => ({ ...row, matrixSkills: matrix.skills ?? [] })));
-    const pageInfo = getPaginatedRows(allRows, pages, "heatmap");
+    const pageInfo = getPaginatedRows(allRows, pages, "heatmap", COMPACT_PAGE_SIZE);
     const rows = pageInfo.rows;
     const card = createElement("section", "card card-pad dashboard-heatmap-card");
     const header = createElement("div", "dashboard-section-header");

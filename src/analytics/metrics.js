@@ -52,10 +52,9 @@ const getDateKey = (ms) => { if (!Number.isFinite(ms) || ms <= 0) return "unknow
 
 const uniqueValues = (values) => Array.from(new Set((values ?? []).filter(Boolean)));
 
-const accuracyFromRows = (rows) => {
-    if (!rows.length) return 0;
-    return rows.filter((row) => row.isCorrect).length / rows.length;
-};
+const accuracyFromRows = (rows) => { if (!rows.length) return 0; return rows.filter((row) => row.isCorrect).length / rows.length; };
+
+const getTopicCoverageMultiplier = (coverageRate) => constrain(coverageRate, 0, 1) > 0 ? constrain(0.45 + (0.55 * cb.real.sqrt(constrain(coverageRate, 0, 1))), 0, 1) : 0;
 
 const getRangeStartMs = (range) => {
     if (range === "7d") return Date.now() - (7 * DAY_MS);
@@ -298,7 +297,7 @@ const buildSectionTopicCoverage = (attempts) => {
 
 const applyTopicCoverageToSectionRows = (rows, coverageBySection) => rows.map((row) => {
     const coverage = coverageBySection[row.id] ?? { coveredTopicCount: 0, totalTopicCount: 0, topicCoverageRate: 0 };
-    const coverageMultiplier = coverage.topicCoverageRate > 0 ? constrain(0.55 + (0.45 * cb.real.sqrt(coverage.topicCoverageRate)), 0, 1) : 0;
+    const coverageMultiplier = getTopicCoverageMultiplier(coverage.topicCoverageRate);
     return {
         ...row,
         contentMastery: row.mastery,
@@ -528,6 +527,10 @@ export const computeMetrics = ({ attempts = [], sessions = [], flags = [], filte
     const minAttempts = normalizedFilters.minAttempts;
     const coveredTopicIds = new Set(answeredAttempts.flatMap((attempt) => attempt.topicIds ?? []).filter((topicId) => validTopicIds.has(topicId)));
     const filteredCoveredTopicIds = new Set(filteredAttempts.flatMap((attempt) => attempt.topicIds ?? []).filter((topicId) => validTopicIds.has(topicId)));
+    const masteryTopicIds = normalizedFilters.sectionId === "all" ? validTopicIds : new Set(TOPICS.filter((topic) => topic.sectionId === normalizedFilters.sectionId).map((topic) => topic.id));
+    const masteryCoveredTopicIds = new Set(filteredAttempts.flatMap((attempt) => attempt.topicIds ?? []).filter((topicId) => masteryTopicIds.has(topicId)));
+    const masteryTopicCoverageRate = masteryTopicIds.size ? masteryCoveredTopicIds.size / masteryTopicIds.size : 0;
+    const masteryTopicCoverageMultiplier = getTopicCoverageMultiplier(masteryTopicCoverageRate);
     const totalTopicCount = validTopicIds.size;
     const totalAttemptsStored = answeredAttempts.length;
     const totalQuestionsAnswered = filteredAttempts.length;
@@ -567,7 +570,12 @@ export const computeMetrics = ({ attempts = [], sessions = [], flags = [], filte
         totalStoredGeneratedQuestions,
         overallAccuracy: totalQuestionsAnswered ? totalCorrect / totalQuestionsAnswered : 0,
         smoothedAccuracy,
-        mastery: overallMastery.mastery,
+        mastery: round(overallMastery.mastery * masteryTopicCoverageMultiplier, 0.01),
+        contentMastery: overallMastery.mastery,
+        topicCoverageMultiplier: round(masteryTopicCoverageMultiplier, 0.01),
+        masteryCoveredTopicCount: masteryCoveredTopicIds.size,
+        masteryTotalTopicCount: masteryTopicIds.size,
+        masteryTopicCoverageRate,
         averageElapsedMs,
         averageTargetTimeMs,
         completionRate: totalGeneratedQuestions ? totalQuestionsAnswered / totalGeneratedQuestions : 0,

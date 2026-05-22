@@ -21,6 +21,8 @@ export const getChartTheme = () => ({
     reducedMotion: getReducedMotion()
 });
 
+const normalizeTooltipTitle = (label) => Array.isArray(label) ? label.flat(Infinity).filter(Boolean).join(" ") : String(label ?? "");
+
 const basePlugins = (theme) => ({
     legend: {
         display: true,
@@ -37,7 +39,14 @@ const basePlugins = (theme) => ({
         bodyColor: theme.textSecondary,
         borderColor: theme.border,
         borderWidth: 1,
-        displayColors: true
+        displayColors: true,
+        callbacks: {
+            title: (items) => {
+                const item = items?.[0];
+                const rawLabel = item?.chart?.data?.labels?.[item.dataIndex] ?? item?.label;
+                return normalizeTooltipTitle(rawLabel);
+            }
+        }
     }
 });
 
@@ -55,6 +64,10 @@ const baseScales = (theme) => ({
 export const getDefaultChartOptions = (overrides = {}) => {
     const theme = getChartTheme();
     const { replaceScales = false, ...optionOverrides } = overrides;
+    const defaultPlugins = basePlugins(theme);
+    const pluginOverrides = optionOverrides.plugins ?? {};
+    const legendOverrides = pluginOverrides.legend && typeof pluginOverrides.legend === "object" ? pluginOverrides.legend : {};
+    const tooltipOverrides = pluginOverrides.tooltip && typeof pluginOverrides.tooltip === "object" ? pluginOverrides.tooltip : {};
     return {
         responsive: true,
         maintainAspectRatio: false,
@@ -65,8 +78,24 @@ export const getDefaultChartOptions = (overrides = {}) => {
         },
         ...optionOverrides,
         plugins: {
-            ...basePlugins(theme),
-            ...(optionOverrides.plugins ?? {})
+            ...defaultPlugins,
+            ...pluginOverrides,
+            legend: {
+                ...defaultPlugins.legend,
+                ...legendOverrides,
+                labels: {
+                    ...defaultPlugins.legend.labels,
+                    ...(legendOverrides.labels ?? {})
+                }
+            },
+            tooltip: {
+                ...defaultPlugins.tooltip,
+                ...tooltipOverrides,
+                callbacks: {
+                    ...defaultPlugins.tooltip.callbacks,
+                    ...(tooltipOverrides.callbacks ?? {})
+                }
+            }
         },
         scales: replaceScales ? (optionOverrides.scales ?? {}) : {
             ...baseScales(theme),

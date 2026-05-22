@@ -81,15 +81,39 @@ const buildEvidence = (pair) => ({
 
 const getPairAttempts = (pair) => pair.rawCount ?? pair.attempts ?? pair.weightedAttempts ?? 0;
 
+const clampQuestionCount = (value, min = 5, max = 20) => Math.round(cb.numb.constrain(safeNumber(value, min), [min, max]));
+
+const calculateBaselineQuestionCount = (metrics, timed = false) => {
+    const answered = safeNumber(metrics?.totals?.totalQuestionsAnswered, 0);
+    const experienceBump = answered >= 80 ? 2 : answered >= 30 ? 1 : 0;
+    return clampQuestionCount((timed ? 9 : 7) + experienceBump, 5, timed ? 15 : 20);
+};
+
+const calculateTargetedQuestionCount = ({ pair, metrics, timed = false }) => {
+    const minAttempts = safeNumber(metrics?.filters?.minAttempts, 3);
+    const pairAttempts = getPairAttempts(pair);
+    const priority = safeNumber(pair?.priorityScore, 0);
+    const accuracy = Number.isFinite(pair?.smoothedAccuracy) ? pair.smoothedAccuracy : safeNumber(pair?.accuracy, 0.5);
+    const mastery = safeNumber(pair?.mastery, 50);
+    const timeRatio = safeNumber(pair?.timeRatio, 1);
+    let count = timed ? 6 : 5;
+    count += priority >= 70 ? 4 : priority >= 55 ? 3 : priority >= 40 ? 2 : 1;
+    count += accuracy < 0.45 ? 2 : accuracy < 0.6 ? 1 : 0;
+    count += mastery < 45 ? 2 : mastery < 65 ? 1 : 0;
+    count += timeRatio > 1.25 ? 1 : 0;
+    count += pairAttempts >= minAttempts * 4 ? 2 : pairAttempts >= minAttempts * 2 ? 1 : pairAttempts < minAttempts ? -1 : 0;
+    return clampQuestionCount(count, 5, timed ? 15 : 20);
+};
+
 export const buildRecommendation = ({ topicsById, skillsById, sectionsById, metrics }) => {
     const totals = metrics?.totals ?? {};
     const sectionId = getDefaultSectionId(metrics);
     if (!totals.totalQuestionsAnswered) {
-        const config = buildBaselineConfig(sectionId, { timed: false, count: 8 });
+        const config = buildBaselineConfig(sectionId, { timed: false, count: calculateBaselineQuestionCount(metrics, false) });
         return {
             type: "new_user",
             headline: "Recommended next drill",
-            body: `Start with a medium ${getSectionLabel(sectionsById, sectionId)} baseline drill so the dashboard has enough local data to identify useful patterns.`,
+            body: `Start with a ${config.questionCount}-question medium ${getSectionLabel(sectionsById, sectionId)} baseline drill so the dashboard has enough local data to identify useful patterns.`,
             rationale: [
                 "No answered questions match the current dashboard view yet.",
                 "A short baseline drill gives the analytics model section, topic, skill, timing, and confidence data to work with."
@@ -102,7 +126,7 @@ export const buildRecommendation = ({ topicsById, skillsById, sectionsById, metr
             alternatives: [
                 {
                     label: "Timed baseline",
-                    config: buildBaselineConfig(sectionId, { timed: true, count: 10 })
+                    config: buildBaselineConfig(sectionId, { timed: true, count: calculateBaselineQuestionCount(metrics, true) })
                 }
             ]
         };
@@ -113,11 +137,11 @@ export const buildRecommendation = ({ topicsById, skillsById, sectionsById, metr
     const topPair = stablePair ?? pairs[0];
     if (!topPair) {
         const timed = hasTimingGap(metrics);
-        const config = buildBaselineConfig(sectionId, { timed, count: timed ? 10 : 8 });
+        const config = buildBaselineConfig(sectionId, { timed, count: calculateBaselineQuestionCount(metrics, timed) });
         return {
             type: "insufficient_pair_data",
             headline: "Recommended next drill",
-            body: `Build more topic-skill signal with a medium ${getSectionLabel(sectionsById, sectionId)} drill.`,
+            body: `Build more topic-skill signal with a ${config.questionCount}-question medium ${getSectionLabel(sectionsById, sectionId)} drill.`,
             rationale: [
                 `The current view has ${totals.totalQuestionsAnswered} answered question${totals.totalQuestionsAnswered === 1 ? "" : "s"}, but not enough repeated topic-skill pairs yet.`,
                 timed ? "Timed accuracy is lagging untimed accuracy, so the next baseline should include time pressure." : "Untimed review is appropriate while the dashboard is still building signal."
@@ -137,7 +161,7 @@ export const buildRecommendation = ({ topicsById, skillsById, sectionsById, metr
     const slowPair = topPair.timeRatio > 1.15;
     const timed = timingGap || slowPair;
     const reviewMode = timed && !overconfidence ? "later" : "immediate";
-    const questionCount = timed ? 8 : 6;
+    const questionCount = calculateTargetedQuestionCount({ pair: topPair, metrics, timed });
     const config = {
         sectionId: targetSectionId,
         topicIds: [topPair.topicId],
@@ -166,23 +190,27 @@ export const buildRecommendation = ({ topicsById, skillsById, sectionsById, metr
     return {
         type: "weak_pair",
         headline: "Recommended next drill",
-        body: `Drill ${sectionLabel}: ${topicLabel} with ${skillLabel}. Use ${questionCount} ${timed ? "timed" : "untimed"} medium questions with ${reviewMode === "later" ? "review after the set" : "immediate explanations"}.`,
+        body: `Drill ${sectionLabel}: ${topicLabel} with ${skillLabel}. Use ${questionCount} ${timed ? "timed" : "untimed"} medium questions with ${reviewMode === "later" ? "post-session review" : "immediate review"}.`,
         rationale,
         evidence: buildEvidence(topPair),
         config,
-        alternatives: pairs.slice(1, 4).map((pair) => ({
-            label: `${getTopicLabel(topicsById, pair.topicId)} with ${getSkillLabel(skillsById, pair.skillId)}`,
-            config: {
-                sectionId: pair.sectionId || topicsById?.[pair.topicId]?.sectionId || targetSectionId,
-                topicIds: [pair.topicId],
-                skillIds: [pair.skillId],
-                questionCount: 6,
-                timingMode: "untimed",
-                secondsPerQuestion: null,
-                difficulty: "medium",
-                questionFormat: getQuestionFormat(pair.sectionId || topicsById?.[pair.topicId]?.sectionId || targetSectionId),
-                reviewMode: "immediate"
-            }
-        }))
+        alternatives: pairs.slice(1, 4).map((pair) => {
+            const alternativeSectionId = pair.sectionId || topicsById?.[pair.topicId]?.sectionId || targetSectionId;
+            const alternativeTimed = pair.timeRatio > 1.15;
+            return {
+                label: `${getTopicLabel(topicsById, pair.topicId)} with ${getSkillLabel(skillsById, pair.skillId)}`,
+                config: {
+                    sectionId: alternativeSectionId,
+                    topicIds: [pair.topicId],
+                    skillIds: [pair.skillId],
+                    questionCount: calculateTargetedQuestionCount({ pair, metrics, timed: alternativeTimed }),
+                    timingMode: alternativeTimed ? "timed" : "untimed",
+                    secondsPerQuestion: alternativeTimed ? getTargetSeconds(alternativeSectionId) : null,
+                    difficulty: "medium",
+                    questionFormat: getQuestionFormat(alternativeSectionId),
+                    reviewMode: alternativeTimed ? "later" : "immediate"
+                }
+            };
+        })
     };
 };
