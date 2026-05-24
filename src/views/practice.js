@@ -41,6 +41,8 @@ const getSubmittedElapsedMs = (activeSession) => Object.values(activeSession.que
     return item.submitted && Number.isFinite(elapsedMs) ? sum + elapsedMs : sum;
 }, 0);
 
+const isQuestionBankSession = (activeSession) => activeSession?.providerMeta?.source === "question_bank" || activeSession?.config?.providerId === "question_bank";
+
 const appendChoiceExplanations = (panel, question) => {
     if (!question.choiceExplanations || typeof question.choiceExplanations !== "object") return;
     const list = document.createElement("ul");
@@ -67,12 +69,19 @@ export const renderPracticeView = (state, actions, nowMs) => {
         const heading = document.createElement("h2");
         heading.textContent = "No active session";
         const text = document.createElement("p");
-        text.textContent = "Generate and paste a validated session to start practicing.";
+        text.textContent = "Generate a validated session or start from the question bank to begin practicing.";
+        const row = document.createElement("div");
+        row.className = "button-row";
         const button = document.createElement("button");
         button.className = "btn btn-primary";
         button.textContent = "Go to generator";
         button.addEventListener("click", () => actions.navigate("generator"));
-        empty.append(heading, text, button);
+        const bank = document.createElement("button");
+        bank.className = "btn btn-secondary";
+        bank.textContent = "Go to question bank";
+        bank.addEventListener("click", () => actions.navigate("bank"));
+        row.append(button, bank);
+        empty.append(heading, text, row);
         root.append(empty);
         return root;
     }
@@ -115,6 +124,14 @@ export const renderPracticeView = (state, actions, nowMs) => {
     flagButton.textContent = questionState.flagged ? "Unflag" : "Flag";
     flagButton.addEventListener("click", () => actions.flagCurrentQuestion());
     actionRow.append(flagButton);
+    if (isQuestionBankSession(activeSession)) {
+        const stop = document.createElement("button");
+        stop.type = "button";
+        stop.className = "btn btn-secondary";
+        stop.textContent = "Stop and review";
+        stop.addEventListener("click", () => actions.stopSessionEarly());
+        actionRow.append(stop);
+    }
     top.append(title, progressText, progress, totalTimer, timer, actionRow);
     root.append(top);
     const grid = document.createElement("section");

@@ -208,3 +208,41 @@
         width: 100%;
     }
 }
+@media (max-width: 1100px) {
+    .question-bank-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .generator-bank-cta, .question-bank-hero {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+    }
+
+    .generator-bank-cta .btn, .question-bank-hero-actions .btn {
+        width: 100%;
+    }
+
+    .question-bank-card-header {
+        flex-direction: column;
+    }
+
+    .question-bank-status {
+        width: fit-content;
+    }
+}
+
+@media (max-width: 640px) {
+    .question-bank-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .question-bank-actions, .question-bank-actions .btn, .question-bank-count-field {
+        width: 100%;
+    }
+
+    .question-bank-count-field {
+        min-width: 0;
+    }
+}

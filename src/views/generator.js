@@ -12,11 +12,29 @@ const makeHero = () => {
     const hero = document.createElement("section");
     hero.className = "hero";
     const heading = document.createElement("h1");
-    heading.textContent = "Generate drills";
+    heading.textContent = "Practice";
     const sub = document.createElement("p");
-    sub.textContent = "Generate targeted drills by section, topic, skill, difficulty, and format. Effectively unlimited practice without any paywalls.";
+    sub.textContent = "Generate targeted drills by section, topic, skill, difficulty, and format, or start immediately from the pregenerated question bank.";
     hero.append(heading, sub);
     return hero;
+};
+
+const makeQuestionBankCta = (actions) => {
+    const panel = document.createElement("section");
+    panel.className = "card card-pad generator-bank-cta";
+    const copy = document.createElement("div");
+    const title = document.createElement("h2");
+    title.textContent = "Question bank";
+    const text = document.createElement("p");
+    text.textContent = "Use the pregenerated bank of 300 questions to start a session with zero setup friction.";
+    copy.append(title, text);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn btn-secondary";
+    button.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">fact_check</span> Start session';
+    button.addEventListener("click", () => actions.navigate("bank"));
+    panel.append(copy, button);
+    return panel;
 };
 
 const makeSectionSelect = (config, actions) => {
@@ -201,7 +219,7 @@ const makeGenerationPipelineModal = (state, actions) => {
 
 export const renderGeneratorView = (state, actions) => {
     const root = document.createElement("section");
-    root.append(makeHero());
+    root.append(makeHero(), makeQuestionBankCta(actions));
     const layout = document.createElement("div");
     layout.className = "generator-layout";
     const primary = document.createElement("section");

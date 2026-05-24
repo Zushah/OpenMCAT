@@ -7,6 +7,7 @@ import { renderDashboardView } from "./views/dashboard.js";
 import { renderGeneratorView } from "./views/generator.js";
 import { renderLandingView } from "./views/landing.js";
 import { renderPracticeView, updatePracticeTimerElement, updatePracticeTotalTimerElement } from "./views/practice.js";
+import { renderQuestionBankView } from "./views/bank.js";
 import { renderReviewView } from "./views/review.js";
 import { renderSettingsView } from "./views/settings.js";
 
@@ -22,7 +23,7 @@ const applyTheme = (theme = "system") => {
 };
 
 const updateActiveNav = (route) => {
-    const activeRoute = route === "practice" || route === "review" ? "generator" : route;
+    const activeRoute = route === "practice" || route === "review" || route === "bank" ? "generator" : route;
     const links = document.querySelectorAll(".nav-links a[data-route]");
     links.forEach((link) => {
         const routeId = link.getAttribute("data-route");
@@ -37,6 +38,7 @@ const render = () => {
     let view;
     if (state.route === "landing") view = renderLandingView(actions);
     else if (state.route === "generator") view = renderGeneratorView(state, actions);
+    else if (state.route === "bank") view = renderQuestionBankView(state, actions);
     else if (state.route === "practice") view = renderPracticeView(state, actions, Date.now());
     else if (state.route === "review") view = renderReviewView(state, actions);
     else if (state.route === "dashboard") view = renderDashboardView(state, actions);
@@ -98,9 +100,9 @@ const setupNavHandlers = () => {
     });
 };
 
-window.addEventListener("popstate", () => { handleRouteFromLocation(); window.scrollTo({ top: 0, left: 0, behavior: "auto" }); render(); });
+window.addEventListener("popstate", () => { handleRouteFromLocation(); window.scrollTo({ top: 0, left: 0, behavior: "auto" }); render(); if (state.route === "bank") actions.refreshQuestionBank(); });
 
-window.addEventListener("storage", () => { if (state.route === "dashboard") actions.refreshAnalytics().then(render); });
+window.addEventListener("storage", () => { if (state.route === "dashboard") actions.refreshAnalytics().then(render); if (state.route === "bank") actions.refreshQuestionBank(); });
 
 handleRouteFromLocation();
 setupNavHandlers();

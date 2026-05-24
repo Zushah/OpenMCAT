@@ -17,6 +17,8 @@ const round = (num, places = 0.01) => {
     return Number(rounded.toFixed(decimalPlaces));
 };
 
+const isQuestionBankSession = (activeSession) => activeSession?.providerMeta?.source === "question_bank" || activeSession?.config?.providerId === "question_bank";
+
 const summarize = (activeSession) => {
     const questions = activeSession.generatedSession.questions;
     const states = activeSession.questionStateById;
@@ -236,6 +238,13 @@ export const renderReviewView = (state, actions) => {
     newSession.textContent = "New session";
     newSession.addEventListener("click", () => actions.resetToNewSession());
     actionRow.append(newSession);
+    if (isQuestionBankSession(activeSession)) {
+        const bank = document.createElement("button");
+        bank.className = "btn btn-ghost";
+        bank.textContent = "Back to question bank";
+        bank.addEventListener("click", () => actions.navigate("bank"));
+        actionRow.append(bank);
+    }
     root.append(actionRow);
     return root;
 };

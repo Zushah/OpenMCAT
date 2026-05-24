@@ -376,7 +376,11 @@ const renderEmptyState = (actions, filtersActive) => {
     create.className = "btn btn-primary";
     create.textContent = "Generate practice session";
     create.addEventListener("click", () => actions.navigate("generator"));
-    row.append(create);
+    const bank = document.createElement("button");
+    bank.className = "btn btn-secondary";
+    bank.textContent = "Try question bank";
+    bank.addEventListener("click", () => actions.navigate("bank"));
+    row.append(create, bank);
     if (filtersActive) {
         const reset = document.createElement("button");
         reset.className = "btn btn-secondary";

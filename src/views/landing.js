@@ -15,6 +15,10 @@ export const renderLandingView = (actions) => {
     start.className = "btn btn-primary";
     start.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">rocket_launch</span> Start Practice';
     start.addEventListener("click", () => actions.navigate("generator"));
+    const bank = document.createElement("button");
+    bank.className = "btn btn-secondary";
+    bank.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">fact_check</span> Try Question Bank';
+    bank.addEventListener("click", () => actions.navigate("bank"));
     const dashboard = document.createElement("button");
     dashboard.className = "btn btn-secondary";
     dashboard.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">insights</span> View Dashboard';
@@ -25,7 +29,7 @@ export const renderLandingView = (actions) => {
     github.target = "_blank";
     github.rel = "noreferrer noopener";
     github.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">code</span> Source Code';
-    ctaRow.append(start, dashboard, github);
+    ctaRow.append(start, bank, dashboard, github);
     const disclaimer = document.createElement("p");
     disclaimer.className = "landing-disclaimer";
     disclaimer.textContent = "Independent study tool. Not affiliated with the AAMC. AI-generated content may contain errors.";

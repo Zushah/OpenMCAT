@@ -1,5 +1,7 @@
-import { DEFAULT_DASHBOARD_PAGES, state, patchGeneration, resetGenerationState } from "./app.js";
+import { DEFAULT_DASHBOARD_PAGES, DEFAULT_QUESTION_BANK_COUNTS, state, patchGeneration, resetGenerationState } from "./app.js";
 import { BATCH_SIZE_LIMITS, DEFAULT_CONFIG, QUESTION_COUNT_LIMITS } from "./data/defaults.js";
+import { QUESTION_BANK_PROVIDER_ID } from "./data/bank/catalog.js";
+import { buildQuestionBankSession, clearQuestionBankCache, loadQuestionBankOverviews } from "./data/bank/loader.js";
 import { SCIENCE_SKILLS, SECTIONS, TOPICS, getSkillsForSection, getTopicsBySection } from "./data/taxonomy.js";
 import { compilePracticePrompt } from "./prompts/compiler.js";
 import { extractJsonObject } from "./schema/repair.js";
@@ -21,6 +23,8 @@ const clamp = (value, min, max) => cb.numb.constrain(value, [cb.stat.min([min, m
 const getDefaultTopicsForSection = (sectionId) => getTopicsBySection(sectionId).slice(0, 2).map((topic) => topic.id);
 
 const getDefaultSkillsForSection = (sectionId) => getSkillsForSection(sectionId).map((skill) => skill.id);
+
+const isQuestionBankSession = (activeSession) => activeSession?.providerMeta?.source === QUESTION_BANK_PROVIDER_ID || activeSession?.config?.providerId === QUESTION_BANK_PROVIDER_ID;
 
 const normalizeConfig = (config) => {
     const normalized = { ...structuredClone(DEFAULT_CONFIG), ...config };
@@ -51,7 +55,7 @@ const prepareSessionForRuntime = (session, config) => {
     normalized.session.skillIds = normalized.session.skillIds?.length ? normalized.session.skillIds : config.skillIds;
     normalized.session.difficulty = normalized.session.difficulty || config.difficulty;
     normalized.session.questionFormat = normalized.session.questionFormat || config.questionFormat;
-    normalized.session.disclaimer = normalized.session.disclaimer || "AI-generated practice; verify explanations when uncertain.";
+    normalized.session.disclaimer = normalized.session.disclaimer || "AI-generated practice. Verify explanations when uncertain.";
     return normalized;
 };
 
@@ -91,12 +95,23 @@ export const createActions = ({ render, applyTheme }) => {
         return state.analytics;
     };
 
+    const refreshQuestionBank = async (options = {}) => {
+        if (options.clearCache) clearQuestionBankCache();
+        state.questionBank.loading = true;
+        state.questionBank.error = null;
+        render();
+        try { const data = await getAllData(); state.questionBank.entries = await loadQuestionBankOverviews(data.attempts); }
+        catch (error) { state.questionBank.error = error.message || "Could not load question bank."; }
+        finally { state.questionBank.loading = false; render(); }
+    };
+
     const navigate = (route) => {
         if (route !== "dashboard") state.dashboard.aiAnalysisOpen = false;
         state.route = route;
         setHashForRoute(route);
         window.scrollTo({ top: 0, left: 0, behavior: "auto" });
         render();
+        if (route === "bank") refreshQuestionBank();
     };
 
     const updateConfig = (patch) => {
@@ -168,6 +183,20 @@ export const createActions = ({ render, applyTheme }) => {
         updateConfig({ [field]: Array.from(set) });
     };
 
+    const updateQuestionBankCount = (sectionId, questionCount) => {
+        state.questionBank.selectedCounts = {
+            ...DEFAULT_QUESTION_BANK_COUNTS,
+            ...state.questionBank.selectedCounts,
+            [sectionId]: Math.floor(clamp(Number(questionCount) || 10, 1, 50))
+        };
+        render();
+    };
+
+    const startQuestionBankSession = async ({ sectionId, questionCount } = {}) => {
+        try { const data = await getAllData(); const bundle = await buildQuestionBankSession({ sectionId, questionCount, attempts: data.attempts }); await startPracticeSession(bundle.prepared, bundle.runtimeConfig, bundle.providerMeta); if (bundle.warnings?.length) console.warn("OpenMCAT question bank warnings", bundle.warnings); }
+        catch (error) { showToast(error.message || "Question bank session could not start.", "error"); if (state.route === "bank") await refreshQuestionBank(); }
+    };
+
     const saveAppSettings = async (nextSettings) => {
         state.settings = persistSettings(nextSettings);
         applyTheme(state.settings.theme);
@@ -199,8 +228,9 @@ export const createActions = ({ render, applyTheme }) => {
             config: structuredClone(runtimeConfig),
             generatedSession: prepared,
             providerMeta: {
+                ...structuredClone(providerMeta),
                 providerId: providerMeta.providerId ?? runtimeConfig.providerId,
-                model: runtimeConfig.model
+                model: providerMeta.model ?? runtimeConfig.model
             }
         };
         await saveSession(sessionRecord);
@@ -229,6 +259,7 @@ export const createActions = ({ render, applyTheme }) => {
             completedAt: null,
             config: structuredClone(runtimeConfig),
             generatedSession: prepared,
+            providerMeta: structuredClone(sessionRecord.providerMeta),
             currentQuestionIndex: 0,
             questionStateById,
             reviewFilter: "all",
@@ -456,6 +487,12 @@ export const createActions = ({ render, applyTheme }) => {
             flagged: qState.flagged,
             flagReason: qState.flagReason
         };
+        if (isQuestionBankSession(active)) {
+            attemptPatch.bankId = active.providerMeta?.bankId ?? question.bankId ?? null;
+            attemptPatch.bankSectionId = active.providerMeta?.bankSectionId ?? question.bankSectionId ?? active.generatedSession.session.sectionId;
+            attemptPatch.bankQuestionId = question.bankQuestionId ?? question.id;
+            attemptPatch.bankVersion = active.providerMeta?.bankVersion ?? question.bankVersion ?? null;
+        }
         if (qState.attemptId) await updateAttempt(qState.attemptId, attemptPatch);
         else {
             const attempt = { id: id("attempt"), ...attemptPatch };
@@ -507,7 +544,19 @@ export const createActions = ({ render, applyTheme }) => {
         render();
     }
 
-    const finishSession = async () => {
+    const stopSessionEarly = async () => {
+        const active = state.activeSession;
+        const question = getActiveQuestion();
+        if (!active) return;
+        const qState = question ? active.questionStateById[question.id] : null;
+        if (question && qState?.selectedChoiceId && !qState.submitted) {
+            const saved = await saveCurrentAnswer();
+            if (!saved) return;
+        }
+        await finishSession("Session stopped. Review ready.");
+    };
+
+    const finishSession = async (message = "Session complete. Review ready.") => {
         const active = state.activeSession;
         if (!active) return;
         const completedAt = new Date().toISOString();
@@ -517,7 +566,7 @@ export const createActions = ({ render, applyTheme }) => {
         state.route = "review";
         setHashForRoute("review");
         render();
-        showToast("Session complete. Review ready.", "success");
+        showToast(message, "success");
     };
 
     const setReviewFilter = (filterId) => {
@@ -553,6 +602,9 @@ export const createActions = ({ render, applyTheme }) => {
         await clearAllData();
         state.activeSession = null;
         state.dashboard.aiAnalysisOpen = false;
+        state.questionBank.entries = {};
+        state.questionBank.selectedCounts = { ...DEFAULT_QUESTION_BANK_COUNTS };
+        state.questionBank.error = null;
         await refreshAnalytics();
         render();
         showToast("All local study data deleted.");
@@ -599,7 +651,8 @@ export const createActions = ({ render, applyTheme }) => {
         });
         applyTheme(state.settings.theme);
         await refreshAnalytics();
-        render();
+        if (state.route === "bank") await refreshQuestionBank();
+        else render();
     };
 
     const resetToNewSession = () => {
@@ -614,6 +667,9 @@ export const createActions = ({ render, applyTheme }) => {
         updateConfig,
         applySection,
         toggleMultiValue,
+        updateQuestionBankCount,
+        startQuestionBankSession,
+        refreshQuestionBank,
         saveAppSettings,
         generateSession,
         submitManualJson,
@@ -625,6 +681,7 @@ export const createActions = ({ render, applyTheme }) => {
         submitAnswer,
         previousQuestion,
         nextQuestion,
+        stopSessionEarly,
         finishSession,
         setReviewFilter,
         setReviewQuestionIndex,

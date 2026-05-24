@@ -1,6 +1,7 @@
 export const ROUTE_TO_HASH = {
     landing: "/",
     generator: "/generate",
+    bank: "/bank",
     practice: "/session",
     review: "/review",
     dashboard: "/dashboard",
