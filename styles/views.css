@@ -254,6 +254,11 @@
     margin-bottom: var(--space-sm);
 }
 
+.passage-original-title {
+    margin-top: calc(var(--space-sm) * -0.5);
+    margin-bottom: var(--space-sm);
+}
+
 .passage-text {
     white-space: pre-wrap;
     color: var(--text-secondary);

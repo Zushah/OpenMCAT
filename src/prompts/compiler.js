@@ -56,6 +56,7 @@ export const compileUserPrompt = (config) => {
     - Each question must include testedTopicIds and testedSkillIds.
     - If using a passage, include passageId and ensure the passage exists.
     - If not using a passage, set passageId to null.
+    - For passage-based questions, keep each passageId's questions consecutive in the questions array.
     - Include session.estimatedTimeMinutes.
     - Include selfCheck for each question.
     - Do not include text besides a single-line (i.e., no line breaks) JSON object.`;

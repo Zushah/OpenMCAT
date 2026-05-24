@@ -1,5 +1,5 @@
 import { createProgressBar } from "../components/progress.js";
-import { createChoiceCard, createPassageCard } from "../components/questions.js";
+import { createChoiceCard, createPassageCard, createPassageMetadataById } from "../components/questions.js";
 import { formatDurationMs } from "../components/timer.js";
 
 const cb = Chalkboard;
@@ -82,6 +82,8 @@ export const renderPracticeView = (state, actions, nowMs) => {
     const questionState = activeSession.questionStateById[question.id];
     const showFeedback = questionState.submitted && activeSession.config.reviewMode === "immediate";
     const passage = question.passageId ? activeSession.generatedSession.passages.find((item) => item.id === question.passageId) : null;
+    const passageMetadataById = createPassageMetadataById(activeSession.generatedSession.passages ?? [], questions);
+    const passageMetadata = passage ? passageMetadataById.get(passage.id) : null;
     const top = document.createElement("section");
     top.className = "session-top card card-pad";
     const title = document.createElement("h2");
@@ -118,7 +120,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
     const grid = document.createElement("section");
     grid.className = "session-grid";
     if (!passage) grid.classList.add("is-single");
-    if (passage) grid.append(createPassageCard(passage));
+    if (passage) grid.append(createPassageCard(passage, passageMetadata ?? {}));
     const questionCard = document.createElement("article");
     questionCard.className = "card card-pad question-card";
     const questionHeading = document.createElement("h3");

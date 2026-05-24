@@ -55,15 +55,71 @@ export const createPassageTable = (tableData) => {
     return wrap;
 };
 
+const formatQuestionNumberRanges = (questionNumbers = []) => {
+    const source = Array.isArray(questionNumbers) ? questionNumbers : [];
+    const numbers = Array.from(new Set(source.map(Number).filter(Number.isFinite))).sort((a, b) => a - b);
+    if (!numbers.length) return "";
+    const ranges = [];
+    let start = numbers[0];
+    let end = numbers[0];
+    numbers.slice(1).forEach((number) => {
+        if (number === end + 1) {
+            end = number;
+            return;
+        }
+        ranges.push(start === end ? String(start) : `${start} - ${end}`);
+        start = number;
+        end = number;
+    });
+    ranges.push(start === end ? String(start) : `${start} - ${end}`);
+    const prefix = numbers.length === 1 ? "Question" : "Questions";
+    return `${prefix} ${ranges.join(", ")}`;
+};
+
+export const createPassageMetadataById = (passages = [], questions = []) => {
+    const passageIds = [];
+    const addPassageId = (passageId) => {
+        if (!passageId || passageIds.includes(passageId)) return;
+        passageIds.push(passageId);
+    };
+    questions.forEach((question) => { addPassageId(question?.passageId); });
+    passages.forEach((passage) => { addPassageId(passage?.id); });
+    const metadataById = new Map(passageIds.map((passageId, index) => [passageId, {
+        passageNumber: index + 1,
+        questionNumbers: []
+    }]));
+    questions.forEach((question, index) => {
+        if (!question?.passageId || !metadataById.has(question.passageId)) return;
+        metadataById.get(question.passageId).questionNumbers.push(index + 1);
+    });
+    return metadataById;
+};
+
+export const getPassageCardTitle = (passage, options = {}) => {
+    const hasNumberedTitle = options.passageNumber || Array.isArray(options.questionNumbers);
+    if (!hasNumberedTitle) return passage.title ?? "Passage";
+    const questionLabel = formatQuestionNumberRanges(options.questionNumbers);
+    const passageLabel = options.passageNumber ? `Passage ${options.passageNumber}` : "Passage";
+    return questionLabel ? `${passageLabel} (${questionLabel})` : passageLabel;
+};
+
 export const createPassageCard = (passage, options = {}) => {
     const card = document.createElement("article");
     card.className = options.className ?? "card card-pad passage-card";
     const passageTitle = document.createElement("h3");
-    passageTitle.textContent = passage.title ?? "Passage";
+    const title = getPassageCardTitle(passage, options);
+    passageTitle.textContent = title;
+    card.append(passageTitle);
+    if ((options.passageNumber || Array.isArray(options.questionNumbers)) && passage.title) {
+        const originalTitle = document.createElement("p");
+        originalTitle.className = "tiny passage-original-title";
+        originalTitle.textContent = passage.title;
+        card.append(originalTitle);
+    }
     const passageText = document.createElement("p");
     passageText.className = "passage-text";
     passageText.textContent = passage.text ?? "";
-    card.append(passageTitle, passageText);
+    card.append(passageText);
     (passage.tables ?? []).forEach((tableData) => { card.append(createPassageTable(tableData)); });
     (passage.figureDescriptions ?? []).forEach((figure) => {
         const figureCard = document.createElement("div");

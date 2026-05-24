@@ -1,4 +1,4 @@
-import { createPassageCard } from "../components/questions.js";
+import { createPassageCard, createPassageMetadataById, getPassageCardTitle } from "../components/questions.js";
 import { formatDurationMs } from "../components/timer.js";
 
 const cb = Chalkboard;
@@ -64,7 +64,7 @@ const makeFilterButton = (label, filterId, currentFilter, onClick) => {
     return button;
 };
 
-const createReviewPassageDropdown = (passage) => {
+const createReviewPassageDropdown = (passage, passageMetadata = {}) => {
     const details = document.createElement("details");
     details.className = "review-passage-dropdown";
     const summary = document.createElement("summary");
@@ -74,21 +74,22 @@ const createReviewPassageDropdown = (passage) => {
     passageIcon.setAttribute("aria-hidden", "true");
     passageIcon.textContent = "menu_book";
     const label = document.createElement("span");
-    label.textContent = "Show passage";
+    const passageTitle = getPassageCardTitle(passage, passageMetadata);
+    label.textContent = `Show ${passageTitle}`;
     const expandIcon = document.createElement("span");
     expandIcon.className = "material-symbols-outlined";
     expandIcon.setAttribute("aria-hidden", "true");
     expandIcon.textContent = "expand_more";
     summary.append(passageIcon, label, expandIcon);
-    details.append(summary, createPassageCard(passage, { className: "card card-pad passage-card review-passage-card" }));
+    details.append(summary, createPassageCard(passage, { className: "card card-pad passage-card review-passage-card", ...passageMetadata }));
     details.addEventListener("toggle", () => {
-        label.textContent = details.open ? "Hide passage" : "Show passage";
+        label.textContent = details.open ? `Hide ${passageTitle}` : `Show ${passageTitle}`;
         expandIcon.textContent = details.open ? "expand_less" : "expand_more";
     });
     return details;
 };
 
-const makeQuestionReviewBlock = (record, index, isFocused, passagesById) => {
+const makeQuestionReviewBlock = (record, index, isFocused, passagesById, passageMetadataById) => {
     const { question, state } = record;
     const card = document.createElement("article");
     const resultClass = state.submitted ? state.isCorrect ? "is-correct" : "is-incorrect" : "is-unanswered";
@@ -123,7 +124,7 @@ const makeQuestionReviewBlock = (record, index, isFocused, passagesById) => {
         card.append(flagged);
     }
     const passage = question.passageId ? passagesById.get(question.passageId) : null;
-    if (passage) card.append(createReviewPassageDropdown(passage));
+    if (passage) card.append(createReviewPassageDropdown(passage, passageMetadataById.get(passage.id) ?? {}));
     return card;
 };
 
@@ -179,6 +180,7 @@ export const renderReviewView = (state, actions) => {
     controls.append(navHint);
     root.append(controls);
     const passagesById = new Map((activeSession.generatedSession.passages ?? []).map((passage) => [passage.id, passage]));
+    const passageMetadataById = createPassageMetadataById(activeSession.generatedSession.passages ?? [], activeSession.generatedSession.questions);
     const records = activeSession.generatedSession.questions.map((question, index) => ({ question, state: activeSession.questionStateById[question.id], index })).filter((record) => {
         if (activeSession.reviewFilter === "incorrect") return record.state.submitted && !record.state.isCorrect;
         if (activeSession.reviewFilter === "flagged") return Boolean(record.state.flagged);
@@ -195,7 +197,7 @@ export const renderReviewView = (state, actions) => {
         reviewList.append(empty);
     } else {
         const focusedIndex = state.activeSession.viewQuestionIndex ?? 0;
-        records.forEach((record) => { reviewList.append(makeQuestionReviewBlock(record, record.index, record.index === focusedIndex, passagesById)); });
+        records.forEach((record) => { reviewList.append(makeQuestionReviewBlock(record, record.index, record.index === focusedIndex, passagesById, passageMetadataById)); });
     };
     root.append(reviewList);
     const actionRow = document.createElement("div");

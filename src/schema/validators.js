@@ -36,6 +36,23 @@ const normalizeSessionShape = (rawSession) => {
 
 const validateStringField = (errors, value, path) => { if (!isText(value)) errors.push(`${path} must be a non-empty string.`); };
 
+const validatePassageQuestionOrder = (errors, questions) => {
+    const closedPassageIds = new Set();
+    let currentPassageId = null;
+    questions.forEach((question) => {
+        const passageId = isText(question?.passageId) ? question.passageId : null;
+        if (!passageId) {
+            if (currentPassageId) closedPassageIds.add(currentPassageId);
+            currentPassageId = null;
+            return;
+        }
+        if (passageId === currentPassageId) return;
+        if (currentPassageId) closedPassageIds.add(currentPassageId);
+        if (closedPassageIds.has(passageId)) errors.push(`questions must keep passage-based questions for passageId "${passageId}" consecutive.`);
+        currentPassageId = passageId;
+    });
+};
+
 export const validatePracticeSession = (candidate, context = {}) => {
     const errors = [];
     const warnings = [];
@@ -128,6 +145,7 @@ export const validatePracticeSession = (candidate, context = {}) => {
         if (normalized.questions.length > context.requestedCount) { normalized.questions = normalized.questions.slice(0, context.requestedCount); warnings.push(`Model returned ${candidate.questions?.length ?? 0} questions; trimmed to requested count ${context.requestedCount}.`); }
         if (normalized.questions.length !== context.requestedCount) errors.push(`Question count mismatch. Expected ${context.requestedCount}, received ${normalized.questions.length}.`);
     }
+    validatePassageQuestionOrder(errors, normalized.questions);
     if (Array.isArray(context.validTopicIds) && context.validTopicIds.length > 0) {
         normalized.questions.forEach((question, index) => {
             question.testedTopicIds.forEach((topicId) => { if (!context.validTopicIds.includes(topicId)) warnings.push(`questions[${index}] uses unknown topic id "${topicId}".`); });
