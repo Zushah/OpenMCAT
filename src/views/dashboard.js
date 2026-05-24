@@ -2,6 +2,7 @@ import { DIFFICULTIES, SCIENCE_SKILLS, SECTIONS, TOPICS } from "../data/taxonomy
 import { createAccessibleDataTable, createChartShell, destroyDashboardCharts, getChartTheme, getDefaultChartOptions, queueChartRender } from "../components/charts.js";
 import { createStatCard } from "../components/stats.js";
 import { formatDurationMs } from "../components/timer.js";
+import { compileAnalyticsPrompt } from "../prompts/analytics.js";
 
 const cb = Chalkboard;
 const DEFAULT_PAGE_SIZE = 10;
@@ -121,6 +122,22 @@ const targetSecondsForSection = () => 95;
 const createElement = (tag, className = "", text = "") => { const element = document.createElement(tag); if (className) element.className = className; if (text) element.textContent = text; return element; };
 
 const appendText = (parent, tag, className, text) => { const element = createElement(tag, className, text); parent.append(element); return element; };
+
+const copyTextToClipboard = async (text) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) try { await navigator.clipboard.writeText(text); return; } catch { }
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    textarea.style.top = "0";
+    textarea.style.opacity = "0";
+    document.body.append(textarea);
+    textarea.focus();
+    textarea.select();
+    try { const copied = document.execCommand("copy"); if (!copied) throw new Error("Copy failed"); }
+    finally { textarea.remove(); }
+};
 
 const getPaginatedRows = (rows, pages, key, pageSize = DEFAULT_PAGE_SIZE) => {
     const allRows = Array.isArray(rows) ? rows : [];
@@ -281,6 +298,74 @@ const renderFilterBar = (filters, actions) => {
     panel.append(header, controls);
     return panel;
 };
+
+const renderDashboardHero = (metrics, actions) => {
+    const header = createElement("section", "hero dashboard-hero");
+    const copy = createElement("div", "dashboard-hero-copy");
+    appendText(copy, "h1", "", "Analytics dashboard");
+    appendText(copy, "p", "", "Use your practice history to identify content gaps, skill vulnerabilities, timing pressure, confidence calibration, and more. Then get recommendations for the next drill to run.");
+    const actionsWrap = createElement("div", "dashboard-hero-actions");
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn btn-primary dashboard-ai-button";
+    button.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span><span>Evaluate with AI</span>';
+    const answeredCount = safeNumber(metrics?.totals?.totalQuestionsAnswered, 0);
+    const storedCount = safeNumber(metrics?.totals?.totalAttemptsStored, 0);
+    button.disabled = answeredCount <= 0;
+    button.title = answeredCount > 0 ? "Copy an AI-ready analysis prompt for this dashboard view." : storedCount > 0 ? "No answered questions match the active filters." : "Complete a practice session first.";
+    button.setAttribute("aria-label", "Evaluate dashboard stats with AI");
+    button.addEventListener("click", () => actions.openDashboardAiAnalysis());
+    actionsWrap.append(button);
+    header.append(copy, actionsWrap);
+    return header;
+};
+
+const renderAiAnalysisModal = (state, actions) => {
+    if (!state.dashboard?.aiAnalysisOpen) return null;
+    const metrics = state.analytics?.metrics;
+    if (!metrics?.totals?.totalQuestionsAnswered) return null;
+    const promptText = compileAnalyticsPrompt({
+        metrics,
+        recommendation: state.analytics?.recommendation
+    });
+    const overlay = createElement("section", "generation-pipeline-overlay analytics-prompt-overlay");
+    overlay.setAttribute("role", "presentation");
+    overlay.addEventListener("click", (event) => { if (event.target === overlay) actions.closeDashboardAiAnalysis(); });
+    const panel = createElement("section", "card card-pad generation-pipeline-panel analytics-prompt-panel");
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-labelledby", "analytics-prompt-heading");
+    panel.addEventListener("click", (event) => event.stopPropagation());
+    const top = createElement("div", "generation-pipeline-top");
+    const heading = createElement("h2", "", "Evaluate with AI");
+    heading.id = "analytics-prompt-heading";
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "btn btn-ghost generation-pipeline-close";
+    close.setAttribute("aria-label", "Close");
+    close.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">close</span>';
+    close.addEventListener("click", () => actions.closeDashboardAiAnalysis());
+    top.append(heading, close);
+    const instructions = createElement("p", "generation-pipeline-instructions analytics-prompt-instructions", "Copy prompt → Paste into your AI's chat:");
+    const note = createElement("p", "tiny analytics-prompt-note", `The prompt is ${promptText.length.toLocaleString()} characters long and only includes aggregate analytics with no details about individual sessions or questions.`);
+    const controls = createElement("div", "generation-pipeline-row analytics-prompt-row");
+    const copyButton = document.createElement("button");
+    copyButton.type = "button";
+    copyButton.className = "btn btn-secondary";
+    copyButton.textContent = "Copy prompt";
+    copyButton.addEventListener("click", async () => {
+        copyButton.disabled = true;
+        try { await copyTextToClipboard(promptText); copyButton.textContent = "Copied"; }
+        catch { copyButton.textContent = "Copy failed"; }
+        finally { setTimeout(() => { copyButton.disabled = false; copyButton.textContent = "Copy prompt"; }, 1400); }
+    });
+    controls.append(copyButton);
+    panel.append(top, instructions, controls, note);
+    overlay.append(panel);
+    return overlay;
+};
+
+const appendAiAnalysisModal = (root, state, actions) => { const modal = renderAiAnalysisModal(state, actions); if (modal) root.append(modal); };
 
 const renderEmptyState = (actions, filtersActive) => {
     const empty = createElement("section", "card card-pad empty-state dashboard-empty");
@@ -894,13 +979,10 @@ export const renderDashboardView = (state, actions) => {
     const metrics = analytics?.metrics;
     const filters = metrics?.filters ?? state.dashboard.filters;
     const pages = state.dashboard?.pages ?? {};
-    const header = createElement("section", "hero dashboard-hero");
-    appendText(header, "h1", "", "Analytics dashboard");
-    appendText(header, "p", "", "Use your practice history to identify content gaps, skill vulnerabilities, timing pressure, confidence calibration, and more. Then get recommendations for the next drill to run.");
-    root.append(header);
-    if (!metrics || !metrics.totals.totalAttemptsStored) { root.append(renderEmptyState(actions, false)); return root; }
+    root.append(renderDashboardHero(metrics, actions));
+    if (!metrics || !metrics.totals.totalAttemptsStored) { root.append(renderEmptyState(actions, false)); appendAiAnalysisModal(root, state, actions); return root; }
     root.append(renderFilterBar(filters, actions));
-    if (!metrics.totals.totalQuestionsAnswered) { root.append(renderEmptyState(actions, filtersAreActive(filters))); return root; }
+    if (!metrics.totals.totalQuestionsAnswered) { root.append(renderEmptyState(actions, filtersAreActive(filters))); appendAiAnalysisModal(root, state, actions); return root; }
     root.append(
         renderSummaryGrid(metrics, analytics.recommendation),
         renderRecommendationCard(analytics.recommendation, actions),
@@ -909,5 +991,6 @@ export const renderDashboardView = (state, actions) => {
         renderHeatmap(metrics, actions, pages),
         renderTables(metrics, actions, pages)
     );
+    appendAiAnalysisModal(root, state, actions);
     return root;
 };

@@ -202,6 +202,26 @@
     margin-bottom: 0;
 }
 
+.analytics-prompt-panel {
+    width: min(620px, 96vw);
+}
+
+.analytics-prompt-instructions {
+    max-width: 56ch;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.analytics-prompt-row {
+    margin-top: 0.85rem;
+}
+
+.analytics-prompt-note {
+    max-width: 58ch;
+    margin: 0.85rem auto 0;
+    text-align: center;
+}
+
 .tiny {
     font-size: 0.74rem;
     color: var(--text-muted);
@@ -719,8 +739,32 @@
 }
 
 .dashboard-hero {
-    max-width: 880px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-md);
+    align-items: center;
+    width: 100%;
+    max-width: none;
     margin-bottom: 0;
+}
+
+.dashboard-hero-copy {
+    min-width: 0;
+    max-width: 880px;
+}
+
+.dashboard-hero-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.dashboard-ai-button {
+    white-space: nowrap;
+}
+
+.dashboard-ai-button .material-symbols-outlined {
+    font-size: 1.16rem;
 }
 
 .evidence-chip-list {

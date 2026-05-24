@@ -27,7 +27,8 @@ export const state = {
     analytics: null,
     dashboard: {
         filters: { ...DEFAULT_DASHBOARD_FILTERS },
-        pages: { ...DEFAULT_DASHBOARD_PAGES }
+        pages: { ...DEFAULT_DASHBOARD_PAGES },
+        aiAnalysisOpen: false
     }
 };
 

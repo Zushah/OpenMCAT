@@ -92,6 +92,7 @@ export const createActions = ({ render, applyTheme }) => {
     };
 
     const navigate = (route) => {
+        if (route !== "dashboard") state.dashboard.aiAnalysisOpen = false;
         state.route = route;
         setHashForRoute(route);
         window.scrollTo({ top: 0, left: 0, behavior: "auto" });
@@ -129,6 +130,21 @@ export const createActions = ({ render, applyTheme }) => {
             ...state.dashboard.pages,
             [key]: nextPage
         };
+        render();
+    };
+
+    const openDashboardAiAnalysis = () => {
+        if (!state.analytics?.metrics?.totals?.totalQuestionsAnswered) {
+            state.dashboard.aiAnalysisOpen = false;
+            showToast("Complete a practice session before copying an AI analysis prompt.");
+            return;
+        }
+        state.dashboard.aiAnalysisOpen = true;
+        render();
+    };
+
+    const closeDashboardAiAnalysis = () => {
+        state.dashboard.aiAnalysisOpen = false;
         render();
     };
 
@@ -536,6 +552,7 @@ export const createActions = ({ render, applyTheme }) => {
     const deleteAllLocalData = async () => {
         await clearAllData();
         state.activeSession = null;
+        state.dashboard.aiAnalysisOpen = false;
         await refreshAnalytics();
         render();
         showToast("All local study data deleted.");
@@ -618,6 +635,8 @@ export const createActions = ({ render, applyTheme }) => {
         updateDashboardFilters,
         resetDashboardFilters,
         setDashboardPage,
+        openDashboardAiAnalysis,
+        closeDashboardAiAnalysis,
         applyDashboardDrill,
         applyRecommendation,
         resetToNewSession
