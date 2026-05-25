@@ -163,6 +163,7 @@ const formatRecentSession = (session = {}) => compactObject({
     createdAt: session.createdAt,
     completedAt: session.completedAt,
     completed: Boolean(session.completed),
+    aiModel: session.aiModel,
     sectionId: session.sectionId,
     sectionLabel: sectionLabel(session.sectionId),
     timingMode: session.timingMode,
@@ -173,6 +174,15 @@ const formatRecentSession = (session = {}) => compactObject({
     accuracy: nullableRound(session.accuracy, ROUND_RATIO),
     averageElapsedMs: nullableRound(session.averageElapsedMs, ROUND_INTEGER),
     missedTopicIds: formatTopicIds(session.missedTopicIds ?? session.missedTopics)
+});
+
+const formatModelUsageRow = (row = {}) => compactObject({
+    model: row.model,
+    sessionCount: nullableNumber(row.sessionCount),
+    generatedQuestionCount: nullableNumber(row.generatedQuestionCount),
+    answeredAttempts: nullableNumber(row.answeredAttempts),
+    correct: nullableNumber(row.correct),
+    accuracy: nullableRound(row.accuracy, ROUND_RATIO)
 });
 
 const formatRecommendationConfig = (config = {}) => compactObject({
@@ -299,6 +309,12 @@ const buildAnalyticsPayload = ({ metrics = {}, recommendation = null } = {}) => 
                 sessionAccuracy: limitList((trends.sessionAccuracy ?? []).slice().reverse(), LIMITS.trendPoints, formatTrendRow)
             },
             sectionMastery: (rows.bySection ?? []).map((row) => formatAggregateRow(row, "section")),
+            aiModelUsage: {
+                totalModels: nullableNumber(metrics.models?.totalModels),
+                totalGeneratedQuestions: nullableNumber(metrics.models?.totalGeneratedQuestions),
+                topModel: metrics.models?.topModel ? formatModelUsageRow(metrics.models.topModel) : null,
+                rows: (metrics.models?.rows ?? []).map(formatModelUsageRow)
+            },
             topicWeaknessPriority: limitList(weakness.weakestTopics ?? rows.byTopic, LIMITS.weakestTopics, (row) => formatAggregateRow(row, "topic")),
             skillPerformance: (rows.bySkill ?? []).map((row) => formatAggregateRow(row, "skill")),
             confidenceCalibration: {
@@ -334,7 +350,8 @@ const FIELD_DESCRIPTIONS = {
     signalStrength: "stable means enough attempts under the active min-attempt setting; early means useful but low sample; none means absent.",
     topicCoverageMultiplier: "Coverage adjustment applied to mastery so narrow practice does not look like broad mastery.",
     filteredOutAttempts: "Answered attempts stored locally but excluded by the active dashboard filters.",
-    activeFlagCount: "Currently flagged attempted questions in this filtered dashboard slice. Flags can mean ambiguity, suspected factual issue, bad explanation, formatting issue, or other user-marked concern."
+    activeFlagCount: "Currently flagged attempted questions in this filtered dashboard slice. Flags can mean ambiguity, suspected factual issue, bad explanation, formatting issue, or other user-marked concern.",
+    aiModelUsage: "Generated question counts grouped by session.aiModel when available, falling back to stored provider/config model metadata."
 };
 
 export const compileAnalyticsPrompt = ({ metrics, recommendation } = {}) => {

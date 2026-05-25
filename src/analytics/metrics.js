@@ -52,6 +52,14 @@ const getDateKey = (ms) => { if (!Number.isFinite(ms) || ms <= 0) return "unknow
 
 const uniqueValues = (values) => Array.from(new Set((values ?? []).filter(Boolean)));
 
+const normalizeModelName = (value) => {
+    if (typeof value !== "string") return null;
+    const normalized = value.trim().replace(/\s*\/\s*/g, "/").toLowerCase();
+    return normalized.length ? normalized : null;
+};
+
+const getSessionAiModel = (session) => normalizeModelName(session?.generatedSession?.session?.aiModel) ?? normalizeModelName(session?.providerMeta?.model) ?? normalizeModelName(session?.config?.model) ?? "unknown";
+
 const getSessionSectionId = (session) => session?.config?.sectionId ?? session?.generatedSession?.session?.sectionId ?? "unknown";
 
 const accuracyFromRows = (rows) => { if (!rows.length) return 0; return rows.filter((row) => row.isCorrect).length / rows.length; };
@@ -464,6 +472,7 @@ const buildSessionSummaries = (attempts, sessions, filters) => {
             createdAtMs,
             completedAtMs,
             config: session.config ? structuredClone(session.config) : null,
+            aiModel: getSessionAiModel(session),
             sectionId: session.generatedSession?.session?.sectionId ?? session.config?.sectionId ?? rows[0]?.sectionId ?? "unknown",
             timingMode: session.config?.timingMode ?? rows[0]?.timingMode ?? "untimed",
             reviewMode: session.config?.reviewMode ?? rows[0]?.reviewMode ?? "immediate",
@@ -478,6 +487,40 @@ const buildSessionSummaries = (attempts, sessions, filters) => {
             completed: Boolean(session.completedAt)
         };
     }).filter(Boolean).sort((a, b) => (b.completedAtMs || b.createdAtMs) - (a.completedAtMs || a.createdAtMs));
+};
+
+const buildModelUsage = (sessionSummaries) => {
+    const groups = new Map();
+    sessionSummaries.forEach((session) => {
+        const model = normalizeModelName(session.aiModel) ?? "unknown";
+        const generatedQuestionCount = safeNumber(session.generatedQuestionCount, 0);
+        if (generatedQuestionCount <= 0) return;
+        if (!groups.has(model)) {
+            groups.set(model, {
+                id: model,
+                model,
+                sessionCount: 0,
+                generatedQuestionCount: 0,
+                answeredAttempts: 0,
+                correct: 0
+            });
+        }
+        const row = groups.get(model);
+        row.sessionCount += 1;
+        row.generatedQuestionCount += generatedQuestionCount;
+        row.answeredAttempts += safeNumber(session.attempts, 0);
+        row.correct += safeNumber(session.correct, 0);
+    });
+    const rows = Array.from(groups.values()).map((row) => ({
+        ...row,
+        accuracy: row.answeredAttempts ? row.correct / row.answeredAttempts : null
+    })).sort((a, b) => b.generatedQuestionCount - a.generatedQuestionCount || b.sessionCount - a.sessionCount || a.model.localeCompare(b.model));
+    return {
+        rows,
+        totalModels: rows.length,
+        totalGeneratedQuestions: sum(rows.map((row) => row.generatedQuestionCount)),
+        topModel: rows[0] ?? null
+    };
 };
 
 const buildInsights = ({ filteredAttempts, totals, weakness, confidence, minAttempts }) => {
@@ -561,6 +604,7 @@ export const computeMetrics = ({ attempts = [], sessions = [], flags = [], filte
     const topicSkillMatrix = buildTopicSkillMatrix(topicSkillPairs);
     const confidence = buildConfidenceAnalytics(filteredAttempts);
     const sessionSummaries = buildSessionSummaries(filteredAttempts, supportedSessions, normalizedFilters);
+    const modelUsage = buildModelUsage(sessionSummaries);
     const totalGeneratedQuestions = sessionSummaries.reduce((total, session) => total + (session.generatedQuestionCount || 0), 0);
     const totals = {
         totalAttemptsStored,
@@ -656,6 +700,7 @@ export const computeMetrics = ({ attempts = [], sessions = [], flags = [], filte
         trends,
         timing,
         weakness,
+        models: modelUsage,
         recent,
         insights,
         dataHealth,

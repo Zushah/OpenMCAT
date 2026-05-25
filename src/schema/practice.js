@@ -10,7 +10,7 @@ export const PRACTICE_SCHEMA_SUMMARY = `{
         "difficulty": "easy|medium|hard",
         "questionFormat": "discrete|passage|mixed",
         "estimatedTimeMinutes": 1,
-        "aiModel": "string",
+        "aiModel": "provider/model",
         "disclaimer": "string"
     },
     "passages": [

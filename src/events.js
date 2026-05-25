@@ -512,7 +512,8 @@ export const createActions = ({ render, applyTheme }) => {
         const question = getActiveQuestion();
         if (!active || !question) return;
         const qState = active.questionStateById[question.id];
-        if (qState.selectedChoiceId) {
+        const shouldSaveBeforeLeaving = qState.selectedChoiceId && (qState.submitted || active.config.reviewMode !== "immediate");
+        if (shouldSaveBeforeLeaving) {
             const saved = await saveCurrentAnswer();
             if (!saved) return;
         }

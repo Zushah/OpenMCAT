@@ -3,7 +3,7 @@ import { DEFAULT_QUESTION_BANK_COUNT, QUESTION_BANKS } from "./data/bank/catalog
 import { loadSettings } from "./storage/settings.js";
 
 export const DEFAULT_DASHBOARD_FILTERS = { range: "all", sectionId: "all", timingMode: "all", reviewMode: "all", minAttempts: 3 };
-export const DEFAULT_DASHBOARD_PAGES = { topicWeakness: 0, heatmap: 0, weakPairs: 0, recentMisses: 0, recentSessions: 0 };
+export const DEFAULT_DASHBOARD_PAGES = { topicWeakness: 0, heatmap: 0, weakPairs: 0, recentMisses: 0, recentSessions: 0, modelUsageLegend: 0 };
 export const DEFAULT_QUESTION_BANK_COUNTS = Object.fromEntries(QUESTION_BANKS.map((bank) => [bank.sectionId, bank.defaultQuestionCount ?? DEFAULT_QUESTION_BANK_COUNT]));
 
 export const state = {

@@ -1,5 +1,5 @@
 import { DIFFICULTIES, SCIENCE_SKILLS, SECTIONS, TOPICS } from "../data/taxonomy.js";
-import { createAccessibleDataTable, createChartShell, destroyDashboardCharts, getChartTheme, getDefaultChartOptions, queueChartRender } from "../components/charts.js";
+import { createAccessibleDataTable, createChartShell, destroyDashboardCharts, getChartTheme, getDefaultChartOptions, hasChartRuntime, queueChartRender } from "../components/charts.js";
 import { createStatCard } from "../components/stats.js";
 import { formatDurationMs } from "../components/timer.js";
 import { compileAnalyticsPrompt } from "../prompts/analytics.js";
@@ -7,6 +7,7 @@ import { compileAnalyticsPrompt } from "../prompts/analytics.js";
 const cb = Chalkboard;
 const DEFAULT_PAGE_SIZE = 10;
 const COMPACT_PAGE_SIZE = 5;
+const MODEL_USAGE_LEGEND_PAGE_SIZE = 5;
 
 const safeNumber = (value, fallback = 0) => { const number = Number(value); return Number.isFinite(number) ? number : fallback; };
 
@@ -587,6 +588,98 @@ const renderSectionMasteryChart = (metrics) => {
     });
 };
 
+const renderModelUsageLegend = (pageInfo, colors) => {
+    const legend = createElement("div", "model-usage-legend");
+    if (!pageInfo?.totalItems) {
+        appendText(legend, "p", "tiny", "No AI model metadata is available for the current dashboard slice yet.");
+        return legend;
+    }
+    pageInfo.rows.forEach((row, index) => {
+        const colorIndex = pageInfo.start + index;
+        const item = createElement("div", "model-usage-legend-item");
+        const swatch = createElement("span", "model-usage-swatch");
+        swatch.style.backgroundColor = colors[colorIndex % colors.length];
+        const body = createElement("div", "model-usage-legend-body");
+        appendText(body, "strong", "", row.model);
+        appendText(body, "span", "tiny", `${row.generatedQuestionCount} generated questions · ${row.sessionCount} sessions`);
+        item.append(swatch, body);
+        legend.append(item);
+    });
+    return legend;
+};
+
+const renderModelUsageChart = (metrics, actions, pages) => {
+    const theme = getChartTheme();
+    const rows = metrics.models?.rows ?? [];
+    const pageInfo = getPaginatedRows(rows, pages, "modelUsageLegend", MODEL_USAGE_LEGEND_PAGE_SIZE);
+    const pagination = createPaginationControls({ key: "modelUsageLegend", pageInfo, actions });
+    const colors = [theme.accent, theme.accentTwo, theme.success, theme.warning, theme.danger, theme.textMuted, theme.border];
+    const table = createAccessibleDataTable(
+        ["Model", "Sessions", "Generated", "Answered", "Accuracy"],
+        rows.map((row) => [row.model, `${row.sessionCount}`, `${row.generatedQuestionCount}`, `${row.answeredAttempts}`, row.answeredAttempts ? pct(row.accuracy) : "n/a"])
+    );
+    const card = createElement("article", "card card-pad chart-card dashboard-model-card");
+    const header = createElement("div", "chart-card-header");
+    const titleWrap = createElement("div", "chart-card-title");
+    appendText(titleWrap, "h2", "", "AI model mix");
+    appendText(titleWrap, "p", "tiny", "Generated questions by normalized provider/model value for sessions in the active dashboard slice.");
+    header.append(titleWrap);
+    const body = createElement("div", "dashboard-model-card-body");
+    const canvasWrap = createElement("div", "chart-canvas-wrap dashboard-model-canvas-wrap");
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute("role", "img");
+    canvas.setAttribute("aria-label", "AI model mix doughnut chart");
+    canvasWrap.append(canvas);
+    const side = createElement("div", "dashboard-model-side");
+    const legendWrap = createElement("div", "model-usage-legend-wrap");
+    const legendHeader = createElement("div", "model-usage-legend-header");
+    appendText(legendHeader, "span", "tiny", "Legend");
+    if (pagination) legendHeader.append(pagination);
+    legendWrap.append(legendHeader, renderModelUsageLegend(pageInfo, colors));
+    side.append(legendWrap);
+    const details = document.createElement("details");
+    details.className = "chart-data-details model-usage-data-details";
+    const summary = document.createElement("summary");
+    summary.textContent = "View chart data";
+    details.append(summary, table);
+    side.append(details);
+    body.append(canvasWrap, side);
+    card.append(header, body);
+    if (!hasChartRuntime()) {
+        const fallback = document.createElement("p");
+        fallback.className = "chart-fallback tiny";
+        fallback.textContent = "Chart.js did not load. The data table is still available.";
+        card.append(fallback);
+    }
+    queueChartRender(canvas, {
+        type: "doughnut",
+        data: {
+            labels: rows.map((row) => row.model),
+            datasets: [{
+                label: "Generated questions",
+                data: rows.map((row) => row.generatedQuestionCount),
+                backgroundColor: rows.map((_, index) => colors[index % colors.length]),
+                borderColor: theme.tooltipBackground,
+                borderWidth: 2,
+                hoverOffset: 4
+            }]
+        },
+        options: getDefaultChartOptions({
+            replaceScales: true,
+            cutout: "62%",
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (context) => `${context.label}: ${context.raw} generated questions`
+                    }
+                }
+            }
+        })
+    });
+    return card;
+};
+
 const renderTopicWeaknessChart = (metrics, actions, pages) => {
     const theme = getChartTheme();
     const allRows = metrics.weakness.weakestTopics;
@@ -993,7 +1086,8 @@ export const renderDashboardView = (state, actions) => {
         renderInsights(metrics),
         renderChartGrid(metrics, actions, pages),
         renderHeatmap(metrics, actions, pages),
-        renderTables(metrics, actions, pages)
+        renderTables(metrics, actions, pages),
+        renderModelUsageChart(metrics, actions, pages)
     );
     appendAiAnalysisModal(root, state, actions);
     return root;
