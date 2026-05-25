@@ -61,11 +61,21 @@ const setupKeyboardShortcuts = () => {
     window.addEventListener("keydown", (event) => {
         if (shouldIgnoreShortcut(event.target)) return;
         if (state.route === "practice" && state.activeSession) {
+            if (state.activeSession.navigationOpen || state.activeSession.finalReviewOpen) {
+                if (event.key === "Escape") {
+                    actions.closePracticePanel();
+                    event.preventDefault();
+                }
+                return;
+            }
             const key = event.key.toLowerCase();
             if (["a", "b", "c", "d"].includes(key)) {
                 actions.selectChoice(key.toUpperCase());
                 event.preventDefault();
-            } else if (key === "enter" || event.key === "ArrowRight") {
+            } else if (key === "enter") {
+                actions.submitAnswer();
+                event.preventDefault();
+            } else if (event.key === "ArrowRight") {
                 actions.nextQuestion();
                 event.preventDefault();
             } else if (event.key === "ArrowLeft") {
@@ -73,6 +83,9 @@ const setupKeyboardShortcuts = () => {
                 event.preventDefault();
             } else if (key === "f") {
                 actions.flagCurrentQuestion();
+                event.preventDefault();
+            } else if (key === "n") {
+                actions.openNavigationPanel();
                 event.preventDefault();
             }
         }

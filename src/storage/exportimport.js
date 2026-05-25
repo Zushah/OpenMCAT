@@ -10,8 +10,7 @@ export const buildExportPayload = async () => {
         app: "OpenMCAT",
         settings: structuredClone(settings),
         sessions: data.sessions,
-        attempts: data.attempts,
-        flags: data.flags
+        attempts: data.attempts
     };
 };
 
@@ -31,7 +30,7 @@ export const downloadExport = (payload) => {
 export const parseImportText = (text) => {
     const parsed = JSON.parse(text);
     if (!parsed || typeof parsed !== "object") throw new Error("Imported file must be a JSON object.");
-    if (!Array.isArray(parsed.sessions) || !Array.isArray(parsed.attempts) || !Array.isArray(parsed.flags)) throw new Error("Import file must include sessions, attempts, and flags arrays.");
+    if (!Array.isArray(parsed.sessions) || !Array.isArray(parsed.attempts)) throw new Error("Import file must include sessions and attempts arrays.");
     return parsed;
 }
 

@@ -8,7 +8,7 @@ import { extractJsonObject } from "./schema/repair.js";
 import { validatePracticeSession } from "./schema/validators.js";
 import { setHashForRoute } from "./router.js";
 import { buildExportPayload, downloadExport, importPayload, parseImportText } from "./storage/exportimport.js";
-import { clearAllData, deleteFlagForQuestion, getAllData, saveAttempt, saveFlag, saveSession, updateAttempt, updateSession } from "./storage/db.js";
+import { clearAllData, getAllData, saveAttempt, saveSession, updateAttempt, updateSession } from "./storage/db.js";
 import { saveSettings as persistSettings } from "./storage/settings.js";
 import { computeMetrics, normalizeDashboardFilters } from "./analytics/metrics.js";
 import { buildRecommendation } from "./analytics/recommendations.js";
@@ -59,9 +59,29 @@ const prepareSessionForRuntime = (session, config) => {
     return normalized;
 };
 
-const ensureQuestionStart = (activeSession, questionId) => {
+const getQuestionElapsedMs = (questionState, now = new Date()) => {
+    const storedElapsedMs = Number(questionState?.elapsedMs ?? 0);
+    const baseElapsedMs = Number.isFinite(storedElapsedMs) ? cb.stat.max([0, storedElapsedMs]) : 0;
+    if (!questionState || questionState.submitted || !questionState.startedAt) return baseElapsedMs;
+    const startedAtMs = new Date(questionState.startedAt).getTime();
+    const nowMs = now.getTime();
+    if (!Number.isFinite(startedAtMs) || !Number.isFinite(nowMs)) return baseElapsedMs;
+    return baseElapsedMs + cb.stat.max([0, nowMs - startedAtMs]);
+};
+
+const pauseQuestionTimer = (activeSession, questionId, now = new Date()) => {
+    const questionState = activeSession?.questionStateById?.[questionId];
+    if (!questionState || questionState.submitted) return;
+    questionState.elapsedMs = getQuestionElapsedMs(questionState, now);
+    questionState.startedAt = null;
+};
+
+const ensureQuestionStart = (activeSession, questionId, now = new Date()) => {
     const questionState = activeSession.questionStateById[questionId];
-    if (!questionState.startedAt) questionState.startedAt = new Date().toISOString();
+    if (!questionState || questionState.submitted) return questionState?.startedAt ?? null;
+    const startedAt = now.toISOString();
+    if (!questionState.firstStartedAt) questionState.firstStartedAt = startedAt;
+    if (!questionState.startedAt) questionState.startedAt = startedAt;
     return questionState.startedAt;
 };
 
@@ -80,7 +100,6 @@ export const createActions = ({ render, applyTheme }) => {
         const metrics = computeMetrics({
             attempts: data.attempts,
             sessions: data.sessions,
-            flags: data.flags,
             filters: state.dashboard.filters
         });
         const maps = buildMaps();
@@ -239,20 +258,25 @@ export const createActions = ({ render, applyTheme }) => {
                 question.id,
                 {
                     selectedChoiceId: null,
+                    submittedChoiceId: null,
                     submitted: false,
                     isCorrect: null,
                     confidence: null,
-                    elapsedMs: null,
+                    submittedConfidence: null,
+                    elapsedMs: 0,
                     startedAt: null,
+                    firstStartedAt: null,
                     answeredAt: null,
                     flagged: false,
-                    flagReason: null,
                     attemptId: null
                 }
             ]
         ));
         const firstQuestionId = prepared.questions[0]?.id ?? null;
-        if (firstQuestionId) questionStateById[firstQuestionId].startedAt = nowIso;
+        if (firstQuestionId) {
+            questionStateById[firstQuestionId].startedAt = nowIso;
+            questionStateById[firstQuestionId].firstStartedAt = nowIso;
+        }
         state.activeSession = {
             id: sessionId,
             createdAt: nowIso,
@@ -262,6 +286,9 @@ export const createActions = ({ render, applyTheme }) => {
             providerMeta: structuredClone(sessionRecord.providerMeta),
             currentQuestionIndex: 0,
             questionStateById,
+            navigationOpen: false,
+            navigationFilter: "all",
+            finalReviewOpen: false,
             reviewFilter: "all",
             viewQuestionIndex: 0
         };
@@ -391,16 +418,7 @@ export const createActions = ({ render, applyTheme }) => {
         if (!active || !question) return;
         const qState = active.questionStateById[question.id];
         if (qState.submitted && active.config.reviewMode === "immediate") return;
-        qState.selectedChoiceId = choiceId;
-        if (qState.submitted) {
-            qState.isCorrect = choiceId === question.correctChoiceId;
-            if (qState.attemptId) {
-                await updateAttempt(qState.attemptId, {
-                    selectedChoiceId: choiceId,
-                    isCorrect: qState.isCorrect
-                });
-            }
-        }
+        qState.selectedChoiceId = qState.selectedChoiceId === choiceId ? null : choiceId;
         render();
     };
 
@@ -411,10 +429,6 @@ export const createActions = ({ render, applyTheme }) => {
         const qState = active.questionStateById[question.id];
         if (qState.submitted && active.config.reviewMode === "immediate") return;
         qState.confidence = qState.confidence === value ? null : value;
-        if (qState.attemptId) {
-            await updateAttempt(qState.attemptId, { confidence: qState.confidence });
-            await refreshAnalytics();
-        }
         render();
     };
 
@@ -423,51 +437,33 @@ export const createActions = ({ render, applyTheme }) => {
         const question = getActiveQuestion();
         if (!active || !question) return;
         const qState = active.questionStateById[question.id];
-        if (qState.flagged) {
-            qState.flagged = false;
-            qState.flagReason = null;
-            await deleteFlagForQuestion(active.id, question.id);
-            if (qState.attemptId) await updateAttempt(qState.attemptId, { flagged: false, flagReason: null });
-            await refreshAnalytics();
-            render();
-            showToast("Flag removed.");
-            return;
-        }
-        const reasonInput = prompt("Flag reason: ambiguous | factual_error | wrong_answer | bad_explanation | not_mcat_aligned | formatting_issue | other", "ambiguous");
-        if (!reasonInput) return;
-        qState.flagged = true;
-        qState.flagReason = reasonInput;
-        const flagRecord = {
-            id: id("flag"),
-            sessionId: active.id,
-            questionId: question.id,
-            createdAt: new Date().toISOString(),
-            reason: reasonInput,
-            note: ""
-        };
-        await deleteFlagForQuestion(active.id, question.id);
-        await saveFlag(flagRecord);
-        if (qState.attemptId) await updateAttempt(qState.attemptId, { flagged: true, flagReason: reasonInput });
-        await refreshAnalytics();
+        qState.flagged = !qState.flagged;
         render();
-        showToast("Question flagged for review.");
-    }
+        showToast(qState.flagged ? "Question flagged." : "Flag removed.");
+    };
 
     const saveCurrentAnswer = async () => {
         const active = state.activeSession;
         const question = getActiveQuestion();
         if (!active || !question) return false;
         const qState = active.questionStateById[question.id];
-        if (!qState.selectedChoiceId) { showToast("Select an answer before continuing.", "error"); return false; }
-        const startedAt = ensureQuestionStart(active, question.id);
-        const startedMs = new Date(startedAt).getTime();
-        const answeredAt = qState.submitted && qState.answeredAt ? new Date(qState.answeredAt) : new Date();
-        const elapsedMs = qState.submitted && Number.isFinite(qState.elapsedMs) ? qState.elapsedMs : cb.stat.max([0, answeredAt.getTime() - startedMs]);
+        if (qState.submitted && active.config.reviewMode === "immediate") return false;
+        if (!qState.selectedChoiceId) { showToast("Select an answer before submitting.", "error"); return false; }
+        const submittedChoiceId = qState.submittedChoiceId ?? null;
+        const submittedConfidence = qState.submittedConfidence ?? null;
+        const currentConfidence = qState.confidence ?? null;
+        if (qState.submitted && qState.selectedChoiceId === submittedChoiceId && currentConfidence === submittedConfidence) return false;
+        const answeredAt = new Date();
+        const startedAt = qState.firstStartedAt ?? qState.startedAt ?? active.createdAt;
+        const elapsedMs = qState.submitted ? qState.elapsedMs ?? 0 : getQuestionElapsedMs(qState, answeredAt);
         const isCorrect = qState.selectedChoiceId === question.correctChoiceId;
+        qState.submittedChoiceId = qState.selectedChoiceId;
+        qState.submittedConfidence = currentConfidence;
         qState.submitted = true;
         qState.isCorrect = isCorrect;
         qState.answeredAt = answeredAt.toISOString();
         qState.elapsedMs = elapsedMs;
+        qState.startedAt = null;
         const attemptPatch = {
             sessionId: active.id,
             questionId: question.id,
@@ -475,17 +471,15 @@ export const createActions = ({ render, applyTheme }) => {
             topicIds: question.testedTopicIds ?? [],
             skillIds: question.testedSkillIds ?? [],
             difficulty: question.estimatedDifficulty ?? active.generatedSession.session.difficulty,
-            selectedChoiceId: qState.selectedChoiceId,
+            selectedChoiceId: qState.submittedChoiceId,
             correctChoiceId: question.correctChoiceId,
             isCorrect,
-            confidence: qState.confidence ?? null,
+            confidence: qState.submittedConfidence,
             startedAt,
             answeredAt: qState.answeredAt,
             elapsedMs,
             reviewMode: active.config.reviewMode,
-            timingMode: active.config.timingMode,
-            flagged: qState.flagged,
-            flagReason: qState.flagReason
+            timingMode: active.config.timingMode
         };
         if (isQuestionBankSession(active)) {
             attemptPatch.bankId = active.providerMeta?.bankId ?? question.bankId ?? null;
@@ -505,20 +499,15 @@ export const createActions = ({ render, applyTheme }) => {
     const submitAnswer = async () => {
         const saved = await saveCurrentAnswer();
         if (saved) render();
-    }
+    };
 
     const previousQuestion = async () => {
         const active = state.activeSession;
         const question = getActiveQuestion();
         if (!active || !question) return;
-        const qState = active.questionStateById[question.id];
-        const shouldSaveBeforeLeaving = qState.selectedChoiceId && (qState.submitted || active.config.reviewMode !== "immediate");
-        if (shouldSaveBeforeLeaving) {
-            const saved = await saveCurrentAnswer();
-            if (!saved) return;
-        }
         const previousIndex = active.currentQuestionIndex - 1;
         if (previousIndex < 0) return;
+        pauseQuestionTimer(active, question.id);
         active.currentQuestionIndex = previousIndex;
         const previousQuestionId = active.generatedSession.questions[previousIndex].id;
         ensureQuestionStart(active, previousQuestionId);
@@ -529,40 +518,96 @@ export const createActions = ({ render, applyTheme }) => {
         const active = state.activeSession;
         const question = getActiveQuestion();
         if (!active || !question) return;
-        const qState = active.questionStateById[question.id];
-        const shouldRevealImmediateReview = active.config.reviewMode === "immediate" && !qState.submitted;
-        const saved = await saveCurrentAnswer();
-        if (!saved) return;
-        if (shouldRevealImmediateReview) {
-            render();
+        const nextIndex = active.currentQuestionIndex + 1;
+        if (nextIndex >= active.generatedSession.questions.length) {
+            openFinalReviewPanel();
             return;
         }
-        const nextIndex = active.currentQuestionIndex + 1;
-        if (nextIndex >= active.generatedSession.questions.length) { await finishSession(); return; }
+        pauseQuestionTimer(active, question.id);
         active.currentQuestionIndex = nextIndex;
         const nextQuestionId = active.generatedSession.questions[nextIndex].id;
         ensureQuestionStart(active, nextQuestionId);
         render();
-    }
+    };
 
-    const stopSessionEarly = async () => {
+    const openNavigationPanel = (filterId = null) => {
         const active = state.activeSession;
         const question = getActiveQuestion();
         if (!active) return;
-        const qState = question ? active.questionStateById[question.id] : null;
-        if (question && qState?.selectedChoiceId && !qState.submitted) {
-            const saved = await saveCurrentAnswer();
-            if (!saved) return;
-        }
-        await finishSession("Session stopped. Review ready.");
+        if (question) pauseQuestionTimer(active, question.id);
+        active.navigationOpen = true;
+        active.finalReviewOpen = false;
+        active.navigationFilter = ["all", "incomplete", "flagged"].includes(filterId) ? filterId : active.navigationFilter ?? "all";
+        render();
+    };
+
+    const closePracticePanel = () => {
+        const active = state.activeSession;
+        const question = getActiveQuestion();
+        if (!active) return;
+        active.navigationOpen = false;
+        active.finalReviewOpen = false;
+        if (question) ensureQuestionStart(active, question.id);
+        render();
+    };
+
+    const setNavigationFilter = (filterId) => {
+        const active = state.activeSession;
+        if (!active) return;
+        active.navigationFilter = ["all", "incomplete", "flagged"].includes(filterId) ? filterId : "all";
+        render();
+    };
+
+    const openFinalReviewPanel = () => {
+        const active = state.activeSession;
+        const question = getActiveQuestion();
+        if (!active) return;
+        if (question) pauseQuestionTimer(active, question.id);
+        active.navigationOpen = false;
+        active.finalReviewOpen = true;
+        render();
+    };
+
+    const goToQuestion = (index) => {
+        const active = state.activeSession;
+        const question = getActiveQuestion();
+        if (!active) return;
+        const nextIndex = Math.floor(clamp(Number(index) || 0, 0, active.generatedSession.questions.length - 1));
+        if (question) pauseQuestionTimer(active, question.id);
+        active.currentQuestionIndex = nextIndex;
+        const questionId = active.generatedSession.questions[nextIndex]?.id;
+        if (questionId) ensureQuestionStart(active, questionId);
+        active.navigationOpen = false;
+        active.finalReviewOpen = false;
+        render();
+    };
+
+    const stopSessionEarly = async () => {
+        openFinalReviewPanel();
     };
 
     const finishSession = async (message = "Session complete. Review ready.") => {
         const active = state.activeSession;
+        const question = getActiveQuestion();
         if (!active) return;
+        if (question) pauseQuestionTimer(active, question.id);
         const completedAt = new Date().toISOString();
         active.completedAt = completedAt;
-        await updateSession(active.id, { completedAt });
+        active.navigationOpen = false;
+        active.finalReviewOpen = false;
+        const records = active.generatedSession.questions.map((item) => active.questionStateById[item.id]);
+        const submitted = records.filter((item) => item?.submitted).length;
+        const flagged = records.filter((item) => item?.flagged).length;
+        await updateSession(active.id, {
+            completedAt,
+            questionStateById: structuredClone(active.questionStateById),
+            summary: {
+                submitted,
+                incomplete: records.length - submitted,
+                flagged,
+                total: records.length
+            }
+        });
         await refreshAnalytics();
         state.route = "review";
         setHashForRoute("review");
@@ -682,6 +727,11 @@ export const createActions = ({ render, applyTheme }) => {
         submitAnswer,
         previousQuestion,
         nextQuestion,
+        openNavigationPanel,
+        closePracticePanel,
+        setNavigationFilter,
+        goToQuestion,
+        openFinalReviewPanel,
         stopSessionEarly,
         finishSession,
         setReviewFilter,

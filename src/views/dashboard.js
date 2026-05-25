@@ -39,6 +39,19 @@ const seconds = (ms) => Number.isFinite(ms) && ms > 0 ? `${round(ms / 1000, 0.1)
 
 const attemptCount = (value) => Number.isInteger(value) ? `${value}` : `${round(value || 0, 0.01)}`;
 
+const getRecentTrend = (attempts = []) => {
+    const sortedAttempts = (attempts ?? []).slice().sort((a, b) => safeNumber(a.answeredAtMs, 0) - safeNumber(b.answeredAtMs, 0));
+    if (sortedAttempts.length < 20) {
+        const remaining = 20 - sortedAttempts.length;
+        return { value: "n/a", last: `${remaining} more submitted ${remaining === 1 ? "attempt" : "attempts"} needed`, prev: `` };
+    }
+    const recentWindow = sortedAttempts.slice(-10);
+    const previousWindow = sortedAttempts.slice(-20, -10);
+    const recentAccuracy = recentWindow.filter((attempt) => attempt.isCorrect).length / recentWindow.length;
+    const previousAccuracy = previousWindow.filter((attempt) => attempt.isCorrect).length / previousWindow.length;
+    return { value: pctPoints(recentAccuracy - previousAccuracy), last: `Last 10: ${pct(recentAccuracy)}`, prev: `Prev 10: ${pct(previousAccuracy)}` };
+};
+
 const wrapLabel = (label, maxLineLength = 18, maxLines = 3) => {
     const words = String(label ?? "n/a").split(/\s+/).filter(Boolean);
     if (!words.length) return ["n/a"];
@@ -401,18 +414,17 @@ const renderSummaryGrid = (metrics, recommendation) => {
     const gapHint = typeof totals.timedUntimedGap === "number" ? totals.timedUntimedGap > 0 ? `Untimed accuracy is ${pctPoints(totals.timedUntimedGap)} higher` : totals.timedUntimedGap < 0 ? `Timed accuracy is ${pctPoints(Math.abs(totals.timedUntimedGap))} higher` : "Timed and untimed accuracy are equal" : "Need both timed and untimed data";
     const coveredTopicCount = totals.coveredTopicCount ?? 0;
     const totalTopicCount = totals.totalTopicCount ?? TOPICS.length;
-    const masteryCoveredTopicCount = totals.masteryCoveredTopicCount ?? 0;
-    const masteryTotalTopicCount = totals.masteryTotalTopicCount ?? totalTopicCount;
+    const recentTrend = getRecentTrend(metrics.filteredAttempts);
     const grid = createElement("section", "dashboard-grid dashboard-summary-grid");
     grid.append(
         createStatCard("Questions answered", `${totals.totalQuestionsAnswered}`, `${totals.totalCorrect} correct in the active filter`),
         createStatCard("Overall accuracy", pct(totals.overallAccuracy), `Smoothed: ${pct(totals.smoothedAccuracy)}`),
         createStatCard("Mastery estimate", `${score(totals.mastery)}/100`, "Overall"),
+        createStatCard("Recent trend", recentTrend.value, `${recentTrend.last}\n${recentTrend.prev}`),
         createStatCard("Average time per question", formatDurationMs(totals.averageElapsedMs), `Target: ${seconds(totals.averageTargetTimeMs)}`),
         createStatCard("Completion rate", pct(totals.completionRate), `${totals.totalCompletedSessions} completed sessions stored`),
         createStatCard("Timed vs untimed", typeof totals.timedUntimedGap === "number" ? pctPoints(Math.abs(totals.timedUntimedGap)) : "n/a", gapHint),
         createStatCard("Calibration", calibration, `${metrics.confidence.noConfidenceCount} attempts without confidence`),
-        createStatCard("Active flags", `${totals.activeFlagCount}`, `${pct(totals.flaggedRate)} of filtered attempts`),
         createStatCard("Best section", rowNameFromId("section", bestSection?.id), bestSection ? `${score(bestSection.mastery)}/100 mastery` : "Need section data"),
         createStatCard("Weakest section", rowNameFromId("section", weakSection?.id), weakSection ? `${score(weakSection.priorityScore)} priority score` : "Need section data"),
         createStatCard("Topic coverage", pct(totals.topicCoverageRate), `${coveredTopicCount}/${totalTopicCount} topics attempted`),
@@ -688,7 +700,7 @@ const renderTopicWeaknessChart = (metrics, actions, pages) => {
     const pagination = createPaginationControls({ key: "topicWeakness", pageInfo, actions });
     return renderChartPanel({
         title: "Topic weakness priority",
-        subtitle: "Higher priority combines low smoothed accuracy, slower timing, flags, volume, and confidence mismatch.",
+        subtitle: "Higher priority combines low smoothed accuracy, slower timing, volume, and confidence mismatch.",
         canvasLabel: "Topic weakness priority chart",
         tableColumns: ["Topic", "Attempts", "Accuracy", "Priority"],
         tableRows: rows.map((row) => [rowNameFromId("topic", row.id), attemptCount(row.attempts), pct(row.accuracy), score(row.priorityScore)]),

@@ -86,7 +86,7 @@
 .generation-pipeline-overlay {
     position: fixed;
     inset: 0;
-    z-index: 40;
+    z-index: 51;
     display: grid;
     place-items: center;
     padding: 1rem;
@@ -229,7 +229,45 @@
 
 .session-top {
     display: grid;
-    gap: var(--space-md);
+    justify-items: center;
+    gap: 0.55rem;
+    text-align: center;
+}
+
+.session-top.card-pad {
+    padding-block: 0.9rem;
+}
+
+.session-top h2 {
+    margin-bottom: 0;
+}
+
+.session-progress-text {
+    margin: 0;
+}
+
+.session-top .progress-wrap {
+    width: min(100%, 720px);
+}
+
+.session-timer-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem 1rem;
+}
+
+.session-timer-text {
+    margin: 0;
+}
+
+.session-top-actions {
+    justify-content: center;
+    margin-top: 0.1rem;
+}
+
+.session-top-actions .btn {
+    padding-block: 8px;
 }
 
 .session-grid {
@@ -278,11 +316,201 @@
 
 .practice-shortcuts {
     margin-top: 0.7rem;
+    text-align: center;
 }
 
 .practice-ai-note {
     margin-top: 0.95rem;
+    text-align: center;
 }
+
+.practice-status-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-bottom: var(--space-sm);
+}
+
+.practice-status-pill {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.18rem 0.55rem;
+    background: color-mix(in srgb, var(--surface-tint), transparent 93%);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.practice-status-pill.is-submitted {
+    border-color: color-mix(in srgb, var(--success), transparent 62%);
+    background: color-mix(in srgb, var(--success), transparent 91%);
+    color: var(--success);
+}
+
+.practice-status-pill.is-incomplete {
+    border-color: color-mix(in srgb, var(--warning), transparent 56%);
+    background: color-mix(in srgb, var(--warning), transparent 90%);
+    color: var(--warning);
+}
+
+.practice-status-pill.is-flagged {
+    border-color: color-mix(in srgb, var(--danger), transparent 56%);
+    background: color-mix(in srgb, var(--danger), transparent 90%);
+    color: var(--danger);
+}
+
+.practice-status-pill.is-draft {
+    border-color: color-mix(in srgb, var(--text-muted), transparent 56%);
+    background: color-mix(in srgb, var(--surface-tint), transparent 90%);
+    color: var(--text-secondary);
+}
+
+.practice-panel {
+    max-height: min(760px, calc(100vh - 2rem));
+    overflow: hidden;
+    display: grid;
+    gap: var(--space-md);
+}
+
+.practice-review-panel {
+    width: min(840px, 96vw);
+}
+
+.practice-panel-instructions {
+    margin-bottom: 0;
+}
+
+.practice-panel-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.practice-panel-stat {
+    display: grid;
+    gap: 0.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem;
+    background: color-mix(in srgb, var(--surface-tint), transparent 94%);
+    text-align: center;
+}
+
+.practice-panel-stat span {
+    color: var(--text-muted);
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.practice-panel-stat strong {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+}
+
+.practice-panel-filters {
+    justify-content: center;
+}
+
+.practice-question-nav-list {
+    display: grid;
+    gap: 0.65rem;
+    max-height: min(430px, 48vh);
+    overflow-y: auto;
+    padding-right: 0.2rem;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--accent), transparent 45%) color-mix(in srgb, var(--surface-tint), transparent 94%);
+}
+
+.practice-question-nav-list::-webkit-scrollbar {
+    width: 10px;
+}
+
+.practice-question-nav-list::-webkit-scrollbar-track {
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface-tint), transparent 95.5%);
+}
+
+.practice-question-nav-list::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent), transparent 45%);
+    background-clip: padding-box;
+}
+
+.practice-question-nav-list::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--accent), transparent 28%);
+    background-clip: padding-box;
+}
+
+.practice-question-nav-item {
+    width: 100%;
+    display: grid;
+    gap: 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.8rem;
+    background: color-mix(in srgb, var(--surface-tint), transparent 96%);
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.practice-question-nav-item:hover, .practice-question-nav-item:focus-visible {
+    border-color: color-mix(in srgb, var(--accent), transparent 42%);
+    background: color-mix(in srgb, var(--accent), transparent 94%);
+    transform: translateY(-1px);
+}
+
+.practice-question-nav-item.is-current {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent), transparent 52%);
+}
+
+.practice-question-nav-item.is-incomplete {
+    border-color: color-mix(in srgb, var(--warning), transparent 72%);
+}
+
+.practice-question-nav-item.is-flagged {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--danger), transparent 94%), color-mix(in srgb, var(--surface-tint), transparent 96%));
+}
+
+.practice-question-nav-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.practice-question-nav-number {
+    font-size: 0.95rem;
+}
+
+.practice-question-nav-statuses {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.35rem;
+}
+
+.practice-panel-empty {
+    margin: 0;
+    text-align: center;
+}
+
+.practice-panel-note {
+    margin: 0;
+}
+
+.practice-review-actions {
+    justify-content: center;
+}
+
 
 .summary-grid {
     display: grid;
@@ -302,6 +530,11 @@
     font-size: 1.2rem;
     font-weight: 700;
     color: var(--text-primary);
+}
+
+.stat-card .tiny {
+    white-space: pre-line;
+    line-height: 1.35;
 }
 
 .review-question h4 {
@@ -1474,6 +1707,20 @@
 
     .practice-navigation-actions .btn {
         flex: 1 1 0;
+    }
+
+
+    .practice-panel-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .practice-question-nav-top {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .practice-question-nav-statuses {
+        justify-content: flex-start;
     }
 }
 

@@ -83,8 +83,6 @@ const formatAggregateRow = (row = {}, type = "row") => compactObject({
     timeRatio: nullableRound(row.timeRatio, ROUND_RATIO),
     timingPenalty: nullableRound(row.timingPenalty, ROUND_RATIO),
     volumeMultiplier: nullableRound(row.volumeMultiplier, ROUND_RATIO),
-    flaggedCount: nullableRound(row.flaggedCount, ROUND_SCORE),
-    flaggedRate: nullableRound(row.flaggedRate, ROUND_RATIO),
     confidenceAverage: nullableRound(row.confidenceAverage, ROUND_SCORE),
     trendDelta: nullableRound(row.trendDelta, ROUND_RATIO),
     signalStrength: row.signalStrength,
@@ -114,7 +112,6 @@ const formatTopicSkillPair = (pair = {}) => compactObject({
     averageElapsedMs: nullableRound(pair.averageElapsedMs, ROUND_INTEGER),
     targetTimeMs: nullableRound(pair.targetTimeMs, ROUND_INTEGER),
     timeRatio: nullableRound(pair.timeRatio, ROUND_RATIO),
-    flaggedRate: nullableRound(pair.flaggedRate, ROUND_RATIO),
     confidenceAverage: nullableRound(pair.confidenceAverage, ROUND_SCORE),
     trendDelta: nullableRound(pair.trendDelta, ROUND_RATIO),
     signalStrength: pair.signalStrength
@@ -154,9 +151,7 @@ const formatRecentMiss = (attempt = {}) => compactObject({
     confidence: nullableNumber(attempt.confidence),
     elapsedMs: nullableRound(attempt.elapsedMs, ROUND_INTEGER),
     targetTimeMs: nullableRound(attempt.targetTimeMs, ROUND_INTEGER),
-    timeRatio: nullableRound(attempt.timeRatio, ROUND_RATIO),
-    flagged: Boolean(attempt.flagged),
-    flagReasonOmitted: attempt.flagReason ? true : undefined
+    timeRatio: nullableRound(attempt.timeRatio, ROUND_RATIO)
 });
 
 const formatRecentSession = (session = {}) => compactObject({
@@ -215,7 +210,6 @@ const formatRecommendation = (recommendation = null) => {
             averageElapsedMs: nullableRound(recommendation.evidence.averageElapsedMs, ROUND_INTEGER),
             targetTimeMs: nullableRound(recommendation.evidence.targetTimeMs, ROUND_INTEGER),
             confidenceAverage: nullableRound(recommendation.evidence.confidenceAverage, ROUND_SCORE),
-            flaggedRate: nullableRound(recommendation.evidence.flaggedRate, ROUND_RATIO),
             signalStrength: recommendation.evidence.signalStrength,
             priorityScore: nullableRound(recommendation.evidence.priorityScore, ROUND_SCORE)
         }) : null,
@@ -283,8 +277,6 @@ const buildAnalyticsPayload = ({ metrics = {}, recommendation = null } = {}) => 
             averageTargetTimeMs: nullableRound(totals.averageTargetTimeMs, ROUND_INTEGER),
             completionRate: nullableRound(totals.completionRate, ROUND_RATIO),
             completedSessions: nullableNumber(totals.totalCompletedSessions),
-            activeFlagCount: nullableNumber(totals.activeFlagCount),
-            flaggedRate: nullableRound(totals.flaggedRate, ROUND_RATIO),
             timedAccuracy: nullableRound(totals.timedAccuracy, ROUND_RATIO),
             untimedAccuracy: nullableRound(totals.untimedAccuracy, ROUND_RATIO),
             timedUntimedGap: nullableRound(totals.timedUntimedGap, ROUND_RATIO),
@@ -340,7 +332,7 @@ const FIELD_DESCRIPTIONS = {
     accuracy: "Raw correct / attempts as a decimal from 0 to 1.",
     smoothedAccuracy: "Bayesian-smoothed accuracy using OpenMCAT's alpha/beta prior so low-volume rows are less extreme.",
     mastery: "OpenMCAT 0-100 mastery estimate using smoothed accuracy, practice volume, timing penalty, and sometimes topic coverage.",
-    priorityScore: "OpenMCAT 0-100 weakness priority. Higher means more drill-worthy; it combines accuracy weakness, timing pressure, flags, confidence mismatch, and volume.",
+    priorityScore: "OpenMCAT 0-100 weakness priority. Higher means more drill-worthy; it combines accuracy weakness, timing pressure, confidence mismatch, and volume.",
     averageElapsedMs: "Average time per question in milliseconds.",
     targetTimeMs: "OpenMCAT target time for the row in milliseconds. Current default is generally 95 seconds per science question.",
     timeRatio: "averageElapsedMs / targetTimeMs. Above 1.0 means slower than target; above about 1.12 suggests visible timing pressure.",
@@ -350,7 +342,6 @@ const FIELD_DESCRIPTIONS = {
     signalStrength: "stable means enough attempts under the active min-attempt setting; early means useful but low sample; none means absent.",
     topicCoverageMultiplier: "Coverage adjustment applied to mastery so narrow practice does not look like broad mastery.",
     filteredOutAttempts: "Answered attempts stored locally but excluded by the active dashboard filters.",
-    activeFlagCount: "Currently flagged attempted questions in this filtered dashboard slice. Flags can mean ambiguity, suspected factual issue, bad explanation, formatting issue, or other user-marked concern.",
     aiModelUsage: "Generated question counts grouped by session.aiModel when available, falling back to stored provider/config model metadata."
 };
 
@@ -362,7 +353,7 @@ About OpenMCAT:
 - OpenMCAT practice questions are AI-generated by the user's chosen AI workflow, then answered in OpenMCAT. Analytics are computed locally from the user's practice history.
 - OpenMCAT is not a score predictor. Do not estimate an official MCAT score or percentile from these data.
 - OpenMCAT currently covers C/P, B/B, and P/S science sections plus the four SIRS. OpenMCAT currently does not cover CARS at all.
-- OpenMCAT data below intentionally excludes raw question stems, answer choices, explanations, free-text flag reasons, and session titles. Analyze aggregate performance patterns only.
+- OpenMCAT data below intentionally excludes raw question stems, answer choices, explanations, and session titles. Analyze aggregate performance patterns only.
 
 Interpretation rules:
 - Treat low sample sizes as tentative. Use signalStrength, minAttemptsForStableSignal, and total attempts to qualify confidence.

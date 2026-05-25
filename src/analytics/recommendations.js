@@ -74,7 +74,6 @@ const buildEvidence = (pair) => ({
     averageElapsedMs: pair.averageElapsedMs,
     targetTimeMs: pair.targetTimeMs,
     confidenceAverage: pair.confidenceAverage,
-    flaggedRate: pair.flaggedRate,
     signalStrength: pair.signalStrength,
     priorityScore: pair.priorityScore
 });

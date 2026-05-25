@@ -29,6 +29,7 @@ const summarize = (activeSession) => {
     return {
         total: questions.length,
         answered: answered.length,
+        incomplete: questions.length - answered.length,
         correct,
         accuracy: answered.length ? correct / answered.length : 0,
         elapsedMs,
@@ -103,8 +104,8 @@ const makeQuestionReviewBlock = (record, index, isFocused, passagesById, passage
     card.append(heading);
     const meta = document.createElement("p");
     meta.className = "tiny";
-    const selected = state.selectedChoiceId ?? "Unanswered";
-    const verdict = state.submitted ? state.isCorrect ? "Correct" : "Incorrect" : "Unanswered";
+    const selected = state.submitted ? state.submittedChoiceId ?? state.selectedChoiceId ?? "Unsubmitted" : "Unsubmitted";
+    const verdict = state.submitted ? state.isCorrect ? "Correct" : "Incorrect" : "Unsubmitted";
     meta.textContent = `Selected: ${selected} | Correct: ${question.correctChoiceId} | ${verdict} | ${formatDurationMs(state.elapsedMs ?? 0)}`;
     card.append(meta);
     const explanation = document.createElement("p");
@@ -122,7 +123,7 @@ const makeQuestionReviewBlock = (record, index, isFocused, passagesById, passage
     if (state.flagged) {
         const flagged = document.createElement("p");
         flagged.className = "warning-note";
-        flagged.textContent = `Flagged: ${state.flagReason ?? "no reason provided"}`;
+        flagged.textContent = "Flagged for review during the session.";
         card.append(flagged);
     }
     const passage = question.passageId ? passagesById.get(question.passageId) : null;
@@ -163,7 +164,7 @@ export const renderReviewView = (state, actions) => {
     const summaryGrid = document.createElement("section");
     summaryGrid.className = "summary-grid";
     summaryGrid.append(
-        makeSummaryCard("Score", `${summary.correct}/${summary.total}`),
+        makeSummaryCard("Score", `${summary.correct}/${summary.answered}`, summary.incomplete ? `${summary.incomplete} unsubmitted` : "All submitted"),
         makeSummaryCard("Accuracy", `${round(summary.accuracy * 100, 0.1)}%`),
         makeSummaryCard("Total Time", formatDurationMs(summary.elapsedMs)),
         makeSummaryCard("Avg / Question", formatDurationMs(summary.avgMs))
@@ -208,7 +209,7 @@ export const renderReviewView = (state, actions) => {
     drillMissed.className = "btn btn-secondary";
     drillMissed.textContent = "Drill missed topics";
     drillMissed.addEventListener("click", () => {
-        const missed = records.filter((record) => !record.state.isCorrect);
+        const missed = records.filter((record) => record.state.submitted && !record.state.isCorrect);
         if (!missed.length) { actions.navigate("generator"); return; }
         const topicCounts = new Map();
         const skillCounts = new Map();

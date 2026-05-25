@@ -95,19 +95,6 @@ export const buildSessionIndex = (sessions = []) => {
     return index;
 };
 
-const buildFlagIndex = (flags = []) => {
-    const index = new Map();
-    flags.forEach((flag) => {
-        if (!flag.sessionId || !flag.questionId) return;
-        const key = `${flag.sessionId}__${flag.questionId}`;
-        const previous = index.get(key);
-        const currentMs = dateMs(flag.createdAt, 0);
-        const previousMs = dateMs(previous?.createdAt, 0);
-        if (!previous || currentMs >= previousMs) index.set(key, flag);
-    });
-    return index;
-};
-
 const getTargetTimeMs = ({ sectionId, timingMode, config, attempt }) => {
     const configuredSeconds = safeNumber(attempt.secondsPerQuestion, safeNumber(config?.secondsPerQuestion, 0));
     if (configuredSeconds > 0) return configuredSeconds * 1000;
@@ -115,7 +102,7 @@ const getTargetTimeMs = ({ sectionId, timingMode, config, attempt }) => {
     return DEFAULT_TARGET_TIME_MS;
 };
 
-const normalizeAttempt = (attempt, sessionIndex, flagIndex) => {
+const normalizeAttempt = (attempt, sessionIndex) => {
     const sessionEntry = sessionIndex.get(attempt.sessionId);
     const session = sessionEntry?.session ?? null;
     const question = sessionEntry?.questionById.get(attempt.questionId) ?? null;
@@ -130,10 +117,6 @@ const normalizeAttempt = (attempt, sessionIndex, flagIndex) => {
     const startedAtMs = dateMs(attempt.startedAt, dateMs(session?.createdAt, answeredAtMs));
     const elapsedMs = safeNumber(attempt.elapsedMs, answeredAtMs && startedAtMs ? answeredAtMs - startedAtMs : 0);
     const targetTimeMs = getTargetTimeMs({ sectionId, timingMode, config, attempt });
-    const flagKey = `${attempt.sessionId}__${attempt.questionId}`;
-    const persistedFlag = flagIndex.get(flagKey);
-    const hasAttemptFlag = Object.prototype.hasOwnProperty.call(attempt, "flagged");
-    const flagged = hasAttemptFlag ? Boolean(attempt.flagged) : Boolean(persistedFlag);
     return {
         ...attempt,
         sectionId,
@@ -155,9 +138,7 @@ const normalizeAttempt = (attempt, sessionIndex, flagIndex) => {
         sessionCreatedAtMs: dateMs(session?.createdAt, answeredAtMs),
         sessionCompletedAtMs: dateMs(session?.completedAt, 0),
         sessionTitle: session?.generatedSession?.session?.title ?? "Practice session",
-        generatedQuestionCount: session?.generatedSession?.questions?.length ?? 0,
-        flagged,
-        flagReason: attempt.flagReason ?? persistedFlag?.reason ?? null
+        generatedQuestionCount: session?.generatedSession?.questions?.length ?? 0
     };
 };
 
@@ -178,7 +159,6 @@ const createAggregateRecord = (id, sectionId = null) => ({
     weightedAttempts: 0,
     correctWeight: 0,
     rawCount: 0,
-    flaggedWeight: 0,
     elapsedWeight: 0,
     elapsedWeightedTotal: 0,
     targetWeight: 0,
@@ -194,7 +174,6 @@ const addToAggregate = (record, attempt, weight = 1) => {
     record.weightedAttempts += weight;
     record.correctWeight += attempt.isCorrect ? weight : 0;
     record.rawCount += 1;
-    if (attempt.flagged) record.flaggedWeight += weight;
     if (Number.isFinite(attempt.elapsedMs)) {
         record.elapsedWeight += weight;
         record.elapsedWeightedTotal += attempt.elapsedMs * weight;
@@ -230,11 +209,10 @@ const finalizeAggregate = (record, minAttempts = DEFAULT_MIN_ATTEMPTS) => {
     const timeRatio = targetTimeMs ? averageElapsedMs / targetTimeMs : 0;
     const accuracyWeakness = (1 - smoothedAccuracy) * 64;
     const timingWeakness = constrain((timeRatio - 1) * 24, 0, 18);
-    const flagWeakness = (attempts ? record.flaggedWeight / attempts : 0) * 8;
     const confidenceAverage = record.confidenceWeight ? record.confidenceWeightedTotal / record.confidenceWeight : null;
     const confidenceWeakness = confidenceAverage && confidenceAverage >= 4 && attempts && correct / attempts < 0.7 ? 5 : 0;
     const volumeFactor = constrain(cb.real.sqrt(attempts / minAttempts), 0.4, 1.15);
-    const priorityScore = constrain((accuracyWeakness + timingWeakness + flagWeakness + confidenceWeakness) * volumeFactor, 0, 100);
+    const priorityScore = constrain((accuracyWeakness + timingWeakness + confidenceWeakness) * volumeFactor, 0, 100);
     return {
         id: record.id,
         sectionId: record.sectionId,
@@ -252,8 +230,6 @@ const finalizeAggregate = (record, minAttempts = DEFAULT_MIN_ATTEMPTS) => {
         mastery: mastery.mastery,
         timingPenalty: mastery.timingPenalty,
         volumeMultiplier: mastery.volumeMultiplier,
-        flaggedCount: round(record.flaggedWeight, 0.01),
-        flaggedRate: attempts ? record.flaggedWeight / attempts : 0,
         confidenceAverage,
         firstSeenAt: record.firstSeenAtMs ? new Date(record.firstSeenAtMs).toISOString() : null,
         lastSeenAt: record.lastSeenAtMs ? new Date(record.lastSeenAtMs).toISOString() : null,
@@ -562,12 +538,11 @@ const buildDataHealth = (filteredAttempts, bySection, minAttempts, totalStoredAn
     };
 };
 
-export const computeMetrics = ({ attempts = [], sessions = [], flags = [], filters = {} }) => {
+export const computeMetrics = ({ attempts = [], sessions = [], filters = {} }) => {
     const normalizedFilters = normalizeDashboardFilters(filters);
     const supportedSessions = sessions.filter((session) => validSectionIds.has(getSessionSectionId(session)));
     const sessionIndex = buildSessionIndex(supportedSessions);
-    const flagIndex = buildFlagIndex(flags);
-    const answeredAttempts = attempts.filter((attempt) => Boolean(attempt.selectedChoiceId)).map((attempt) => normalizeAttempt(attempt, sessionIndex, flagIndex)).filter((attempt) => validSectionIds.has(attempt.sectionId)).sort((a, b) => a.answeredAtMs - b.answeredAtMs);
+    const answeredAttempts = attempts.filter((attempt) => Boolean(attempt.selectedChoiceId)).map((attempt) => normalizeAttempt(attempt, sessionIndex)).filter((attempt) => validSectionIds.has(attempt.sectionId)).sort((a, b) => a.answeredAtMs - b.answeredAtMs);
     const filteredAttempts = filterAttempts(answeredAttempts, normalizedFilters);
     const minAttempts = normalizedFilters.minAttempts;
     const coveredTopicIds = new Set(answeredAttempts.flatMap((attempt) => attempt.topicIds ?? []).filter((topicId) => validTopicIds.has(topicId)));
@@ -583,7 +558,6 @@ export const computeMetrics = ({ attempts = [], sessions = [], flags = [], filte
     const elapsedValues = filteredAttempts.map((attempt) => attempt.elapsedMs).filter(Number.isFinite);
     const totalStoredGeneratedQuestions = supportedSessions.reduce((total, session) => total + (session.generatedSession?.questions?.length ?? 0), 0);
     const completedSessions = supportedSessions.filter((session) => Boolean(session.completedAt));
-    const activeFlagKeys = new Set(filteredAttempts.filter((attempt) => attempt.flagged).map((attempt) => `${attempt.sessionId}__${attempt.questionId}`));
     const timedAttempts = filteredAttempts.filter((attempt) => attempt.timingMode === "timed");
     const untimedAttempts = filteredAttempts.filter((attempt) => attempt.timingMode === "untimed");
     const timedAccuracy = timedAttempts.length ? accuracyFromRows(timedAttempts) : null;
@@ -625,8 +599,6 @@ export const computeMetrics = ({ attempts = [], sessions = [], flags = [], filte
         averageElapsedMs,
         averageTargetTimeMs,
         completionRate: totalGeneratedQuestions ? totalQuestionsAnswered / totalGeneratedQuestions : 0,
-        activeFlagCount: activeFlagKeys.size,
-        flaggedRate: totalQuestionsAnswered ? activeFlagKeys.size / totalQuestionsAnswered : 0,
         timedAccuracy,
         untimedAccuracy,
         timedUntimedGap: typeof timedAccuracy === "number" && typeof untimedAccuracy === "number" ? untimedAccuracy - timedAccuracy : null,
@@ -709,6 +681,6 @@ export const computeMetrics = ({ attempts = [], sessions = [], flags = [], filte
 };
 
 export const computeWeakTopicSkillPairs = (attempts, minAttempts = DEFAULT_MIN_ATTEMPTS) => {
-    const metrics = computeMetrics({ attempts, sessions: [], flags: [], filters: { minAttempts } });
+    const metrics = computeMetrics({ attempts, sessions: [], filters: { minAttempts } });
     return metrics.weakness.topicSkillPairs.filter((pair) => pair.attempts >= minAttempts);
 };

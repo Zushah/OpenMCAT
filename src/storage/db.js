@@ -1,8 +1,9 @@
 const DB_KEYS = {
     sessions: "openmcat_sessions_v1",
-    attempts: "openmcat_attempts_v1",
-    flags: "openmcat_flags_v1"
+    attempts: "openmcat_attempts_v1"
 };
+
+const LEGACY_DB_KEYS = ["openmcat_flags_v1"];
 
 const readArray = (key) => {
     try {
@@ -48,33 +49,17 @@ export const updateAttempt = async (attemptId, patch) => {
     writeArray(DB_KEYS.attempts, updated);
 };
 
-export const getFlags = async () => readArray(DB_KEYS.flags);
-
-export const saveFlag = async (flagRecord) => {
-    const rows = readArray(DB_KEYS.flags);
-    rows.push(flagRecord);
-    writeArray(DB_KEYS.flags, rows);
-    return flagRecord;
-};
-
-export const deleteFlagForQuestion = async (sessionId, questionId) => {
-    const rows = readArray(DB_KEYS.flags);
-    const updated = rows.filter((row) => row.sessionId !== sessionId || row.questionId !== questionId);
-    writeArray(DB_KEYS.flags, updated);
-};
-
-export const clearAllData = async () => { Object.values(DB_KEYS).forEach((key) => localStorage.removeItem(key)); };
+export const clearAllData = async () => { [...Object.values(DB_KEYS), ...LEGACY_DB_KEYS].forEach((key) => localStorage.removeItem(key)); };
 
 export const replaceData = async (data) => {
     writeArray(DB_KEYS.sessions, data.sessions ?? []);
     writeArray(DB_KEYS.attempts, data.attempts ?? []);
-    writeArray(DB_KEYS.flags, data.flags ?? []);
+    LEGACY_DB_KEYS.forEach((key) => localStorage.removeItem(key));
 };
 
 export const getAllData = async () => {
     return {
         sessions: readArray(DB_KEYS.sessions),
-        attempts: readArray(DB_KEYS.attempts),
-        flags: readArray(DB_KEYS.flags)
+        attempts: readArray(DB_KEYS.attempts)
     };
 };
