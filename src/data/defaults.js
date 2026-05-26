@@ -7,12 +7,7 @@ export const DEFAULT_CONFIG = {
     questionCount: 5,
     timingMode: "untimed",
     secondsPerQuestion: null,
-    reviewMode: "immediate",
-    explanationDepth: "standard",
-    providerId: "manual_json",
-    model: "any",
-    batchSize: 5,
-    promptStrictness: "strict"
+    reviewMode: "immediate"
 };
 
 export const QUESTION_COUNT_LIMITS = {
@@ -20,33 +15,9 @@ export const QUESTION_COUNT_LIMITS = {
     max: 50
 };
 
-export const BATCH_SIZE_LIMITS = {
-    min: 1,
-    max: 10
-};
-
 export const DEFAULT_SETTINGS = {
-    theme: "system",
-    provider: {
-        selectedProviderId: "manual_json",
-        selectedModel: "any"
-    }
+    theme: "system"
 };
-
-export const PROVIDER_OPTIONS = [
-    {
-        id: "mock",
-        name: "Mock provider",
-        description: "Local sample session for testing and demo.",
-        requiresApiKey: false
-    },
-    {
-        id: "manual_json",
-        name: "Manual JSON paste",
-        description: "Copy prompt to any model and paste its response.",
-        requiresApiKey: false
-    }
-];
 
 export const REVIEW_MODES = [
     { id: "immediate", label: "Review immediately" },

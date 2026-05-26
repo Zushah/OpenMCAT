@@ -5,17 +5,8 @@ const THEME_OPTIONS = new Set(["system", "dark", "light"]);
 
 const sanitizeSettings = (settings) => {
     const source = settings && typeof settings === "object" ? settings : {};
-    const provider = source.provider && typeof source.provider === "object" ? source.provider : {};
     const theme = THEME_OPTIONS.has(source.theme) ? source.theme : DEFAULT_SETTINGS.theme;
-    const selectedProviderId = typeof provider.selectedProviderId === "string" && provider.selectedProviderId.trim() ? provider.selectedProviderId : DEFAULT_SETTINGS.provider.selectedProviderId;
-    const selectedModel = typeof provider.selectedModel === "string" && provider.selectedModel.trim() ? provider.selectedModel : DEFAULT_SETTINGS.provider.selectedModel;
-    return {
-        theme,
-        provider: {
-            selectedProviderId,
-            selectedModel
-        }
-    };
+    return { theme };
 };
 
 export const loadSettings = () => {

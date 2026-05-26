@@ -17,7 +17,7 @@ const round = (num, places = 0.01) => {
     return Number(rounded.toFixed(decimalPlaces));
 };
 
-const isQuestionBankSession = (activeSession) => activeSession?.providerMeta?.source === "question_bank" || activeSession?.config?.providerId === "question_bank";
+const isQuestionBankSession = (activeSession) => activeSession?.providerMeta?.source === "question_bank" || activeSession?.generatedSession?.bank?.source === "question_bank";
 
 const summarize = (activeSession) => {
     const questions = activeSession.generatedSession.questions;

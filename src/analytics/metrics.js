@@ -1,3 +1,4 @@
+import { QUESTION_BANK_PROVIDER_ID } from "../data/bank/catalog.js";
 import { SECTIONS, TOPICS } from "../data/taxonomy.js";
 import { computeMastery } from "./mastery.js";
 
@@ -58,9 +59,25 @@ const normalizeModelName = (value) => {
     return normalized.length ? normalized : null;
 };
 
-const getSessionAiModel = (session) => normalizeModelName(session?.generatedSession?.session?.aiModel) ?? normalizeModelName(session?.providerMeta?.model) ?? normalizeModelName(session?.config?.model) ?? "unknown";
+const getSessionAiModel = (session) => normalizeModelName(session?.generatedSession?.session?.aiModel) ?? normalizeModelName(session?.providerMeta?.model) ?? "unknown";
 
 const getSessionSectionId = (session) => session?.config?.sectionId ?? session?.generatedSession?.session?.sectionId ?? "unknown";
+
+const isQuestionBankSession = (session) => session?.providerMeta?.source === QUESTION_BANK_PROVIDER_ID || session?.generatedSession?.bank?.source === QUESTION_BANK_PROVIDER_ID || session?.generatedSession?.questions?.some((question) => question.bankQuestionId || question.bankId);
+
+const getGeneratedQuestionKeys = (session) => {
+    const questions = session?.generatedSession?.questions ?? [];
+    const bankSession = isQuestionBankSession(session);
+    const bankId = session?.providerMeta?.bankId ?? session?.generatedSession?.bank?.id ?? "question_bank";
+    const bankSectionId = session?.providerMeta?.bankSectionId ?? session?.generatedSession?.bank?.sectionId ?? getSessionSectionId(session);
+    const bankVersion = session?.providerMeta?.bankVersion ?? session?.generatedSession?.bank?.version ?? "unknown";
+    return questions.map((question, index) => {
+        const questionId = question?.id ?? `question_${index + 1}`;
+        const bankQuestionId = question?.bankQuestionId ?? (bankSession ? questionId : null);
+        if (bankSession && bankQuestionId) return `${QUESTION_BANK_PROVIDER_ID}:${bankId}:${bankSectionId}:${bankVersion}:${bankQuestionId}`;
+        return `session:${session?.id ?? "unknown"}:${questionId}`;
+    });
+};
 
 const accuracyFromRows = (rows) => { if (!rows.length) return 0; return rows.filter((row) => row.isCorrect).length / rows.length; };
 
@@ -440,6 +457,7 @@ const buildSessionSummaries = (attempts, sessions, filters) => {
         const correct = rows.filter((attempt) => attempt.isCorrect).length;
         const elapsedValues = rows.map((attempt) => attempt.elapsedMs).filter(Number.isFinite);
         const missedTopicIds = Array.from(new Set(rows.filter((attempt) => !attempt.isCorrect).flatMap((attempt) => attempt.topicIds ?? [])));
+        const generatedQuestionKeys = getGeneratedQuestionKeys(session);
         return {
             id: session.id,
             title: session.generatedSession?.session?.title ?? "Practice session",
@@ -452,8 +470,9 @@ const buildSessionSummaries = (attempts, sessions, filters) => {
             sectionId: session.generatedSession?.session?.sectionId ?? session.config?.sectionId ?? rows[0]?.sectionId ?? "unknown",
             timingMode: session.config?.timingMode ?? rows[0]?.timingMode ?? "untimed",
             reviewMode: session.config?.reviewMode ?? rows[0]?.reviewMode ?? "immediate",
-            generatedQuestionCount: session.generatedSession?.questions?.length ?? 0,
-            questionCount: session.generatedSession?.questions?.length ?? 0,
+            generatedQuestionKeys,
+            generatedQuestionCount: generatedQuestionKeys.length,
+            questionCount: generatedQuestionKeys.length,
             attempts: rows.length,
             correct,
             accuracy: rows.length ? correct / rows.length : 0,
@@ -469,26 +488,31 @@ const buildModelUsage = (sessionSummaries) => {
     const groups = new Map();
     sessionSummaries.forEach((session) => {
         const model = normalizeModelName(session.aiModel) ?? "unknown";
-        const generatedQuestionCount = safeNumber(session.generatedQuestionCount, 0);
-        if (generatedQuestionCount <= 0) return;
+        const generatedQuestionKeys = session.generatedQuestionKeys ?? [];
+        if (!generatedQuestionKeys.length) return;
         if (!groups.has(model)) {
             groups.set(model, {
                 id: model,
                 model,
                 sessionCount: 0,
-                generatedQuestionCount: 0,
+                generatedQuestionKeys: new Set(),
                 answeredAttempts: 0,
                 correct: 0
             });
         }
         const row = groups.get(model);
         row.sessionCount += 1;
-        row.generatedQuestionCount += generatedQuestionCount;
+        generatedQuestionKeys.forEach((key) => row.generatedQuestionKeys.add(key));
         row.answeredAttempts += safeNumber(session.attempts, 0);
         row.correct += safeNumber(session.correct, 0);
     });
     const rows = Array.from(groups.values()).map((row) => ({
-        ...row,
+        id: row.id,
+        model: row.model,
+        sessionCount: row.sessionCount,
+        generatedQuestionCount: row.generatedQuestionKeys.size,
+        answeredAttempts: row.answeredAttempts,
+        correct: row.correct,
         accuracy: row.answeredAttempts ? row.correct / row.answeredAttempts : null
     })).sort((a, b) => b.generatedQuestionCount - a.generatedQuestionCount || b.sessionCount - a.sessionCount || a.model.localeCompare(b.model));
     return {
@@ -579,7 +603,7 @@ export const computeMetrics = ({ attempts = [], sessions = [], filters = {} }) =
     const confidence = buildConfidenceAnalytics(filteredAttempts);
     const sessionSummaries = buildSessionSummaries(filteredAttempts, supportedSessions, normalizedFilters);
     const modelUsage = buildModelUsage(sessionSummaries);
-    const totalGeneratedQuestions = sessionSummaries.reduce((total, session) => total + (session.generatedQuestionCount || 0), 0);
+    const totalGeneratedQuestions = modelUsage.totalGeneratedQuestions;
     const totals = {
         totalAttemptsStored,
         totalQuestionsAnswered,

@@ -1,5 +1,3 @@
-import { PROVIDER_OPTIONS } from "../data/defaults.js";
-
 const makeField = (labelText, input) => {
     const wrap = document.createElement("div");
     wrap.className = "field";
@@ -8,14 +6,6 @@ const makeField = (labelText, input) => {
     if (input.id) label.htmlFor = input.id;
     wrap.append(label, input);
     return wrap;
-};
-
-const createInput = (id, value = "", type = "text") => {
-    const input = document.createElement("input");
-    input.id = id;
-    input.type = type;
-    input.value = value;
-    return input;
 };
 
 const createSelect = (id, options, selected) => {
@@ -38,35 +28,25 @@ export const renderSettingsView = (state, actions) => {
     const heading = document.createElement("h1");
     heading.textContent = "Settings";
     const sub = document.createElement("p");
-    sub.textContent = "Configure defaults, appearance, and manage your private data.";
+    sub.textContent = "Configure appearance and manage your private browser data.";
     header.append(heading, sub);
     root.append(header);
     const layout = document.createElement("div");
     layout.className = "settings-grid";
-    const providerCard = document.createElement("section");
-    providerCard.className = "card card-pad";
-    const providerOptions = PROVIDER_OPTIONS.map((provider) => ({ value: provider.id, label: provider.name }));
-    const providerSelect = createSelect("settings-provider-id", providerOptions, state.settings.provider.selectedProviderId ?? state.currentConfig.providerId);
-    providerCard.append(makeField("Default provider", providerSelect));
-    const modelInput = createInput("settings-model", state.settings.provider.selectedModel || state.currentConfig.model);
-    providerCard.append(makeField("Default model", modelInput));
-    const divider = document.createElement("hr");
-    divider.className = "divider";
-    providerCard.append(divider);
+    const appearanceCard = document.createElement("section");
+    appearanceCard.className = "card card-pad";
     const themeSelect = createSelect("settings-theme", [{ value: "system", label: "System" }, { value: "dark", label: "Dark" }, { value: "light", label: "Light" }], state.settings.theme);
-    providerCard.append(makeField("Theme", themeSelect));
+    appearanceCard.append(makeField("Theme", themeSelect));
     const saveButton = document.createElement("button");
     saveButton.className = "btn btn-primary";
     saveButton.textContent = "Save settings";
     saveButton.addEventListener("click", () => {
-        const updatedSettings = structuredClone(state.settings);
-        updatedSettings.theme = themeSelect.value;
-        updatedSettings.provider.selectedProviderId = providerSelect.value;
-        updatedSettings.provider.selectedModel = modelInput.value.trim();
-        actions.updateConfig({ providerId: providerSelect.value, model: modelInput.value.trim() || state.currentConfig.model });
-        actions.saveAppSettings(updatedSettings);
+        actions.saveAppSettings({
+            ...state.settings,
+            theme: themeSelect.value
+        });
     });
-    providerCard.append(saveButton);
+    appearanceCard.append(saveButton);
     const dataCard = document.createElement("section");
     dataCard.className = "card card-pad settings-data-card";
     const dataHelp = document.createElement("p");
@@ -120,7 +100,7 @@ export const renderSettingsView = (state, actions) => {
     });
     dataActions.append(exportButton, importRow, deleteAll);
     dataCard.append(dataActions);
-    layout.append(providerCard, dataCard);
+    layout.append(appearanceCard, dataCard);
     root.append(layout);
     return root;
 };

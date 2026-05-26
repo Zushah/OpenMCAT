@@ -1,6 +1,6 @@
 import { state } from "./app.js";
 import { createActions } from "./events.js";
-import { getRouteFromHash } from "./router.js";
+import { getRouteFromHash, isRouteHash } from "./router.js";
 import { destroyDashboardCharts } from "./components/charts.js";
 import { renderAboutView } from "./views/about.js";
 import { renderDashboardView } from "./views/dashboard.js";
@@ -49,7 +49,20 @@ const render = () => {
 
 const actions = createActions({ render, applyTheme });
 
-const handleRouteFromLocation = () => { state.route = getRouteFromHash(location.pathname || "/"); };
+const handleRouteFromLocation = () => {
+    if (!isRouteHash(location.hash)) return false;
+    const nextRoute = getRouteFromHash(location.hash || "#/");
+    if (state.route === nextRoute) return false;
+    state.route = nextRoute;
+    return true;
+};
+
+const handleBrowserRouteChange = () => {
+    if (!handleRouteFromLocation()) return;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    render();
+    if (state.route === "bank") actions.refreshQuestionBank();
+};
 
 const shouldIgnoreShortcut = (target) => {
     if (!(target instanceof HTMLElement)) return false;
@@ -113,7 +126,8 @@ const setupNavHandlers = () => {
     });
 };
 
-window.addEventListener("popstate", () => { handleRouteFromLocation(); window.scrollTo({ top: 0, left: 0, behavior: "auto" }); render(); if (state.route === "bank") actions.refreshQuestionBank(); });
+window.addEventListener("popstate", handleBrowserRouteChange);
+window.addEventListener("hashchange", handleBrowserRouteChange);
 
 window.addEventListener("storage", () => { if (state.route === "dashboard") actions.refreshAnalytics().then(render); if (state.route === "bank") actions.refreshQuestionBank(); });
 

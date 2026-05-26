@@ -77,12 +77,6 @@
     margin-top: 0;
 }
 
-.advanced-panel {
-    margin-top: var(--space-md);
-    border-top: 1px solid var(--border);
-    padding-top: var(--space-md);
-}
-
 .generation-pipeline-overlay {
     position: fixed;
     inset: 0;

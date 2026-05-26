@@ -53,7 +53,7 @@ export const renderLandingView = (actions) => {
     list.className = "landing-steps";
     list.innerHTML = `
         <article class="glass-panel"><span class="material-symbols-outlined" aria-hidden="true">tune</span><h3>1. Configure</h3><p>Pick section, topics, skills, difficulty, and format, all based on the real MCAT.</p></article>
-        <article class="glass-panel"><span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span><h3>2. Generate</h3><p>Use an AI model of your choice to copy the prompt and paste the output.</p></article>
+        <article class="glass-panel"><span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span><h3>2. Generate</h3><p>Use an AI chat of your choice to copy the prompt and paste the output.</p></article>
         <article class="glass-panel"><span class="material-symbols-outlined" aria-hidden="true">checklist_rtl</span><h3>3. Practice</h3><p>Answer the questions and review the explanations.</p></article>
         <article class="glass-panel"><span class="material-symbols-outlined" aria-hidden="true">monitoring</span><h3>4. Repeat</h3><p>Use analytics-based recommendations to plan your next study session.</p></article>
     `;

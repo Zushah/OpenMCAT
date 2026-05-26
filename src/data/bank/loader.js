@@ -259,15 +259,9 @@ const prepareQuestionBankSession = ({ entry, attempts = [], questionCount }) => 
             questionCount: questions.length,
             timingMode: "untimed",
             secondsPerQuestion: null,
-            reviewMode: "immediate",
-            explanationDepth: "standard",
-            providerId: QUESTION_BANK_PROVIDER_ID,
-            model: QUESTION_BANK_MODEL,
-            batchSize: 5,
-            promptStrictness: "strict"
+            reviewMode: "immediate"
         },
         providerMeta: {
-            providerId: QUESTION_BANK_PROVIDER_ID,
             model: QUESTION_BANK_MODEL,
             source: QUESTION_BANK_PROVIDER_ID,
             bankId: entry.catalog.id,

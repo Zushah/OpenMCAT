@@ -297,69 +297,6 @@ export const renderGeneratorView = (state, actions) => {
         selectedId: state.currentConfig.reviewMode,
         onChange: (reviewMode) => actions.updateConfig({ reviewMode })
     }));
-    const advanced = document.createElement("details");
-    advanced.className = "advanced-panel";
-    const advancedSummary = document.createElement("summary");
-    advancedSummary.textContent = "Advanced options";
-    advanced.append(advancedSummary);
-    const advancedWrap = document.createElement("div");
-    advancedWrap.style.marginTop = "0.75rem";
-    const modelField = document.createElement("div");
-    modelField.className = "field";
-    const modelLabel = document.createElement("label");
-    modelLabel.htmlFor = "model-name";
-    modelLabel.textContent = "Model";
-    const modelInput = document.createElement("input");
-    modelInput.id = "model-name";
-    modelInput.value = state.currentConfig.model;
-    modelInput.placeholder = "Model id";
-    modelInput.addEventListener("change", () => actions.updateConfig({ model: modelInput.value.trim() }));
-    modelField.append(modelLabel, modelInput);
-    advancedWrap.append(modelField);
-    const strictnessField = document.createElement("div");
-    strictnessField.className = "field";
-    const strictLabel = document.createElement("label");
-    strictLabel.htmlFor = "prompt-strictness";
-    strictLabel.textContent = "Prompt strictness";
-    const strictSelect = document.createElement("select");
-    strictSelect.id = "prompt-strictness";
-    ["strict", "balanced"].forEach((mode) => {
-        const option = document.createElement("option");
-        option.value = mode;
-        option.textContent = mode;
-        if ((state.currentConfig.promptStrictness ?? "strict") === mode) option.selected = true;
-        strictSelect.append(option);
-    });
-    strictSelect.addEventListener("change", () => actions.updateConfig({ promptStrictness: strictSelect.value }));
-    strictnessField.append(strictLabel, strictSelect);
-    advancedWrap.append(strictnessField);
-    const depthField = document.createElement("div");
-    depthField.className = "field";
-    const depthLabel = document.createElement("label");
-    depthLabel.htmlFor = "explanation-depth";
-    depthLabel.textContent = "Explanation depth";
-    const depthSelect = document.createElement("select");
-    depthSelect.id = "explanation-depth";
-    ["concise", "standard", "deep"].forEach((mode) => {
-        const option = document.createElement("option");
-        option.value = mode;
-        option.textContent = mode;
-        if (state.currentConfig.explanationDepth === mode) option.selected = true;
-        depthSelect.append(option);
-    });
-    depthSelect.addEventListener("change", () => actions.updateConfig({ explanationDepth: depthSelect.value }));
-    depthField.append(depthLabel, depthSelect);
-    advancedWrap.append(depthField);
-    advancedWrap.append(makeNumberField({
-        id: "batch-size",
-        labelText: "Max generation batch size",
-        value: state.currentConfig.batchSize,
-        min: 1,
-        max: 10,
-        onChange: (batchSize) => actions.updateConfig({ batchSize })
-    }));
-    advanced.append(advancedWrap);
-    rightColumn.append(advanced);
     sessionGrid.append(leftColumn, rightColumn);
     primary.append(sessionGrid);
     layout.append(primary);

@@ -2,7 +2,7 @@ export const extractJsonObject = (rawText) => {
     if (typeof rawText !== "string") {
         return {
             parsed: null,
-            error: "Provider returned a non-text response.",
+            error: "AI response was not text.",
             cleaned: ""
         };
     }
@@ -20,7 +20,7 @@ export const extractJsonObject = (rawText) => {
     if (firstBrace === -1 || lastBrace === -1 || firstBrace >= lastBrace) {
         return {
             parsed: null,
-            error: "Could not locate a JSON object in the provider response.",
+            error: "Could not locate a JSON object in the AI response.",
             cleaned
         };
     }
@@ -31,7 +31,7 @@ export const extractJsonObject = (rawText) => {
     } catch (error) {
         return {
             parsed: null,
-            error: `Invalid JSON returned by provider: ${error.message}`,
+            error: `Invalid JSON in AI response: ${error.message}`,
             cleaned: candidate
         };
     }

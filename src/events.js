@@ -1,5 +1,5 @@
 import { DEFAULT_DASHBOARD_PAGES, DEFAULT_QUESTION_BANK_COUNTS, state, patchGeneration, resetGenerationState } from "./app.js";
-import { BATCH_SIZE_LIMITS, DEFAULT_CONFIG, QUESTION_COUNT_LIMITS } from "./data/defaults.js";
+import { DEFAULT_CONFIG, QUESTION_COUNT_LIMITS } from "./data/defaults.js";
 import { QUESTION_BANK_PROVIDER_ID } from "./data/bank/catalog.js";
 import { buildQuestionBankSession, clearQuestionBankCache, loadQuestionBankOverviews } from "./data/bank/loader.js";
 import { SCIENCE_SKILLS, SECTIONS, TOPICS, getSkillsForSection, getTopicsBySection } from "./data/taxonomy.js";
@@ -24,19 +24,22 @@ const getDefaultTopicsForSection = (sectionId) => getTopicsBySection(sectionId).
 
 const getDefaultSkillsForSection = (sectionId) => getSkillsForSection(sectionId).map((skill) => skill.id);
 
-const isQuestionBankSession = (activeSession) => activeSession?.providerMeta?.source === QUESTION_BANK_PROVIDER_ID || activeSession?.config?.providerId === QUESTION_BANK_PROVIDER_ID;
+const isQuestionBankSession = (activeSession) => activeSession?.providerMeta?.source === QUESTION_BANK_PROVIDER_ID || activeSession?.generatedSession?.bank?.source === QUESTION_BANK_PROVIDER_ID;
 
 const normalizeConfig = (config) => {
-    const normalized = { ...structuredClone(DEFAULT_CONFIG), ...config };
-    normalized.questionCount = clamp(Number(normalized.questionCount) || DEFAULT_CONFIG.questionCount, QUESTION_COUNT_LIMITS.min, QUESTION_COUNT_LIMITS.max);
-    normalized.batchSize = clamp(Number(normalized.batchSize) || DEFAULT_CONFIG.batchSize, BATCH_SIZE_LIMITS.min, BATCH_SIZE_LIMITS.max);
-    normalized.secondsPerQuestion = normalized.timingMode === "timed" ? clamp(Number(normalized.secondsPerQuestion) || 95, 30, 240) : null;
-    const sectionExists = SECTIONS.some((section) => section.id === normalized.sectionId);
-    if (!sectionExists) normalized.sectionId = DEFAULT_CONFIG.sectionId;
+    const source = { ...structuredClone(DEFAULT_CONFIG), ...(config ?? {}) };
+    const normalized = structuredClone(DEFAULT_CONFIG);
+    normalized.questionCount = clamp(Number(source.questionCount) || DEFAULT_CONFIG.questionCount, QUESTION_COUNT_LIMITS.min, QUESTION_COUNT_LIMITS.max);
+    normalized.timingMode = source.timingMode === "timed" ? "timed" : "untimed";
+    normalized.secondsPerQuestion = normalized.timingMode === "timed" ? clamp(Number(source.secondsPerQuestion) || 95, 30, 240) : null;
+    normalized.reviewMode = source.reviewMode === "later" ? "later" : "immediate";
+    normalized.difficulty = ["easy", "medium", "hard"].includes(source.difficulty) ? source.difficulty : DEFAULT_CONFIG.difficulty;
+    normalized.questionFormat = ["discrete", "passage", "mixed"].includes(source.questionFormat) ? source.questionFormat : DEFAULT_CONFIG.questionFormat;
+    normalized.sectionId = SECTIONS.some((section) => section.id === source.sectionId) ? source.sectionId : DEFAULT_CONFIG.sectionId;
     const sectionTopics = getTopicsBySection(normalized.sectionId).map((topic) => topic.id);
-    normalized.topicIds = (normalized.topicIds ?? []).filter((topicId) => sectionTopics.includes(topicId));
+    normalized.topicIds = (source.topicIds ?? []).filter((topicId) => sectionTopics.includes(topicId));
     const sectionSkills = getSkillsForSection(normalized.sectionId).map((skill) => skill.id);
-    normalized.skillIds = (normalized.skillIds ?? []).filter((skillId) => sectionSkills.includes(skillId));
+    normalized.skillIds = (source.skillIds ?? []).filter((skillId) => sectionSkills.includes(skillId));
     if (normalized.skillIds.length === 0) normalized.skillIds = sectionSkills;
     return normalized;
 };
@@ -240,17 +243,14 @@ export const createActions = ({ render, applyTheme }) => {
     const startPracticeSession = async (prepared, runtimeConfig, providerMeta = {}) => {
         const sessionId = id("session");
         const nowIso = new Date().toISOString();
+        const normalizedProviderMeta = structuredClone(providerMeta ?? {});
         const sessionRecord = {
             id: sessionId,
             createdAt: nowIso,
             completedAt: null,
             config: structuredClone(runtimeConfig),
             generatedSession: prepared,
-            providerMeta: {
-                ...structuredClone(providerMeta),
-                providerId: providerMeta.providerId ?? runtimeConfig.providerId,
-                model: providerMeta.model ?? runtimeConfig.model
-            }
+            providerMeta: normalizedProviderMeta
         };
         await saveSession(sessionRecord);
         const questionStateById = Object.fromEntries(prepared.questions.map((question) =>
@@ -365,7 +365,7 @@ export const createActions = ({ render, applyTheme }) => {
             error: null,
             warnings: [],
             configSnapshot: structuredClone(effectiveConfig),
-            providerMeta: { providerId: "manual_json" },
+            providerMeta: null,
             pipelineOpen: true,
             manualInput: ""
         });
@@ -403,7 +403,7 @@ export const createActions = ({ render, applyTheme }) => {
             showRawResponse: false
         });
         render();
-        await validateAndStartSession(extraction.parsed, { providerId: "manual_json"}, { manualMode: true, deferStart: false });
+        await validateAndStartSession(extraction.parsed, {}, { manualMode: true, deferStart: false });
     }
 
     const getActiveQuestion = () => {
@@ -660,12 +660,7 @@ export const createActions = ({ render, applyTheme }) => {
         if (!config || typeof config !== "object") { showToast("No drill configuration is available yet."); return; }
         const next = normalizeConfig({
             ...state.currentConfig,
-            ...config,
-            providerId: config.providerId ?? state.currentConfig.providerId,
-            model: config.model ?? state.currentConfig.model,
-            batchSize: config.batchSize ?? state.currentConfig.batchSize,
-            explanationDepth: config.explanationDepth ?? state.currentConfig.explanationDepth,
-            promptStrictness: config.promptStrictness ?? state.currentConfig.promptStrictness
+            ...config
         });
         state.currentConfig = next;
         resetGenerationState();
@@ -680,21 +675,8 @@ export const createActions = ({ render, applyTheme }) => {
     }
 
     const initApp = async () => {
-        const initialModel = state.settings.provider.selectedModel || state.currentConfig.model || DEFAULT_CONFIG.model;
-        const nextModel = initialModel === "mock-mcat-v1" ? DEFAULT_CONFIG.model : initialModel;
-        state.settings = persistSettings({
-            ...state.settings,
-            provider: {
-                ...state.settings.provider,
-                selectedProviderId: "manual_json",
-                selectedModel: nextModel
-            }
-        });
-        state.currentConfig = normalizeConfig({
-            ...state.currentConfig,
-            providerId: "manual_json",
-            model: nextModel
-        });
+        state.settings = persistSettings(state.settings);
+        state.currentConfig = normalizeConfig(state.currentConfig);
         applyTheme(state.settings.theme);
         await refreshAnalytics();
         if (state.route === "bank") await refreshQuestionBank();

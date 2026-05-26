@@ -213,12 +213,7 @@ const createSessionDrillConfig = (session) => {
             questionCount: source.questionCount ?? session.generatedQuestionCount ?? session.attempts ?? (timingMode === "timed" ? 8 : 6),
             timingMode,
             secondsPerQuestion: timingMode === "timed" ? source.secondsPerQuestion ?? targetSecondsForSection(sectionId) : null,
-            reviewMode: source.reviewMode ?? (timingMode === "timed" ? "later" : "immediate"),
-            explanationDepth: source.explanationDepth,
-            providerId: source.providerId,
-            model: source.model,
-            batchSize: source.batchSize,
-            promptStrictness: source.promptStrictness
+            reviewMode: source.reviewMode ?? (timingMode === "timed" ? "later" : "immediate")
         };
     }
     const sectionId = session.sectionId && session.sectionId !== "unknown" ? session.sectionId : topicSectionId(session.missedTopicIds?.[0]);
@@ -634,7 +629,7 @@ const renderModelUsageChart = (metrics, actions, pages) => {
     const header = createElement("div", "chart-card-header");
     const titleWrap = createElement("div", "chart-card-title");
     appendText(titleWrap, "h2", "", "AI model mix");
-    appendText(titleWrap, "p", "tiny", "Generated questions by normalized provider/model value for sessions in the active dashboard slice.");
+    appendText(titleWrap, "p", "tiny", "Generated questions by recorded AI model metadata for sessions in the active dashboard slice.");
     header.append(titleWrap);
     const body = createElement("div", "dashboard-model-card-body");
     const canvasWrap = createElement("div", "chart-canvas-wrap dashboard-model-canvas-wrap");

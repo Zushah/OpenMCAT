@@ -1,6 +1,6 @@
 # OpenMCAT
 
-Free MCAT practice and analytics powered by your AI model.
+Free MCAT practice and analytics powered by your AI chat.
 
 ## Status
 
@@ -8,33 +8,31 @@ Early draft. Not intended for public use yet. Feedback welcome.
 
 ## Workflow
 
-1. Configure section, topics, skills, difficulty, format, review mode, timing, provider, and model.
-2. Generate a session with the selected provider.
-3. Session JSON is validated before practice starts.
-4. Complete questions in immediate or later review mode.
-5. Review explanations and see local analytics in the dashboard.
+1. Choose a pregenerated question bank or configure a targeted practice session by section, topics, skills, difficulty, format, review mode, and timing.
+2. Start a question-bank session immediately or use the generation pipeline to create a new practice session.
+3. Session is validated before practice starts.
+4. Submit answers in immediate or later review mode, with optional question flagging and navigation.
+5. Review explanations and see analytics in the dashboard.
 
-## Providers
+## Practice sources
 
-### Mock provider
+### Question banks
 
-Use "Mock provider" for instant local generation and UI testing. No API key required.
+Use the pregenerated C/P, B/B, and P/S question banks to start practice with zero setup friction.
 
-### Manual JSON paste provider
+### Generation pipeline
 
-Use "Manual JSON paste" when direct provider integration is unavailable:
+Use the generation pipeline when you want a targeted custom drill:
 
-1. Choose "Manual JSON paste."
+1. Configure the practice session.
 2. Click "Generate practice session."
-3. Copy compiled prompt into any model.
-4. Paste returned JSON into OpenMCAT.
+3. Copy the compiled prompt into an AI chat.
+4. Paste the returned JSON into OpenMCAT.
 5. Validate and start.
-
-Direct provider integrations (OpenAI/Anthropic/Google/Ollama/etc) are intentionally deferred until a later robust integration phase.
 
 ## Privacy
 
-No accounts, no telemetry, no server-side storage, all study data is local in the browser, and prompts are only sent to the AI provider you choose.
+No accounts, no telemetry, no server-side storage, and all study data is local in the browser.
 
 ## Disclaimer
 

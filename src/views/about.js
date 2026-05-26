@@ -18,7 +18,7 @@ export const renderAboutView = () => {
     [
         "A free and independent study tool for targeted MCAT practice.",
         "A privacy-first website with no account system and no data collection.",
-        "A configurable workflow that supports any AI of your choice.",
+        "A configurable workflow that supports any AI chat of your choice.",
         "A way to drill topics and skills and seriously review your weak areas."
     ].forEach((line) => { const li = document.createElement("li"); li.textContent = line; isList.append(li); });
     whatItIs.append(isTitle, isList);
