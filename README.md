@@ -2,10 +2,6 @@
 
 Free MCAT practice and analytics powered by your AI chat.
 
-## Status
-
-Early draft. Not intended for public use yet. Feedback welcome.
-
 ## Workflow
 
 1. Choose a pregenerated question bank or configure a targeted practice session by section, topics, skills, difficulty, format, review mode, and timing.
