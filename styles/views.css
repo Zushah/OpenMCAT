@@ -89,6 +89,9 @@
 
 .generation-pipeline-panel {
     width: min(760px, 96vw);
+    background: var(--popup-panel-background);
+    backdrop-filter: blur(22px) saturate(128%);
+    -webkit-backdrop-filter: blur(22px) saturate(128%);
 }
 
 .generation-pipeline-top {

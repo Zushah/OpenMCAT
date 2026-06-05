@@ -20,6 +20,7 @@
     --app-background: radial-gradient(circle at 15% 10%, rgba(255, 255, 255, 0.04), transparent 38%), radial-gradient(circle at 85% 0%, rgba(255, 255, 255, 0.025), transparent 40%), linear-gradient(150deg, #151718, #1b1e1f 40%, #161819);
     --nav-background: linear-gradient(130deg, rgba(32, 37, 37, 0.78), rgba(28, 32, 32, 0.52));
     --overlay-background: rgba(7, 11, 10, 0.74);
+    --popup-panel-background: linear-gradient(140deg, color-mix(in srgb, var(--surface-tint), transparent 94.5%), color-mix(in srgb, var(--surface-tint), transparent 98%));
     --codeblock-background: linear-gradient(180deg, rgba(23, 26, 27, 0.96), rgba(20, 23, 24, 0.95));
     --codeblock-text: #eef9f5;
     --control-option-background: #212625;
@@ -70,6 +71,7 @@
     --app-background: radial-gradient(circle at 15% 10%, rgba(15, 199, 119, 0.13), transparent 38%), radial-gradient(circle at 85% 0%, rgba(143, 231, 184, 0.18), transparent 40%), linear-gradient(150deg, #f5fbf7, #e7f5ee 40%, #fbfffd);
     --nav-background: linear-gradient(130deg, rgba(255, 255, 255, 0.88), rgba(236, 248, 242, 0.72));
     --overlay-background: rgba(17, 34, 28, 0.46);
+    --popup-panel-background: linear-gradient(140deg, rgba(255, 255, 255, 0.75), rgba(239, 251, 245, 0.50));
     --codeblock-background: linear-gradient(180deg, #f7fbf9, #edf5f1);
     --codeblock-text: #1b2723;
     --control-option-background: #ffffff;
@@ -111,6 +113,7 @@
         --app-background: radial-gradient(circle at 15% 10%, rgba(15, 199, 119, 0.13), transparent 38%), radial-gradient(circle at 85% 0%, rgba(143, 231, 184, 0.18), transparent 40%), linear-gradient(150deg, #f5fbf7, #e7f5ee 40%, #fbfffd);
         --nav-background: linear-gradient(130deg, rgba(255, 255, 255, 0.88), rgba(236, 248, 242, 0.72));
         --overlay-background: rgba(17, 34, 28, 0.46);
+        --popup-panel-background: linear-gradient(140deg, rgba(255, 255, 255, 0.75), rgba(239, 251, 245, 0.50));
         --codeblock-background: linear-gradient(180deg, #f7fbf9, #edf5f1);
         --codeblock-text: #1b2723;
         --control-option-background: #ffffff;
