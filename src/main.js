@@ -94,6 +94,9 @@ const setupKeyboardShortcuts = () => {
             } else if (event.key === "ArrowLeft") {
                 actions.previousQuestion();
                 event.preventDefault();
+            } else if (key === "h") {
+                actions.toggleHighlightFromSelection();
+                event.preventDefault();
             } else if (key === "f") {
                 actions.flagCurrentQuestion();
                 event.preventDefault();

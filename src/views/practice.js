@@ -1,4 +1,5 @@
 import { createProgressBar } from "../components/progress.js";
+import { createHighlightableText, getQuestionStemHighlightKey } from "../components/highlights.js";
 import { createChoiceCard, createPassageCard, createPassageMetadataById } from "../components/questions.js";
 import { formatDurationMs } from "../components/timer.js";
 
@@ -317,6 +318,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
     const passage = question.passageId ? activeSession.generatedSession.passages.find((item) => item.id === question.passageId) : null;
     const passageMetadataById = createPassageMetadataById(activeSession.generatedSession.passages ?? [], questions);
     const passageMetadata = passage ? passageMetadataById.get(passage.id) : null;
+    const highlightRangesByTargetKey = activeSession.highlightRangesByTargetKey ?? {};
     const top = document.createElement("section");
     top.className = "session-top card card-pad";
     const title = document.createElement("h2");
@@ -348,6 +350,14 @@ export const renderPracticeView = (state, actions, nowMs) => {
     flagButton.className = questionState.flagged ? "btn btn-secondary" : "btn btn-ghost";
     flagButton.textContent = questionState.flagged ? "Unflag" : "Flag";
     flagButton.addEventListener("click", () => actions.flagCurrentQuestion());
+    const highlightButton = document.createElement("button");
+    highlightButton.type = "button";
+    highlightButton.className = "btn btn-secondary";
+    highlightButton.textContent = "Highlight";
+    highlightButton.title = "Highlight selected passage or question text (H)";
+    highlightButton.addEventListener("pointerdown", (event) => event.preventDefault());
+    highlightButton.addEventListener("mousedown", (event) => event.preventDefault());
+    highlightButton.addEventListener("click", () => actions.toggleHighlightFromSelection());
     const navigationButton = document.createElement("button");
     navigationButton.type = "button";
     navigationButton.className = "btn btn-secondary";
@@ -358,7 +368,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
     reviewButton.className = "btn btn-primary";
     reviewButton.textContent = "Review";
     reviewButton.addEventListener("click", () => actions.openFinalReviewPanel());
-    actionRow.append(flagButton, navigationButton, reviewButton);
+    actionRow.append(flagButton, highlightButton, navigationButton, reviewButton);
     const timerRow = document.createElement("div");
     timerRow.className = "session-timer-row";
     timerRow.append(totalTimer, timer);
@@ -367,7 +377,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
     const grid = document.createElement("section");
     grid.className = "session-grid";
     if (!passage) grid.classList.add("is-single");
-    if (passage) grid.append(createPassageCard(passage, passageMetadata ?? {}));
+    if (passage) grid.append(createPassageCard(passage, { ...(passageMetadata ?? {}), highlightRangesByTargetKey }));
     const questionCard = document.createElement("article");
     questionCard.className = "card card-pad question-card";
     const questionHeading = document.createElement("h3");
@@ -376,8 +386,14 @@ export const renderPracticeView = (state, actions, nowMs) => {
     statusRow.className = "practice-status-row";
     statusRow.append(makePill(getQuestionStatusText(questionState), getQuestionStatusClass(questionState)));
     if (questionState.flagged) statusRow.append(makePill("Flagged", "is-flagged"));
-    const stem = document.createElement("p");
-    stem.textContent = question.stem;
+    const questionHighlightKey = getQuestionStemHighlightKey(question.id);
+    const stem = createHighlightableText({
+        tagName: "p",
+        className: "question-stem",
+        text: question.stem,
+        targetKey: questionHighlightKey,
+        ranges: highlightRangesByTargetKey[questionHighlightKey]
+    });
     questionCard.append(questionHeading, statusRow, stem);
     const choiceList = document.createElement("div");
     choiceList.className = "choice-list";
@@ -435,7 +451,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
     questionCard.append(controls);
     const shortcutHint = document.createElement("p");
     shortcutHint.className = "tiny practice-shortcuts";
-    shortcutHint.textContent = "Shortcuts: A/B/C/D select, Enter submit, Left/Right navigate, F flag, N navigation.";
+    shortcutHint.textContent = "Shortcuts: A/B/C/D select, Enter submit, Left/Right navigate, N navigation, F flag, H highlight.";
     questionCard.append(shortcutHint);
     if (showFeedback) {
         const explanation = document.createElement("div");

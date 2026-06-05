@@ -1,3 +1,5 @@
+import { createHighlightableText, getPassageTextHighlightKey } from "./highlights.js";
+
 export const createChoiceCard = (choice, { selectedId, submitted, correctId }) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -116,9 +118,14 @@ export const createPassageCard = (passage, options = {}) => {
         originalTitle.textContent = passage.title;
         card.append(originalTitle);
     }
-    const passageText = document.createElement("p");
-    passageText.className = "passage-text";
-    passageText.textContent = passage.text ?? "";
+    const passageHighlightKey = getPassageTextHighlightKey(passage.id);
+    const passageText = createHighlightableText({
+        tagName: "p",
+        className: "passage-text",
+        text: passage.text ?? "",
+        targetKey: passageHighlightKey,
+        ranges: options.highlightRangesByTargetKey?.[passageHighlightKey] ?? []
+    });
     card.append(passageText);
     (passage.tables ?? []).forEach((tableData) => { card.append(createPassageTable(tableData)); });
     (passage.figureDescriptions ?? []).forEach((figure) => {

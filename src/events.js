@@ -12,6 +12,7 @@ import { clearAllData, getAllData, saveAttempt, saveSession, updateAttempt, upda
 import { saveSettings as persistSettings } from "./storage/settings.js";
 import { computeMetrics, normalizeDashboardFilters } from "./analytics/metrics.js";
 import { buildRecommendation } from "./analytics/recommendations.js";
+import { getSelectionHighlightRange, toggleHighlightRange } from "./components/highlights.js";
 import { showToast } from "./components/toast.js";
 
 const cb = Chalkboard;
@@ -250,7 +251,8 @@ export const createActions = ({ render, applyTheme }) => {
             completedAt: null,
             config: structuredClone(runtimeConfig),
             generatedSession: prepared,
-            providerMeta: normalizedProviderMeta
+            providerMeta: normalizedProviderMeta,
+            highlightRangesByTargetKey: {}
         };
         await saveSession(sessionRecord);
         const questionStateById = Object.fromEntries(prepared.questions.map((question) =>
@@ -286,6 +288,7 @@ export const createActions = ({ render, applyTheme }) => {
             providerMeta: structuredClone(sessionRecord.providerMeta),
             currentQuestionIndex: 0,
             questionStateById,
+            highlightRangesByTargetKey: {},
             navigationOpen: false,
             navigationFilter: "all",
             finalReviewOpen: false,
@@ -440,6 +443,20 @@ export const createActions = ({ render, applyTheme }) => {
         qState.flagged = !qState.flagged;
         render();
         showToast(qState.flagged ? "Question flagged." : "Flag removed.");
+    };
+
+    const toggleHighlightFromSelection = () => {
+        const active = state.activeSession;
+        if (!active) return;
+        const selectionRange = getSelectionHighlightRange();
+        if (!selectionRange) { showToast("Select passage or question text to highlight.", "error"); return; }
+        active.highlightRangesByTargetKey = active.highlightRangesByTargetKey ?? {};
+        const currentRanges = active.highlightRangesByTargetKey[selectionRange.targetKey] ?? [];
+        const nextRanges = toggleHighlightRange(currentRanges, selectionRange);
+        if (nextRanges.length) active.highlightRangesByTargetKey[selectionRange.targetKey] = nextRanges;
+        else delete active.highlightRangesByTargetKey[selectionRange.targetKey];
+        window.getSelection()?.removeAllRanges();
+        render();
     };
 
     const saveCurrentAnswer = async () => {
@@ -601,6 +618,7 @@ export const createActions = ({ render, applyTheme }) => {
         await updateSession(active.id, {
             completedAt,
             questionStateById: structuredClone(active.questionStateById),
+            highlightRangesByTargetKey: structuredClone(active.highlightRangesByTargetKey ?? {}),
             summary: {
                 submitted,
                 incomplete: records.length - submitted,
@@ -706,6 +724,7 @@ export const createActions = ({ render, applyTheme }) => {
         selectChoice,
         setConfidence,
         flagCurrentQuestion,
+        toggleHighlightFromSelection,
         submitAnswer,
         previousQuestion,
         nextQuestion,

@@ -299,6 +299,23 @@
     color: var(--text-secondary);
 }
 
+.question-stem {
+    color: var(--text-primary);
+}
+
+.highlight-mark {
+    border-radius: 0.16em;
+    padding: 0 0.06em;
+    background: #fff176;
+    color: #151515;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
+.review-question-stem {
+    font-weight: inherit;
+}
+
 .explanation-panel {
     margin-top: var(--space-md);
     border: 1px solid var(--border);
