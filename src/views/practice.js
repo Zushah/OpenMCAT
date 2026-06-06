@@ -1,5 +1,5 @@
 import { createProgressBar } from "../components/progress.js";
-import { createHighlightableText, getQuestionStemHighlightKey } from "../components/highlights.js";
+import { createHighlightableText, getQuestionHighlightScopeKey, getQuestionStemHighlightKey } from "../components/highlights.js";
 import { createChoiceCard, createPassageCard, createPassageMetadataById } from "../components/questions.js";
 import { formatDurationMs } from "../components/timer.js";
 
@@ -392,6 +392,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
         className: "question-stem",
         text: question.stem,
         targetKey: questionHighlightKey,
+        scopeKey: getQuestionHighlightScopeKey(question.id),
         ranges: highlightRangesByTargetKey[questionHighlightKey]
     });
     questionCard.append(questionHeading, statusRow, stem);

@@ -1,4 +1,4 @@
-import { createHighlightableText, getQuestionStemHighlightKey } from "../components/highlights.js";
+import { createHighlightableText, getQuestionHighlightScopeKey, getQuestionStemHighlightKey } from "../components/highlights.js";
 import { createPassageCard, createPassageMetadataById, getPassageCardTitle } from "../components/questions.js";
 import { formatDurationMs } from "../components/timer.js";
 
@@ -108,6 +108,7 @@ const makeQuestionReviewBlock = (record, index, isFocused, passagesById, passage
         className: "review-question-stem",
         text: question.stem,
         targetKey: questionHighlightKey,
+        scopeKey: getQuestionHighlightScopeKey(question.id),
         ranges: highlightRangesByTargetKey[questionHighlightKey] ?? []
     }));
     card.append(heading);

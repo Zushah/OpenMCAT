@@ -1,4 +1,4 @@
-import { createHighlightableText, getPassageTextHighlightKey } from "./highlights.js";
+import { createHighlightableText, getPassageFigureCaptionHighlightKey, getPassageFigureDescriptionHighlightKey, getPassageHighlightScopeKey, getPassageTableCaptionHighlightKey, getPassageTableCellHighlightKey, getPassageTableColumnHighlightKey, getPassageTextHighlightKey, getPassageTitleHighlightKey } from "./highlights.js";
 
 export const createChoiceCard = (choice, { selectedId, submitted, correctId }) => {
     const button = document.createElement("button");
@@ -25,29 +25,55 @@ export const createChoiceCard = (choice, { selectedId, submitted, correctId }) =
     return button;
 }
 
-export const createPassageTable = (tableData) => {
+const getStableContentId = (item, index, fallbackPrefix) => String(item?.id || `${fallbackPrefix}${index + 1}`);
+
+const getHighlightRanges = (highlightRangesByTargetKey = {}, targetKey) => highlightRangesByTargetKey[targetKey] ?? [];
+
+export const createPassageTable = (tableData, options = {}) => {
+    const highlightRangesByTargetKey = options.highlightRangesByTargetKey ?? {};
+    const passageId = options.passageId ?? "";
+    const passageScopeKey = options.scopeKey ?? "";
+    const tableId = getStableContentId(tableData, options.tableIndex ?? 0, "table");
     const wrap = document.createElement("div");
     wrap.className = "table-wrap";
-    const title = document.createElement("p");
-    title.className = "tiny";
-    title.textContent = tableData.caption;
+    const captionKey = getPassageTableCaptionHighlightKey(passageId, tableId);
+    const title = createHighlightableText({
+        tagName: "p",
+        className: "tiny",
+        text: tableData.caption,
+        targetKey: captionKey,
+        scopeKey: passageScopeKey,
+        ranges: getHighlightRanges(highlightRangesByTargetKey, captionKey)
+    });
     wrap.append(title);
     const table = document.createElement("table");
     const thead = document.createElement("thead");
     const headRow = document.createElement("tr");
-    tableData.columns.forEach((column) => {
-        const th = document.createElement("th");
-        th.textContent = column;
+    (tableData.columns ?? []).forEach((column, columnIndex) => {
+        const columnKey = getPassageTableColumnHighlightKey(passageId, tableId, columnIndex);
+        const th = createHighlightableText({
+            tagName: "th",
+            text: column,
+            targetKey: columnKey,
+            scopeKey: passageScopeKey,
+            ranges: getHighlightRanges(highlightRangesByTargetKey, columnKey)
+        });
         headRow.append(th);
     });
     thead.append(headRow);
     table.append(thead);
     const tbody = document.createElement("tbody");
-    tableData.rows.forEach((row) => {
+    (tableData.rows ?? []).forEach((row, rowIndex) => {
         const tr = document.createElement("tr");
-        row.forEach((value) => {
-            const td = document.createElement("td");
-            td.textContent = value;
+        row.forEach((value, columnIndex) => {
+            const cellKey = getPassageTableCellHighlightKey(passageId, tableId, rowIndex, columnIndex);
+            const td = createHighlightableText({
+                tagName: "td",
+                text: value,
+                targetKey: cellKey,
+                scopeKey: passageScopeKey,
+                ranges: getHighlightRanges(highlightRangesByTargetKey, cellKey)
+            });
             tr.append(td);
         });
         tbody.append(tr);
@@ -106,16 +132,35 @@ export const getPassageCardTitle = (passage, options = {}) => {
 };
 
 export const createPassageCard = (passage, options = {}) => {
+    const highlightRangesByTargetKey = options.highlightRangesByTargetKey ?? {};
     const card = document.createElement("article");
     card.className = options.className ?? "card card-pad passage-card";
-    const passageTitle = document.createElement("h3");
     const title = getPassageCardTitle(passage, options);
-    passageTitle.textContent = title;
-    card.append(passageTitle);
-    if ((options.passageNumber || Array.isArray(options.questionNumbers)) && passage.title) {
-        const originalTitle = document.createElement("p");
-        originalTitle.className = "tiny passage-original-title";
-        originalTitle.textContent = passage.title;
+    const passageScopeKey = getPassageHighlightScopeKey(passage.id);
+    const titleHighlightKey = getPassageTitleHighlightKey(passage.id);
+    const hasNumberedTitle = options.passageNumber || Array.isArray(options.questionNumbers);
+    if (hasNumberedTitle || !passage.title) {
+        const passageTitle = document.createElement("h3");
+        passageTitle.textContent = title;
+        card.append(passageTitle);
+    } else {
+        card.append(createHighlightableText({
+            tagName: "h3",
+            text: title,
+            targetKey: titleHighlightKey,
+            scopeKey: passageScopeKey,
+            ranges: getHighlightRanges(highlightRangesByTargetKey, titleHighlightKey)
+        }));
+    }
+    if (hasNumberedTitle && passage.title) {
+        const originalTitle = createHighlightableText({
+            tagName: "p",
+            className: "tiny passage-original-title",
+            text: passage.title,
+            targetKey: titleHighlightKey,
+            scopeKey: passageScopeKey,
+            ranges: getHighlightRanges(highlightRangesByTargetKey, titleHighlightKey)
+        });
         card.append(originalTitle);
     }
     const passageHighlightKey = getPassageTextHighlightKey(passage.id);
@@ -124,19 +169,40 @@ export const createPassageCard = (passage, options = {}) => {
         className: "passage-text",
         text: passage.text ?? "",
         targetKey: passageHighlightKey,
-        ranges: options.highlightRangesByTargetKey?.[passageHighlightKey] ?? []
+        scopeKey: passageScopeKey,
+        ranges: getHighlightRanges(highlightRangesByTargetKey, passageHighlightKey)
     });
     card.append(passageText);
-    (passage.tables ?? []).forEach((tableData) => { card.append(createPassageTable(tableData)); });
-    (passage.figureDescriptions ?? []).forEach((figure) => {
+    (passage.tables ?? []).forEach((tableData, tableIndex) => {
+        card.append(createPassageTable(tableData, {
+            passageId: passage.id,
+            tableIndex,
+            scopeKey: passageScopeKey,
+            highlightRangesByTargetKey
+        }));
+    });
+    (passage.figureDescriptions ?? []).forEach((figure, figureIndex) => {
+        const figureId = getStableContentId(figure, figureIndex, "figure");
         const figureCard = document.createElement("div");
         figureCard.className = "card card-pad";
         figureCard.style.marginTop = "0.5rem";
-        const figureHeading = document.createElement("p");
-        figureHeading.className = "tiny";
-        figureHeading.textContent = figure.caption;
-        const figureText = document.createElement("p");
-        figureText.textContent = figure.description;
+        const figureCaptionKey = getPassageFigureCaptionHighlightKey(passage.id, figureId);
+        const figureHeading = createHighlightableText({
+            tagName: "p",
+            className: "tiny",
+            text: figure.caption,
+            targetKey: figureCaptionKey,
+            scopeKey: passageScopeKey,
+            ranges: getHighlightRanges(highlightRangesByTargetKey, figureCaptionKey)
+        });
+        const figureDescriptionKey = getPassageFigureDescriptionHighlightKey(passage.id, figureId);
+        const figureText = createHighlightableText({
+            tagName: "p",
+            text: figure.description,
+            targetKey: figureDescriptionKey,
+            scopeKey: passageScopeKey,
+            ranges: getHighlightRanges(highlightRangesByTargetKey, figureDescriptionKey)
+        });
         figureCard.append(figureHeading, figureText);
         card.append(figureCard);
     });
