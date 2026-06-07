@@ -740,7 +740,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "2.8 x 10^-7 mol"
+                    "text": "1.9 x 10^-3 mol"
                 },
                 {
                     "id": "B",
@@ -752,16 +752,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "1.9 x 10^-3 mol"
+                    "text": "2.8 x 10^-7 mol"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Charge passed is It = 0.0018 A x 60.0 s = 0.108 C. Moles of electrons are 0.108/96500 = 1.12 x 10^-6 mol e-. Because 4 mol e- reduce 1 mol O2, moles O2 consumed are about 2.8 x 10^-7 mol.",
             "choiceExplanations": {
-                "A": "This correctly accounts for charge, Faraday's constant, and the 4-electron reduction of O2.",
+                "A": "This confuses current in milliamperes with charge or moles.",
                 "B": "This gives moles of electrons, not moles of O2.",
                 "C": "This incorrectly multiplies by 4 instead of dividing by 4.",
-                "D": "This confuses current in milliamperes with charge or moles."
+                "D": "This correctly accounts for charge, Faraday's constant, and the 4-electron reduction of O2."
             },
             "testedTopicIds": ["cp_electrochemistry", "cp_stoichiometry"],
             "testedSkillIds": ["sirs_2"],
@@ -869,7 +869,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "15 cm; magnification -0.5"
+                    "text": "60 cm; magnification -2.0"
                 },
                 {
                     "id": "B",
@@ -881,16 +881,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "60 cm; magnification -2.0"
+                    "text": "15 cm; magnification -0.5"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Using 1/f = 1/do + 1/di gives 1/10 = 1/30 + 1/di, so 1/di = 1/15 and di = 15 cm. Magnification is m = -di/do = -15/30 = -0.5. The image is real, inverted, and reduced.",
             "choiceExplanations": {
-                "A": "This correctly applies the thin-lens equation and magnification formula.",
+                "A": "This reverses the image and object distance relationship.",
                 "B": "The distance is correct, but the sign of magnification should be negative for a real inverted image.",
                 "C": "This would be expected for an object at twice the focal length, not at 30 cm for f = 10 cm.",
-                "D": "This reverses the image and object distance relationship."
+                "D": "This correctly applies the thin-lens equation and magnification formula."
             },
             "testedTopicIds": ["cp_geometrical_optics"],
             "testedSkillIds": ["sirs_2"],
@@ -912,7 +912,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "The carboxylic acid can form strong intermolecular hydrogen-bonded dimers."
+                    "text": "The ester is always less polar than any carboxylic acid."
                 },
                 {
                     "id": "B",
@@ -924,16 +924,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "The ester is always less polar than any carboxylic acid."
+                    "text": "The carboxylic acid can form strong intermolecular hydrogen-bonded dimers."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Carboxylic acids can both donate and accept hydrogen bonds and commonly form hydrogen-bonded dimers, increasing intermolecular attraction and boiling point relative to many esters of comparable molar mass.",
             "choiceExplanations": {
-                "A": "This correctly identifies a major intermolecular-force difference.",
+                "A": "This is too absolute and does not identify the key hydrogen-bonding feature.",
                 "B": "Ordinary esters are neutral, not permanently positively charged.",
                 "C": "Carboxylic acids do participate in dipole-dipole interactions.",
-                "D": "This is too absolute and does not identify the key hydrogen-bonding feature."
+                "D": "This correctly identifies a major intermolecular-force difference."
             },
             "testedTopicIds": ["cp_carboxylic_acids"],
             "testedSkillIds": ["sirs_1", "sirs_2"],
@@ -1084,7 +1084,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Compound A has a lower pKa and is mostly converted to a charged carboxylate at pH 8.3."
+                    "text": "Compound P undergoes ester hydrolysis during bicarbonate extraction."
                 },
                 {
                     "id": "B",
@@ -1096,16 +1096,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Compound P undergoes ester hydrolysis during bicarbonate extraction."
+                    "text": "Compound A has a lower pKa and is mostly converted to a charged carboxylate at pH 8.3."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "A carboxylic acid with pKa 4.2 is overwhelmingly deprotonated at pH 8.3, forming a charged carboxylate that partitions into water. A phenol with pKa 10.0 is only minimally deprotonated at pH 8.3 and remains mostly neutral and organic-soluble.",
             "choiceExplanations": {
-                "A": "This correctly applies pH-pKa reasoning and partitioning of charged species.",
+                "A": "Compound P is a phenol, and bicarbonate extraction is not described as hydrolyzing it.",
                 "B": "Compound P has the higher pKa and is not completely deprotonated at pH 8.3.",
                 "C": "Compound A is charged, not neutral, under these conditions.",
-                "D": "Compound P is a phenol, and bicarbonate extraction is not described as hydrolyzing it."
+                "D": "This correctly applies pH-pKa reasoning and partitioning of charged species."
             },
             "testedTopicIds": [
                 "cp_acid_base_equilibria",
@@ -1139,20 +1139,20 @@
                 },
                 {
                     "id": "C",
-                    "text": "The acidified bicarbonate extract re-extracted into ethyl acetate, showing Rf 0.12"
+                    "text": "The strong-base extract after prolonged heating, showing Rf 0.12 and 0.18"
                 },
                 {
                     "id": "D",
-                    "text": "The strong-base extract after prolonged heating, showing Rf 0.12 and 0.18"
+                    "text": "The acidified bicarbonate extract re-extracted into ethyl acetate, showing Rf 0.12"
                 }
             ],
-            "correctChoiceId": "C",
+            "correctChoiceId": "D",
             "explanation": "The passage states that compound A becomes a water-soluble carboxylate in bicarbonate. After acidification, it becomes neutral and can be extracted into ethyl acetate. The fraction with a single Rf 0.12 spot after acidified bicarbonate workup is therefore the best purified A fraction.",
             "choiceExplanations": {
                 "A": "The original organic layer contains the mixture, not purified A.",
                 "B": "This fraction contains compounds that did not move into bicarbonate, consistent with P and N.",
-                "C": "This is the expected recovered carboxylic acid fraction and shows a single TLC spot.",
-                "D": "This fraction contains an additional new spot, consistent with side reaction or hydrolysis products."
+                "C": "This fraction contains an additional new spot, consistent with side reaction or hydrolysis products.",
+                "D": "This is the expected recovered carboxylic acid fraction and shows a single TLC spot."
             },
             "testedTopicIds": [
                 "cp_separations_and_purifications",
@@ -1485,7 +1485,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "It can occur only when the incident angle is greater than about 72 degrees from the normal."
+                    "text": "It occurs at all incident angles because the indices are similar."
                 },
                 {
                     "id": "B",
@@ -1497,16 +1497,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "It occurs at all incident angles because the indices are similar."
+                    "text": "It can occur only when the incident angle is greater than about 72 degrees from the normal."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Total internal reflection can occur when light travels from higher refractive index to lower refractive index and the incident angle exceeds the critical angle. sin theta_c = n2/n1 = 1.33/1.40 = 0.95, so theta_c is about 72 degrees from the normal.",
             "choiceExplanations": {
-                "A": "This correctly identifies both the condition and approximate critical angle.",
+                "A": "Similar indices do not imply total internal reflection at all angles.",
                 "B": "This confuses the critical angle with its complement.",
                 "C": "Entering a lower-index medium is exactly the condition under which total internal reflection can occur, if the angle is large enough.",
-                "D": "Similar indices do not imply total internal reflection at all angles."
+                "D": "This correctly identifies both the condition and approximate critical angle."
             },
             "testedTopicIds": ["cp_geometrical_optics"],
             "testedSkillIds": ["sirs_1", "sirs_2"],
@@ -1579,7 +1579,7 @@
                 },
                 {
                     "id": "B",
-                    "text": "100 V/cm"
+                    "text": "3600 V/cm"
                 },
                 {
                     "id": "C",
@@ -1587,16 +1587,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "3600 V/cm"
+                    "text": "100 V/cm"
                 }
             ],
-            "correctChoiceId": "B",
+            "correctChoiceId": "D",
             "explanation": "The passage gives E = V/L. In Run B, V = 600 V and L = 6.0 cm, so E = 600/6.0 = 100 V/cm.",
             "choiceExplanations": {
                 "A": "This is too small by a factor of 10.",
-                "B": "This correctly divides applied voltage by electrode spacing.",
+                "B": "This incorrectly multiplies voltage by spacing.",
                 "C": "This incorrectly combines time or migration distance with the field calculation.",
-                "D": "This incorrectly multiplies voltage by spacing."
+                "D": "This correctly divides applied voltage by electrode spacing."
             },
             "testedTopicIds": ["cp_electrostatics"],
             "testedSkillIds": ["sirs_2", "sirs_4"],
@@ -1886,7 +1886,7 @@
                 },
                 {
                     "id": "B",
-                    "text": "100 g/mol"
+                    "text": "250 g/mol"
                 },
                 {
                     "id": "C",
@@ -1894,16 +1894,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "250 g/mol"
+                    "text": "100 g/mol"
                 }
             ],
-            "correctChoiceId": "B",
+            "correctChoiceId": "D",
             "explanation": "Moles of NaOH are 0.0250 L x 0.100 mol/L = 0.00250 mol. A monoprotic acid reacts 1:1 with NaOH, so the sample contains 0.00250 mol acid. Molar mass is 0.250 g/0.00250 mol = 100 g/mol.",
             "choiceExplanations": {
                 "A": "This would result from assuming twice as many moles of acid as NaOH.",
-                "B": "This correctly uses 1:1 neutralization stoichiometry.",
+                "B": "This is too high and may reflect using 0.00100 mol acid rather than 0.00250 mol.",
                 "C": "This does not follow from the neutralization mole calculation.",
-                "D": "This is too high and may reflect using 0.00100 mol acid rather than 0.00250 mol."
+                "D": "This correctly uses 1:1 neutralization stoichiometry."
             },
             "testedTopicIds": [
                 "cp_stoichiometry",
@@ -2191,7 +2191,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Hexane, because it interacts least strongly with polar silica"
+                    "text": "All three compounds should have identical Rf values because they have six-carbon chains"
                 },
                 {
                     "id": "B",
@@ -2203,16 +2203,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "All three compounds should have identical Rf values because they have six-carbon chains"
+                    "text": "Hexane, because it interacts least strongly with polar silica"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Silica gel is polar. Less polar compounds interact less strongly with silica and move farther with a nonpolar mobile phase, producing higher Rf values. Hexane is least polar, while hexanoic acid is strongly retained by hydrogen bonding and acid-base interactions.",
             "choiceExplanations": {
-                "A": "This correctly predicts the least polar compound as having the highest Rf.",
+                "A": "Functional groups strongly affect polarity and chromatographic behavior.",
                 "B": "Esters can accept hydrogen bonds but do not form strong hydrogen-bonded dimers like carboxylic acids.",
                 "C": "Strong retention on silica would give lower, not higher, Rf.",
-                "D": "Functional groups strongly affect polarity and chromatographic behavior."
+                "D": "This correctly predicts the least polar compound as having the highest Rf."
             },
             "testedTopicIds": [
                 "cp_separations_and_purifications",
@@ -2237,7 +2237,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "-30 microJ"
+                    "text": "+30 microJ"
                 },
                 {
                     "id": "B",
@@ -2249,16 +2249,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "+30 microJ"
+                    "text": "-30 microJ"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Delta U = q Delta V. Delta V = -5 V - 10 V = -15 V. With q = +2.0 microC, Delta U = (2.0 microC)(-15 V) = -30 microJ.",
             "choiceExplanations": {
-                "A": "This correctly applies Delta U = q Delta V.",
+                "A": "This uses the correct magnitude but the wrong sign.",
                 "B": "This uses an incorrect potential difference.",
                 "C": "This has the wrong sign and magnitude.",
-                "D": "This uses the correct magnitude but the wrong sign."
+                "D": "This correctly applies Delta U = q Delta V."
             },
             "testedTopicIds": ["cp_electrostatics"],
             "testedSkillIds": ["sirs_2"],
@@ -2409,7 +2409,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "(10.0 kPa)(100 mL) = 1.00 J after unit conversion"
+                    "text": "(1.00 atm)(500 mL) = 50 J"
                 },
                 {
                     "id": "B",
@@ -2421,16 +2421,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "(1.00 atm)(500 mL) = 50 J"
+                    "text": "(10.0 kPa)(100 mL) = 1.00 J after unit conversion"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "For constant external pressure, work magnitude is P delta V. In Trial B, 10.0 kPa = 10000 Pa and 100 mL = 1.00 x 10^-4 m3, so W = 10000 x 1.00 x 10^-4 = 1.00 J, matching the table.",
             "choiceExplanations": {
-                "A": "This correctly uses pressure-volume work with SI unit conversion.",
+                "A": "This uses the initial gas state rather than the trial's pressure-volume change.",
                 "B": "Pressure times distance is not work unless area is also included, and the units are not converted.",
                 "C": "Dividing volume by pressure does not give work.",
-                "D": "This uses the initial gas state rather than the trial's pressure-volume change."
+                "D": "This correctly uses pressure-volume work with SI unit conversion."
             },
             "testedTopicIds": ["cp_work", "cp_gas_phase"],
             "testedSkillIds": ["sirs_2", "sirs_4"],
@@ -2925,7 +2925,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "1.9 x 10^-6 mol"
+                    "text": "1.2 x 10^-3 mol"
                 },
                 {
                     "id": "B",
@@ -2937,16 +2937,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "1.2 x 10^-3 mol"
+                    "text": "1.9 x 10^-6 mol"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Charge passed is Q = It = 0.00120 A x 600 s = 0.720 C. Moles of electrons are 0.720/96500 = 7.46 x 10^-6 mol e-. The cathode reaction consumes 1 mol O2 per 4 mol e-, so O2 consumed is about 1.9 x 10^-6 mol.",
             "choiceExplanations": {
-                "A": "This correctly applies Faraday's law and the 4-electron oxygen reduction stoichiometry.",
+                "A": "This confuses current in milliamperes with moles of reactant.",
                 "B": "This is the moles of electrons, not the moles of oxygen.",
                 "C": "This incorrectly multiplies by 4 rather than dividing by 4.",
-                "D": "This confuses current in milliamperes with moles of reactant."
+                "D": "This correctly applies Faraday's law and the 4-electron oxygen reduction stoichiometry."
             },
             "testedTopicIds": ["cp_electrochemistry", "cp_stoichiometry"],
             "testedSkillIds": ["sirs_2"],
@@ -3011,7 +3011,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Measure terminal voltage and current across several known external load resistances."
+                    "text": "Increase the headspace volume while leaving all electrical measurements unrecorded."
                 },
                 {
                     "id": "B",
@@ -3023,16 +3023,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Increase the headspace volume while leaving all electrical measurements unrecorded."
+                    "text": "Measure terminal voltage and current across several known external load resistances."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "A real battery can be modeled as an ideal voltage source in series with internal resistance. Measuring terminal voltage as a function of current across known loads allows the voltage drop associated with internal resistance to be estimated.",
             "choiceExplanations": {
-                "A": "This directly provides the voltage-current relationship needed to estimate internal resistance.",
+                "A": "Changing gas volume without electrical measurements cannot estimate internal resistance.",
                 "B": "Oxygen mole fraction alone does not determine internal electrical resistance.",
                 "C": "Removing the active zinc electrode prevents normal battery operation.",
-                "D": "Changing gas volume without electrical measurements cannot estimate internal resistance."
+                "D": "This directly provides the voltage-current relationship needed to estimate internal resistance."
             },
             "testedTopicIds": ["cp_circuit_elements", "cp_electrochemistry"],
             "testedSkillIds": ["sirs_3", "sirs_2"],
@@ -3144,7 +3144,7 @@
                 },
                 {
                     "id": "B",
-                    "text": "Formation of diastereomeric salts with an enantiopure amine, followed by separation"
+                    "text": "Filtration through ordinary paper"
                 },
                 {
                     "id": "C",
@@ -3152,16 +3152,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Filtration through ordinary paper"
+                    "text": "Formation of diastereomeric salts with an enantiopure amine, followed by separation"
                 }
             ],
-            "correctChoiceId": "B",
+            "correctChoiceId": "D",
             "explanation": "Enantiomers have identical physical properties in achiral environments. Forming diastereomeric salts with an enantiopure amine creates species with different physical properties that can be separated.",
             "choiceExplanations": {
                 "A": "Enantiomers have the same boiling point in an achiral environment, so simple distillation will not resolve them.",
-                "B": "This is a standard resolution strategy because diastereomers can have different solubilities or chromatographic behavior.",
+                "B": "Ordinary filtration separates solids from liquids, not dissolved enantiomers.",
                 "C": "Neutral-pH extraction may separate charged from neutral compounds but does not distinguish enantiomers by itself.",
-                "D": "Ordinary filtration separates solids from liquids, not dissolved enantiomers."
+                "D": "This is a standard resolution strategy because diastereomers can have different solubilities or chromatographic behavior."
             },
             "testedTopicIds": [
                 "cp_separations_and_purifications",
@@ -3709,7 +3709,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "NaHCO3, because it is present in fewer stoichiometric equivalents than H+"
+                    "text": "Neither reactant, because gases do not follow stoichiometry"
                 },
                 {
                     "id": "B",
@@ -3721,16 +3721,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Neither reactant, because gases do not follow stoichiometry"
+                    "text": "NaHCO3, because it is present in fewer stoichiometric equivalents than H+"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "The reaction is 1:1 between bicarbonate and H+. Trial C contains 0.50 mmol NaHCO3 and 1.00 mmol H+, so bicarbonate is limiting. This explains why Trial C produces about the same CO2 volume as Trial B.",
             "choiceExplanations": {
-                "A": "This correctly applies the 1:1 stoichiometry in the passage.",
+                "A": "Gas-forming reactions still obey balanced chemical stoichiometry.",
                 "B": "Acid is in excess in Trial C, so it is not limiting.",
                 "C": "CO2 is a product, not a limiting reactant.",
-                "D": "Gas-forming reactions still obey balanced chemical stoichiometry."
+                "D": "This correctly applies the 1:1 stoichiometry in the passage."
             },
             "testedTopicIds": ["cp_stoichiometry"],
             "testedSkillIds": ["sirs_2", "sirs_4"],
@@ -3752,7 +3752,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Trial B produces about twice the CO2 volume of Trial A when acid is increased from 0.25 mmol to 0.50 mmol with bicarbonate still sufficient."
+                    "text": "All trials produce exactly the same CO2 volume."
                 },
                 {
                     "id": "B",
@@ -3764,16 +3764,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "All trials produce exactly the same CO2 volume."
+                    "text": "Trial B produces about twice the CO2 volume of Trial A when acid is increased from 0.25 mmol to 0.50 mmol with bicarbonate still sufficient."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Trial A has 0.25 mmol acid and Trial B has 0.50 mmol acid, while bicarbonate is not in excess in both cases relative to acid. The CO2 volume approximately doubles from 6.0 mL to 12.1 mL, consistent with 1 mol CO2 formed per 1 mol H+ consumed when bicarbonate is available.",
             "choiceExplanations": {
-                "A": "This correctly identifies the controlled increase that supports the reaction stoichiometry.",
+                "A": "The data show different volumes across trials.",
                 "B": "Trial C does not produce less CO2 than Trial A.",
                 "C": "Trial D produces about four times Trial A's volume, not the same volume.",
-                "D": "The data show different volumes across trials."
+                "D": "This correctly identifies the controlled increase that supports the reaction stoichiometry."
             },
             "testedTopicIds": ["cp_stoichiometry", "cp_gas_phase"],
             "testedSkillIds": ["sirs_4"],
@@ -3842,7 +3842,7 @@
                 },
                 {
                     "id": "B",
-                    "text": "12 cm"
+                    "text": "54 cm"
                 },
                 {
                     "id": "C",
@@ -3850,16 +3850,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "54 cm"
+                    "text": "12 cm"
                 }
             ],
-            "correctChoiceId": "B",
+            "correctChoiceId": "D",
             "explanation": "The thin-lens equation is 1/f = 1/do + 1/di. With do = 18 cm and di = 36 cm, 1/f = 1/18 + 1/36 = 3/36 = 1/12, so f = 12 cm.",
             "choiceExplanations": {
                 "A": "This is too short and may result from adding distances incorrectly.",
-                "B": "This correctly applies the thin-lens equation.",
+                "B": "This incorrectly adds object and image distances.",
                 "C": "This incorrectly assumes the focal length equals the object distance.",
-                "D": "This incorrectly adds object and image distances."
+                "D": "This correctly applies the thin-lens equation."
             },
             "testedTopicIds": ["cp_geometrical_optics"],
             "testedSkillIds": ["sirs_2"],
@@ -3924,7 +3924,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "The carboxyl group is positioned so that a cyclic transition state can form while producing an enol."
+                    "text": "The carboxyl carbon has no partial positive character."
                 },
                 {
                     "id": "B",
@@ -3936,16 +3936,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "The carboxyl carbon has no partial positive character."
+                    "text": "The carboxyl group is positioned so that a cyclic transition state can form while producing an enol."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Beta-keto acids can decarboxylate relatively readily because the beta carbonyl helps organize a cyclic transition state and stabilize enol formation after CO2 loss. Ordinary carboxylic acids do not all decarboxylate easily under mild conditions.",
             "choiceExplanations": {
-                "A": "This identifies the key structural reason beta-keto acids decarboxylate readily.",
+                "A": "The carboxyl carbon is electrophilic due to the carbonyl and attached heteroatoms.",
                 "B": "This is false; many carboxylic acids are stable at room temperature.",
                 "C": "A beta-keto acid specifically contains an additional ketone carbonyl.",
-                "D": "The carboxyl carbon is electrophilic due to the carbonyl and attached heteroatoms."
+                "D": "This identifies the key structural reason beta-keto acids decarboxylate readily."
             },
             "testedTopicIds": ["cp_carboxylic_acids"],
             "testedSkillIds": ["sirs_1", "sirs_2"],
@@ -4275,7 +4275,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Cooling improves lactate removal under the same voltage and current conditions."
+                    "text": "Voltage has no effect on lactate removal."
                 },
                 {
                     "id": "B",
@@ -4287,16 +4287,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Voltage has no effect on lactate removal."
+                    "text": "Cooling improves lactate removal under the same voltage and current conditions."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Runs 3 and 4 have the same pH, voltage, current, and low-salt condition. Run 4 uses cooling, has a smaller temperature rise, and removes more lactate. This supports the conclusion that reducing Joule heating improves separation performance under these conditions.",
             "choiceExplanations": {
-                "A": "This is the controlled conclusion supported by the comparison.",
+                "A": "This comparison does not test voltage because voltage is held constant.",
                 "B": "Cooling does not change lactate from an anion to a cation.",
                 "C": "The membrane is still part of the device and remains relevant for separation.",
-                "D": "This comparison does not test voltage because voltage is held constant."
+                "D": "This is the controlled conclusion supported by the comparison."
             },
             "testedTopicIds": [
                 "cp_separations_and_purifications",

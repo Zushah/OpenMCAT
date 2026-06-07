@@ -752,7 +752,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "AMP increases the apparent affinity for F6P with little effect on maximal catalytic capacity."
+                    "text": "AMP converts PFK-X from a tetramer to a monomer."
                 },
                 {
                     "id": "B",
@@ -764,16 +764,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "AMP converts PFK-X from a tetramer to a monomer."
+                    "text": "AMP increases the apparent affinity for F6P with little effect on maximal catalytic capacity."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "AMP lowers the S0.5 for F6P from 0.80 mM to 0.25 mM while leaving relative Vmax nearly unchanged. This pattern is consistent with allosteric activation that increases the fraction of enzyme in a high-affinity active state.",
             "choiceExplanations": {
-                "A": "This matches the decreased S0.5 and nearly unchanged Vmax.",
+                "A": "The passage describes PFK-X as tetrameric, and no AMP-dependent monomerization data are provided.",
                 "B": "Competitive inhibition would increase the apparent substrate concentration required for activity, not decrease it.",
                 "C": "Irreversible inactivation would be expected to lower Vmax substantially.",
-                "D": "The passage describes PFK-X as tetrameric, and no AMP-dependent monomerization data are provided."
+                "D": "This matches the decreased S0.5 and nearly unchanged Vmax."
             },
             "testedTopicIds": [
                 "bb_control_of_enzyme_activity",
@@ -844,11 +844,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Wild type + AMP"
+                    "text": "Wild type + citrate"
                 },
                 {
                     "id": "B",
-                    "text": "Wild type + citrate"
+                    "text": "Wild type + AMP"
                 },
                 {
                     "id": "C",
@@ -859,11 +859,11 @@
                     "text": "D150N variant"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "At low F6P, the enzyme condition with the lowest S0.5 should reach a larger fraction of its Vmax. Wild type plus AMP has the lowest S0.5 in Table p1_t1 and a normal Vmax, so it should have the highest rate at 0.20 mM F6P.",
             "choiceExplanations": {
-                "A": "This condition has the lowest S0.5 and nearly full Vmax, favoring activity at low F6P.",
-                "B": "Citrate raises S0.5, so low F6P would poorly activate the enzyme.",
+                "A": "Citrate raises S0.5, so low F6P would poorly activate the enzyme.",
+                "B": "This condition has the lowest S0.5 and nearly full Vmax, favoring activity at low F6P.",
                 "C": "R212E plus AMP has a much higher S0.5 than wild type plus AMP and a lower Vmax.",
                 "D": "D150N has less than 5% relative Vmax, so it would not have the highest rate."
             },
@@ -890,7 +890,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Measure AMP binding to purified wild-type and R212E PFK-X, then compare activity changes in the same preparations."
+                    "text": "Run SDS-PAGE after boiling all PFK-X samples in detergent."
                 },
                 {
                     "id": "B",
@@ -898,19 +898,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Run SDS-PAGE after boiling all PFK-X samples in detergent."
+                    "text": "Measure AMP binding to purified wild-type and R212E PFK-X, then compare activity changes in the same preparations."
                 },
                 {
                     "id": "D",
                     "text": "Determine whether citrate changes the absorbance of AMP at 260 nm."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Directly measuring AMP binding and coupling that result to activity would distinguish loss of ligand binding from loss of downstream allosteric communication. If R212E binds AMP normally but is not activated, the mutation likely affects conformational coupling rather than binding.",
             "choiceExplanations": {
-                "A": "This design directly tests both ligand binding and functional response.",
+                "A": "Denaturing SDS-PAGE would assess subunit size, not AMP binding or allosteric signaling.",
                 "B": "Cellular ATP is indirect and would not isolate AMP binding by R212E.",
-                "C": "Denaturing SDS-PAGE would assess subunit size, not AMP binding or allosteric signaling.",
+                "C": "This design directly tests both ligand binding and functional response.",
                 "D": "Citrate effects on AMP absorbance would not test the mutant enzyme's AMP binding or response."
             },
             "testedTopicIds": [
@@ -936,7 +936,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Asp150 is likely important for catalysis or substrate positioning in the active site."
+                    "text": "D150N increases the Hill coefficient beyond the assay's detection range."
                 },
                 {
                     "id": "B",
@@ -944,19 +944,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "D150N increases the Hill coefficient beyond the assay's detection range."
+                    "text": "Asp150 is likely important for catalysis or substrate positioning in the active site."
                 },
                 {
                     "id": "D",
                     "text": "D150N makes AMP a covalent substrate of PFK-X."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Asp to Asn preserves approximate side-chain size but removes a carboxylate charge. Because D150N remains mostly tetrameric while activity is nearly abolished, Asp150 is most likely important for catalytic chemistry or active-site electrostatics rather than quaternary assembly.",
             "choiceExplanations": {
-                "A": "This connects the conservative size change but loss of charge to an active-site functional defect.",
+                "A": "A high Hill coefficient would not by itself explain Vmax below 5%.",
                 "B": "Table p1_t2 shows D150N is 90% tetrameric, arguing against a primary tetramer assembly defect.",
-                "C": "A high Hill coefficient would not by itself explain Vmax below 5%.",
+                "C": "This connects the conservative size change but loss of charge to an active-site functional defect.",
                 "D": "No evidence suggests AMP becomes a covalent substrate."
             },
             "testedTopicIds": [
@@ -1211,7 +1211,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Complex I"
+                    "text": "ATP synthase"
                 },
                 {
                     "id": "B",
@@ -1219,19 +1219,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "ATP synthase"
+                    "text": "Complex I"
                 },
                 {
                     "id": "D",
                     "text": "Cytochrome c release pore"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Rotenone strongly lowers oxygen consumption with pyruvate/malate, which supply electrons to Complex I, but succinate largely restores oxygen consumption by entering through Complex II. This pattern localizes the block to Complex I.",
             "choiceExplanations": {
-                "A": "This matches the substrate-specific rescue by succinate.",
+                "A": "ATP synthase inhibition would not be bypassed by changing electron entry from Complex I to Complex II.",
                 "B": "A Complex II inhibitor would be expected to impair succinate-supported respiration more strongly.",
-                "C": "ATP synthase inhibition would not be bypassed by changing electron entry from Complex I to Complex II.",
+                "C": "This matches the substrate-specific rescue by succinate.",
                 "D": "Cytochrome c release is not increased with rotenone in the table."
             },
             "testedTopicIds": ["bb_oxidative_phosphorylation"],
@@ -1254,11 +1254,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "It blocks ATP synthase, causing the proton gradient to build and slowing electron transport."
+                    "text": "It blocks Complex IV, preventing oxygen from accepting electrons."
                 },
                 {
                     "id": "B",
-                    "text": "It blocks Complex IV, preventing oxygen from accepting electrons."
+                    "text": "It blocks ATP synthase, causing the proton gradient to build and slowing electron transport."
                 },
                 {
                     "id": "C",
@@ -1269,11 +1269,11 @@
                     "text": "It releases cytochrome c from the intermembrane space."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Oligomycin inhibits ATP synthase. Protons cannot flow efficiently back through ATP synthase, so membrane potential rises; the accumulated gradient makes further proton pumping and electron transport less favorable, lowering oxygen consumption.",
             "choiceExplanations": {
-                "A": "This explains high membrane potential, low ATP synthesis, and lower oxygen consumption together.",
-                "B": "A Complex IV inhibitor would lower membrane potential rather than raise it as proton pumping collapses.",
+                "A": "A Complex IV inhibitor would lower membrane potential rather than raise it as proton pumping collapses.",
+                "B": "This explains high membrane potential, low ATP synthesis, and lower oxygen consumption together.",
                 "C": "A proton carrier would lower membrane potential and often increase oxygen consumption, resembling CCCP.",
                 "D": "The table shows no increase in cytochrome c outside mitochondria with oligomycin."
             },
@@ -1346,7 +1346,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Assembly of apoptotic signaling complexes that activate caspases"
+                    "text": "Replication of mitochondrial DNA by ribosomes"
                 },
                 {
                     "id": "B",
@@ -1358,16 +1358,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Replication of mitochondrial DNA by ribosomes"
+                    "text": "Assembly of apoptotic signaling complexes that activate caspases"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Cytochrome c release from the intermembrane space is a key signal in intrinsic apoptosis, promoting apoptosome formation and caspase activation. The passage shows BAX peptide specifically increases cytochrome c outside mitochondria.",
             "choiceExplanations": {
-                "A": "This correctly connects cytochrome c release to intrinsic apoptotic signaling.",
+                "A": "Ribosomes do not replicate DNA, and this is not the pathway indicated by BAX-mediated cytochrome c release.",
                 "B": "Lactate formation is a cytosolic redox reaction not directly triggered by cytochrome c release.",
                 "C": "tRNA charging is part of translation and is not the direct consequence of cytochrome c release.",
-                "D": "Ribosomes do not replicate DNA, and this is not the pathway indicated by BAX-mediated cytochrome c release."
+                "D": "This correctly connects cytochrome c release to intrinsic apoptotic signaling."
             },
             "testedTopicIds": ["bb_oxidative_phosphorylation"],
             "testedSkillIds": ["sirs_1", "sirs_2"],
@@ -1475,7 +1475,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "The enzyme shows positive cooperativity among multiple substrate-binding sites."
+                    "text": "The enzyme follows Michaelis-Menten kinetics with no regulatory conformational states."
                 },
                 {
                     "id": "B",
@@ -1483,19 +1483,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "The enzyme follows Michaelis-Menten kinetics with no regulatory conformational states."
+                    "text": "The enzyme shows positive cooperativity among multiple substrate-binding sites."
                 },
                 {
                     "id": "D",
                     "text": "The enzyme has been irreversibly denatured and cannot bind substrate."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "A sigmoidal substrate-velocity relationship commonly indicates cooperative binding in an oligomeric or multisite enzyme. Positive cooperativity means binding at one site increases activity or substrate affinity at other sites.",
             "choiceExplanations": {
-                "A": "This is the standard interpretation of a sigmoidal saturation curve.",
+                "A": "Simple Michaelis-Menten kinetics produces a hyperbolic, not sigmoidal, relationship.",
                 "B": "A single independent active site typically gives a hyperbolic curve.",
-                "C": "Simple Michaelis-Menten kinetics produces a hyperbolic, not sigmoidal, relationship.",
+                "C": "This is the standard interpretation of a sigmoidal saturation curve.",
                 "D": "A denatured enzyme would show little or no organized saturation behavior."
             },
             "testedTopicIds": [
@@ -1650,7 +1650,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "-10 promoter mutant, no M"
+                    "text": "Terminator hairpin disrupted, +M"
                 },
                 {
                     "id": "B",
@@ -1662,16 +1662,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Terminator hairpin disrupted, +M"
+                    "text": "-10 promoter mutant, no M"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "The -10 promoter element is part of the bacterial promoter recognized during transcription initiation. Its mutation lowers full-length mRNA, protein, and activity, consistent with reduced initiation of transcription.",
             "choiceExplanations": {
-                "A": "This construct alters a promoter sequence and produces low mRNA, matching a transcription initiation defect.",
+                "A": "Disrupting the terminator hairpin increases full-length mRNA in the presence of M, indicating loss of attenuation rather than initiation failure.",
                 "B": "The Shine-Dalgarno mutation leaves mRNA high but protein low, indicating translation initiation impairment.",
                 "C": "The active-site mutation leaves mRNA and protein high but activity low, indicating a catalytic defect.",
-                "D": "Disrupting the terminator hairpin increases full-length mRNA in the presence of M, indicating loss of attenuation rather than initiation failure."
+                "D": "This construct alters a promoter sequence and produces low mRNA, matching a transcription initiation defect."
             },
             "testedTopicIds": [
                 "bb_transcription",
@@ -1696,11 +1696,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Translation initiation"
+                    "text": "DNA replication initiation"
                 },
                 {
                     "id": "B",
-                    "text": "DNA replication initiation"
+                    "text": "Translation initiation"
                 },
                 {
                     "id": "C",
@@ -1711,11 +1711,11 @@
                     "text": "Termination of the peptide bond by DNA polymerase"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "The Shine-Dalgarno sequence helps position bacterial mRNA on the ribosome for translation initiation. Normal mRNA with low protein indicates the transcript is made but poorly translated.",
             "choiceExplanations": {
-                "A": "This matches the function of the Shine-Dalgarno sequence and the data pattern.",
-                "B": "The construct affects an mRNA translation element, not DNA replication.",
+                "A": "The construct affects an mRNA translation element, not DNA replication.",
+                "B": "This matches the function of the Shine-Dalgarno sequence and the data pattern.",
                 "C": "The passage describes a bacterial operon, and polyadenylation is not the relevant process here.",
                 "D": "DNA polymerase does not terminate peptide bonds."
             },
@@ -1788,7 +1788,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "The substituted cysteine is important for NrdP catalysis rather than for transcription or translation."
+                    "text": "The mutation causes metabolite M to form the terminator hairpin even when M is absent."
                 },
                 {
                     "id": "B",
@@ -1800,16 +1800,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "The mutation causes metabolite M to form the terminator hairpin even when M is absent."
+                    "text": "The substituted cysteine is important for NrdP catalysis rather than for transcription or translation."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Because mRNA and protein abundance remain high, transcription and translation are largely intact. The loss of activity therefore most directly indicates that the cysteine side chain contributes to enzyme catalysis or active-site chemistry.",
             "choiceExplanations": {
-                "A": "This conclusion follows from normal expression but poor catalytic output.",
+                "A": "The data are from no-M conditions and do not indicate metabolite-dependent attenuation.",
                 "B": "A promoter-binding defect would reduce mRNA.",
                 "C": "A Shine-Dalgarno recognition defect would reduce protein despite mRNA production.",
-                "D": "The data are from no-M conditions and do not indicate metabolite-dependent attenuation."
+                "D": "This conclusion follows from normal expression but poor catalytic output."
             },
             "testedTopicIds": [
                 "bb_amino_acids",
@@ -1835,7 +1835,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Measure a stable housekeeping mRNA in each RNA sample and normalize nrdP mRNA to it."
+                    "text": "Replace the bacterial promoter with a eukaryotic polyadenylation signal."
                 },
                 {
                     "id": "B",
@@ -1843,19 +1843,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Replace the bacterial promoter with a eukaryotic polyadenylation signal."
+                    "text": "Measure a stable housekeeping mRNA in each RNA sample and normalize nrdP mRNA to it."
                 },
                 {
                     "id": "D",
                     "text": "Measure only NrdP protein by Western blot and omit RNA analysis."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "A housekeeping transcript provides a loading and RNA recovery control. Normalizing nrdP mRNA to a stable reference makes it less likely that apparent changes are due to unequal sample input or RNA degradation.",
             "choiceExplanations": {
-                "A": "This directly controls for RNA recovery and loading across samples.",
+                "A": "A polyadenylation signal does not replace bacterial promoter function and would not address sample recovery.",
                 "B": "Forcing enzyme activities to match would obscure the regulatory effect and would not control RNA recovery.",
-                "C": "A polyadenylation signal does not replace bacterial promoter function and would not address sample recovery.",
+                "C": "This directly controls for RNA recovery and loading across samples.",
                 "D": "Protein measurement alone cannot validate whether mRNA differences reflect transcriptional regulation."
             },
             "testedTopicIds": ["bb_transcription"],
@@ -1878,7 +1878,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Allosteric feedback inhibition that decreases catalytic turnover"
+                    "text": "Cooperative substrate activation with a Hill coefficient greater than 1"
                 },
                 {
                     "id": "B",
@@ -1890,16 +1890,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Cooperative substrate activation with a Hill coefficient greater than 1"
+                    "text": "Allosteric feedback inhibition that decreases catalytic turnover"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "End-product inhibition of the first committed enzyme is feedback regulation. Lower Vmax with little change in Km is consistent with an allosteric effect that reduces catalytic activity rather than direct competition with substrate.",
             "choiceExplanations": {
-                "A": "This matches feedback regulation and the kinetic pattern.",
+                "A": "The data describe inhibition, not cooperative activation by substrate.",
                 "B": "Competitive inhibition would primarily increase apparent Km while leaving Vmax unchanged.",
                 "C": "The stem describes reversible end-product binding, not covalent dephosphorylation.",
-                "D": "The data describe inhibition, not cooperative activation by substrate."
+                "D": "This matches feedback regulation and the kinetic pattern."
             },
             "testedTopicIds": [
                 "bb_control_of_enzyme_activity",
@@ -1967,11 +1967,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Oxygen consumption decreases, and electron carriers upstream of Complex IV become more reduced."
+                    "text": "Oxygen consumption increases, and NADH becomes more oxidized."
                 },
                 {
                     "id": "B",
-                    "text": "Oxygen consumption increases, and NADH becomes more oxidized."
+                    "text": "Oxygen consumption decreases, and electron carriers upstream of Complex IV become more reduced."
                 },
                 {
                     "id": "C",
@@ -1982,11 +1982,11 @@
                     "text": "Succinate oxidation bypasses the need for oxygen as the terminal electron acceptor."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Complex IV transfers electrons to oxygen. Blocking it decreases oxygen consumption and causes upstream carriers to remain reduced because they cannot pass electrons efficiently to the terminal acceptor.",
             "choiceExplanations": {
-                "A": "This correctly predicts both oxygen use and upstream redox state.",
-                "B": "NADH would tend to accumulate in the reduced state when electron flow is blocked.",
+                "A": "NADH would tend to accumulate in the reduced state when electron flow is blocked.",
+                "B": "This correctly predicts both oxygen use and upstream redox state.",
                 "C": "ATP synthase uses the proton gradient; it does not replace Complex IV as a proton pump in the electron transport chain.",
                 "D": "Succinate donates electrons through Complex II, but oxygen is still the terminal electron acceptor downstream."
             },
@@ -2010,11 +2010,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Fructose 1,6-bisphosphatase"
+                    "text": "Hexokinase"
                 },
                 {
                     "id": "B",
-                    "text": "Hexokinase"
+                    "text": "Fructose 1,6-bisphosphatase"
                 },
                 {
                     "id": "C",
@@ -2025,11 +2025,11 @@
                     "text": "Glyceraldehyde 3-phosphate dehydrogenase"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Fructose 1,6-bisphosphatase converts fructose 1,6-bisphosphate to fructose 6-phosphate, bypassing the PFK-1 reaction in gluconeogenesis. This step is reciprocally regulated with glycolysis.",
             "choiceExplanations": {
-                "A": "This is the gluconeogenic bypass for the PFK-1 step.",
-                "B": "Hexokinase catalyzes the first irreversible glycolytic step and is bypassed by glucose 6-phosphatase in gluconeogenesis.",
+                "A": "Hexokinase catalyzes the first irreversible glycolytic step and is bypassed by glucose 6-phosphatase in gluconeogenesis.",
+                "B": "This is the gluconeogenic bypass for the PFK-1 step.",
                 "C": "Pyruvate kinase is bypassed by pyruvate carboxylase and phosphoenolpyruvate carboxykinase.",
                 "D": "Glyceraldehyde 3-phosphate dehydrogenase catalyzes a reversible shared step, not an irreversible bypass."
             },
@@ -2102,11 +2102,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "9 purple : 3 blue : 4 white"
+                    "text": "9 purple : 4 blue : 3 white"
                 },
                 {
                     "id": "B",
-                    "text": "9 purple : 4 blue : 3 white"
+                    "text": "9 purple : 3 blue : 4 white"
                 },
                 {
                     "id": "C",
@@ -2117,11 +2117,11 @@
                     "text": "3 purple : 1 white only"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Purple requires at least one functional A allele and one functional B allele (A_B_), giving 9/16. Blue requires A_bb, giving 3/16. White occurs when aa prevents intermediate formation regardless of B genotype, giving 4/16.",
             "choiceExplanations": {
-                "A": "This correctly applies recessive epistasis of aa over the B locus.",
-                "B": "This swaps the blue and white classes.",
+                "A": "This swaps the blue and white classes.",
+                "B": "This correctly applies recessive epistasis of aa over the B locus.",
                 "C": "This is a one-gene heterozygote ratio, not a two-gene F2 pathway ratio.",
                 "D": "This ignores the distinct blue phenotype produced by A_bb genotypes."
             },
@@ -2145,7 +2145,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Recessive epistasis, because aa masks the phenotypic effect of the B locus"
+                    "text": "X-linked inheritance, because both genes are autosomal"
                 },
                 {
                     "id": "B",
@@ -2157,16 +2157,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "X-linked inheritance, because both genes are autosomal"
+                    "text": "Recessive epistasis, because aa masks the phenotypic effect of the B locus"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "The passage states that loss of enzyme A produces white colonies regardless of enzyme B genotype. Thus the homozygous recessive aa genotype masks B-locus variation, which is recessive epistasis.",
             "choiceExplanations": {
-                "A": "This correctly describes aa masking the B locus.",
+                "A": "The passage states the genes are autosomal, not X-linked.",
                 "B": "Codominance involves simultaneous expression of different alleles at one locus, not masking across loci.",
                 "C": "No parent-of-origin effect is described.",
-                "D": "The passage states the genes are autosomal, not X-linked."
+                "D": "This correctly describes aa masking the B locus."
             },
             "testedTopicIds": ["bb_mendelian_concepts"],
             "testedSkillIds": ["sirs_1", "sirs_2"],
@@ -2188,7 +2188,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "The substitution destabilizes enzyme B dimerization, reducing Vmax while leaving substrate affinity nearly unchanged."
+                    "text": "The substitution changes the colorless precursor directly into purple pigment without enzyme A."
                 },
                 {
                     "id": "B",
@@ -2200,16 +2200,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "The substitution changes the colorless precursor directly into purple pigment without enzyme A."
+                    "text": "The substitution destabilizes enzyme B dimerization, reducing Vmax while leaving substrate affinity nearly unchanged."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Table p4_t2 shows low dimer percentage and reduced Vmax for the Gly45Asp variant, with Km nearly unchanged. The osmolyte partially restores dimerization and Vmax, supporting a quaternary-structure stability defect.",
             "choiceExplanations": {
-                "A": "This integrates the native-gel and kinetic data correctly.",
+                "A": "The pathway requires enzyme A to make the blue intermediate before enzyme B acts.",
                 "B": "Purified enzyme B variant is characterized, so the defect is not simply absence of transcription.",
                 "C": "Km changes only from 0.10 to 0.12 mM, whereas Vmax falls strongly.",
-                "D": "The pathway requires enzyme A to make the blue intermediate before enzyme B acts."
+                "D": "This integrates the native-gel and kinetic data correctly."
             },
             "testedTopicIds": [
                 "bb_protein_structure",
@@ -2235,7 +2235,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "1 purple : 1 blue : 2 white"
+                    "text": "3 purple : 1 blue only"
                 },
                 {
                     "id": "B",
@@ -2247,16 +2247,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "3 purple : 1 blue only"
+                    "text": "1 purple : 1 blue : 2 white"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Aabb can produce Ab or ab gametes. aaBb can produce aB or ab gametes. The offspring are AaBb purple, Aabb blue, aaBb white, and aabb white in equal genotypic proportions, giving 1 purple : 1 blue : 2 white.",
             "choiceExplanations": {
-                "A": "This correctly combines the two white genotypes caused by aa.",
+                "A": "This ignores the white classes caused by aa.",
                 "B": "This is the F2 selfing ratio for AaBb, not this cross.",
                 "C": "This ignores the blue Aabb class.",
-                "D": "This ignores the white classes caused by aa."
+                "D": "This correctly combines the two white genotypes caused by aa."
             },
             "testedTopicIds": ["bb_mendelian_concepts"],
             "testedSkillIds": ["sirs_2"],
@@ -2321,11 +2321,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "The genes are on different chromosomes or far apart on the same chromosome."
+                    "text": "The genes encode proteins in the same biochemical pathway."
                 },
                 {
                     "id": "B",
-                    "text": "The genes encode proteins in the same biochemical pathway."
+                    "text": "The genes are on different chromosomes or far apart on the same chromosome."
                 },
                 {
                     "id": "C",
@@ -2336,11 +2336,11 @@
                     "text": "The two genes have identical DNA sequences."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Independent assortment applies when allele segregation at one locus is independent of allele segregation at the other, which is expected for genes on different chromosomes or sufficiently far apart on the same chromosome.",
             "choiceExplanations": {
-                "A": "This is the chromosomal basis for independent assortment.",
-                "B": "Being in the same pathway does not guarantee independent inheritance.",
+                "A": "Being in the same pathway does not guarantee independent inheritance.",
+                "B": "This is the chromosomal basis for independent assortment.",
                 "C": "Dominant lethality changes observed ratios and does not support independent assortment calculations.",
                 "D": "Identical DNA sequences would not define two independently assorting loci."
             },
@@ -2364,7 +2364,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Proton flow through the Fo portion drives rotation that changes F1 conformations to promote ATP formation."
+                    "text": "ATP synthase pumps electrons from NADH to oxygen while making ATP."
                 },
                 {
                     "id": "B",
@@ -2372,19 +2372,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "ATP synthase pumps electrons from NADH to oxygen while making ATP."
+                    "text": "Proton flow through the Fo portion drives rotation that changes F1 conformations to promote ATP formation."
                 },
                 {
                     "id": "D",
                     "text": "The F1 portion hydrolyzes oxygen to create the proton gradient."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Chemiosmotic coupling uses proton flow down the electrochemical gradient through Fo to drive mechanical rotation and conformational changes in F1 that favor ATP synthesis from ADP and phosphate.",
             "choiceExplanations": {
-                "A": "This correctly describes the rotary mechanism of ATP synthase.",
+                "A": "Electron transfer to oxygen occurs in the electron transport chain, especially Complex IV, not ATP synthase.",
                 "B": "Protons do not donate phosphate groups; inorganic phosphate is the phosphate source.",
-                "C": "Electron transfer to oxygen occurs in the electron transport chain, especially Complex IV, not ATP synthase.",
+                "C": "This correctly describes the rotary mechanism of ATP synthase.",
                 "D": "Oxygen is reduced by Complex IV; F1 does not hydrolyze oxygen to form the gradient."
             },
             "testedTopicIds": [
@@ -2542,11 +2542,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "The oxidative PPP releases carbon 1 of glucose 6-phosphate as CO2."
+                    "text": "Glycolysis releases carbon 6 of glucose as CO2 during lactate formation."
                 },
                 {
                     "id": "B",
-                    "text": "Glycolysis releases carbon 6 of glucose as CO2 during lactate formation."
+                    "text": "The oxidative PPP releases carbon 1 of glucose 6-phosphate as CO2."
                 },
                 {
                     "id": "C",
@@ -2557,11 +2557,11 @@
                     "text": "Glucose carbon 6 is converted into the phosphate group of ATP."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "The passage states that the oxidative PPP releases carbon 1 of glucose 6-phosphate as CO2 while producing NADPH. Therefore, [1-14C]glucose is a reporter of oxidative PPP flux in these cells.",
             "choiceExplanations": {
-                "A": "This directly follows from the passage description of the oxidative PPP.",
-                "B": "Lactate fermentation does not release CO2 from glucose.",
+                "A": "Lactate fermentation does not release CO2 from glucose.",
+                "B": "This directly follows from the passage description of the oxidative PPP.",
                 "C": "ATP synthase uses a proton gradient and does not oxidize glucose carbons.",
                 "D": "ATP phosphate groups are not formed from glucose carbon atoms."
             },
@@ -2633,7 +2633,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Oxidant exposure increases oxidative PPP flux to support NADPH-dependent redox defense."
+                    "text": "Wild-type cells cannot use glucose 6-phosphate in more than one pathway."
                 },
                 {
                     "id": "B",
@@ -2645,16 +2645,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Wild-type cells cannot use glucose 6-phosphate in more than one pathway."
+                    "text": "Oxidant exposure increases oxidative PPP flux to support NADPH-dependent redox defense."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "In wild-type cells, oxidant exposure increases 14CO2 from [1-14C]glucose from 100% to 180%, consistent with increased oxidative PPP flux. The NADPH/NADP+ and GSH/GSSG ratios fall but remain higher than in oxidant-treated G6PD-M cells, supporting a redox-defense role.",
             "choiceExplanations": {
-                "A": "This integrates the label data with NADPH and glutathione measurements.",
+                "A": "The figure shows glucose 6-phosphate can enter either glycolysis or the PPP.",
                 "B": "Lactate release increases to 120%, so glycolysis is not completely shut down.",
                 "C": "14CO2 from [6-14C]glucose remains low compared with [1-14C]glucose.",
-                "D": "The figure shows glucose 6-phosphate can enter either glycolysis or the PPP."
+                "D": "This integrates the label data with NADPH and glutathione measurements."
             },
             "testedTopicIds": [
                 "bb_glycolysis_gluconeogenesis_and_the_pentose_phosphate_pathway",
@@ -2679,7 +2679,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "These cells lack mitochondria after differentiation, limiting complete oxidation of glucose carbons through the TCA cycle."
+                    "text": "G6PD directly converts carbon 6 into lactate and CO2."
                 },
                 {
                     "id": "B",
@@ -2687,19 +2687,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "G6PD directly converts carbon 6 into lactate and CO2."
+                    "text": "These cells lack mitochondria after differentiation, limiting complete oxidation of glucose carbons through the TCA cycle."
                 },
                 {
                     "id": "D",
                     "text": "NADPH is made only by oxidative phosphorylation in these cells."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "The passage states that the cells lack mitochondria after differentiation and that the oxidative PPP releases carbon 1, not carbon 6, as CO2. Without mitochondrial oxidation through the TCA cycle, carbon 6 is not efficiently released as CO2.",
             "choiceExplanations": {
-                "A": "This correctly uses both the mitochondrial limitation and the carbon specificity of the PPP.",
+                "A": "G6PD acts on glucose 6-phosphate in the oxidative PPP and does not directly convert carbon 6 to lactate and CO2.",
                 "B": "The passage states carbon 1 is released in the oxidative PPP.",
-                "C": "G6PD acts on glucose 6-phosphate in the oxidative PPP and does not directly convert carbon 6 to lactate and CO2.",
+                "C": "This correctly uses both the mitochondrial limitation and the carbon specificity of the PPP.",
                 "D": "NADPH in the passage is generated by the oxidative PPP, not oxidative phosphorylation."
             },
             "testedTopicIds": [
@@ -2772,7 +2772,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "The protein will bind the resin because it has a net negative charge."
+                    "text": "The protein will precipitate because pH 8.0 is below its pI."
                 },
                 {
                     "id": "B",
@@ -2784,16 +2784,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "The protein will precipitate because pH 8.0 is below its pI."
+                    "text": "The protein will bind the resin because it has a net negative charge."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "At a pH above its isoelectric point, a protein has a net negative charge. An anion-exchange resin binds anions, so the protein is expected to bind and can later be eluted by increasing salt or changing pH.",
             "choiceExplanations": {
-                "A": "This correctly relates pH above pI to net negative charge and anion-exchange binding.",
+                "A": "pH 8.0 is above, not below, a pI of 6.2.",
                 "B": "A protein is generally net positive below its pI, not above it.",
                 "C": "Proteins have zero net charge at their pI, not at all pH values above the pI.",
-                "D": "pH 8.0 is above, not below, a pI of 6.2."
+                "D": "This correctly relates pH above pI to net negative charge and anion-exchange binding."
             },
             "testedTopicIds": ["bb_amino_acids", "bb_protein_structure"],
             "testedSkillIds": ["sirs_1", "sirs_2"],
@@ -2858,7 +2858,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "5'-AUG CCU GAA UGA-3'"
+                    "text": "5'-UAC GGA CUU ACU-3'"
                 },
                 {
                     "id": "B",
@@ -2870,16 +2870,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "5'-UAC GGA CUU ACU-3'"
+                    "text": "5'-AUG CCU GAA UGA-3'"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "RNA polymerase reads the DNA template strand antiparallel and synthesizes RNA 5' to 3'. The complement of 3'-TAC GGA CTT ACT-5' is 5'-AUG CCU GAA UGA-3'.",
             "choiceExplanations": {
-                "A": "This is the correct antiparallel RNA complement with uracil replacing thymine.",
+                "A": "This is not the correct complement of the provided template.",
                 "B": "This repeats the DNA template and uses thymine rather than uracil.",
                 "C": "This has the correct base complement but is written in the wrong orientation for the mRNA product.",
-                "D": "This is not the correct complement of the provided template."
+                "D": "This is the correct antiparallel RNA complement with uracil replacing thymine."
             },
             "testedTopicIds": [
                 "bb_transcription",
@@ -2904,7 +2904,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Use nonoxidative pentose phosphate pathway reactions to convert glycolytic intermediates into ribose 5-phosphate."
+                    "text": "Convert ribose 5-phosphate directly into lactate to regenerate NAD+."
                 },
                 {
                     "id": "B",
@@ -2916,16 +2916,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Convert ribose 5-phosphate directly into lactate to regenerate NAD+."
+                    "text": "Use nonoxidative pentose phosphate pathway reactions to convert glycolytic intermediates into ribose 5-phosphate."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "When a cell needs ribose 5-phosphate more than NADPH, the reversible nonoxidative reactions of the pentose phosphate pathway can convert fructose 6-phosphate and glyceraldehyde 3-phosphate into ribose 5-phosphate without requiring additional oxidative NADPH production.",
             "choiceExplanations": {
-                "A": "This directly supplies ribose 5-phosphate from glycolytic intermediates while avoiding excess NADPH production.",
+                "A": "Ribose 5-phosphate is used for nucleotide synthesis, not direct lactate fermentation.",
                 "B": "The oxidative phase is useful for NADPH generation and CO2 release, which is not the stated need.",
                 "C": "Blocking transketolase would impair interconversion between pentose phosphates and glycolytic intermediates.",
-                "D": "Ribose 5-phosphate is used for nucleotide synthesis, not direct lactate fermentation."
+                "D": "This directly supplies ribose 5-phosphate from glycolytic intermediates while avoiding excess NADPH production."
             },
             "testedTopicIds": [
                 "bb_glycolysis_gluconeogenesis_and_the_pentose_phosphate_pathway",
@@ -2950,7 +2950,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Reduced electron entry through Complex II and decreased ubiquinone reduction"
+                    "text": "Increased conversion of oxygen to water by Complex IV"
                 },
                 {
                     "id": "B",
@@ -2962,16 +2962,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Increased conversion of oxygen to water by Complex IV"
+                    "text": "Reduced electron entry through Complex II and decreased ubiquinone reduction"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Succinate dehydrogenase is Complex II. Inhibiting it reduces electron transfer from succinate-derived FADH2 to ubiquinone, decreasing downstream electron flow from this entry point.",
             "choiceExplanations": {
-                "A": "This correctly identifies succinate dehydrogenase as Complex II and predicts less ubiquinone reduction.",
+                "A": "Reduced electron entry through Complex II would tend to decrease, not increase, downstream oxygen reduction.",
                 "B": "Complex II does not pump protons, and inhibition would not increase its activity.",
                 "C": "Malonate targets succinate dehydrogenase, not ATP synthase.",
-                "D": "Reduced electron entry through Complex II would tend to decrease, not increase, downstream oxygen reduction."
+                "D": "This correctly identifies succinate dehydrogenase as Complex II and predicts less ubiquinone reduction."
             },
             "testedTopicIds": [
                 "bb_oxidative_phosphorylation",
@@ -3042,7 +3042,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "His177 contributes to catalytic chemistry after substrate binding."
+                    "text": "His177 forms the entire NADH-binding pocket."
                 },
                 {
                     "id": "B",
@@ -3054,16 +3054,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "His177 forms the entire NADH-binding pocket."
+                    "text": "His177 contributes to catalytic chemistry after substrate binding."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "H177Q remains mostly tetrameric and retains near-normal Km values for pyruvate and NADH, but its Vmax falls to 6%. This supports a defect in catalytic turnover, such as acid-base chemistry or transition-state stabilization, rather than a major substrate-binding or assembly defect.",
             "choiceExplanations": {
-                "A": "This best fits preserved binding and assembly with severely impaired catalysis.",
+                "A": "The NADH Km is nearly unchanged, so His177 is unlikely to form the entire NADH-binding pocket.",
                 "B": "Tetrameric protein is 92%, which argues against a tetramer assembly requirement.",
                 "C": "The pyruvate Km is nearly unchanged, so pyruvate binding is not the main defect.",
-                "D": "The NADH Km is nearly unchanged, so His177 is unlikely to form the entire NADH-binding pocket."
+                "D": "This best fits preserved binding and assembly with severely impaired catalysis."
             },
             "testedTopicIds": [
                 "bb_amino_acids",
@@ -3089,7 +3089,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "The substitution disrupts quaternary structure needed for maximal catalytic output."
+                    "text": "The substitution makes NADH unable to bind LDH-R."
                 },
                 {
                     "id": "B",
@@ -3097,19 +3097,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "The substitution makes NADH unable to bind LDH-R."
+                    "text": "The substitution disrupts quaternary structure needed for maximal catalytic output."
                 },
                 {
                     "id": "D",
                     "text": "The substitution converts LDH-R into an RNA enzyme."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "L246D has a strongly reduced tetrameric fraction and reduced Vmax, while pyruvate and NADH Km values are close to wild type. This supports a quaternary-structure defect that reduces maximal catalytic performance.",
             "choiceExplanations": {
-                "A": "This integrates the low tetramer percentage with reduced Vmax and nearly normal Km values.",
+                "A": "The NADH Km remains close to wild type, so NADH binding is not eliminated.",
                 "B": "The pyruvate Km remains close to wild type, so pyruvate binding is not eliminated.",
-                "C": "The NADH Km remains close to wild type, so NADH binding is not eliminated.",
+                "C": "This integrates the low tetramer percentage with reduced Vmax and nearly normal Km values.",
                 "D": "An amino acid substitution in a protein cannot convert the protein into a ribozyme."
             },
             "testedTopicIds": [
@@ -3136,7 +3136,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Wild type, pH 6.6"
+                    "text": "C-terminal tail deletion, pH 7.4"
                 },
                 {
                     "id": "B",
@@ -3148,16 +3148,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "C-terminal tail deletion, pH 7.4"
+                    "text": "Wild type, pH 6.6"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "At a low pyruvate concentration, conditions with lower Km and higher Vmax are favored. Wild type at pH 6.6 has the lowest Km listed and the highest Vmax, so it should have the greatest initial velocity among the options.",
             "choiceExplanations": {
-                "A": "This condition combines high Vmax with strong apparent affinity for pyruvate.",
+                "A": "The tail deletion has lower Vmax and a higher pyruvate Km than wild type at pH 6.6.",
                 "B": "PYA increases the pyruvate Km substantially, so low pyruvate would poorly support velocity.",
                 "C": "H177Q has only 6% relative Vmax.",
-                "D": "The tail deletion has lower Vmax and a higher pyruvate Km than wild type at pH 6.6."
+                "D": "This condition combines high Vmax with strong apparent affinity for pyruvate."
             },
             "testedTopicIds": [
                 "bb_control_of_enzyme_activity",
@@ -3182,7 +3182,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Measure NADH binding to purified wild-type and tail-deleted LDH-R while also assessing folding by circular dichroism or thermal stability."
+                    "text": "Boil both proteins in SDS and compare only their apparent molecular weights."
                 },
                 {
                     "id": "B",
@@ -3190,19 +3190,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Boil both proteins in SDS and compare only their apparent molecular weights."
+                    "text": "Measure NADH binding to purified wild-type and tail-deleted LDH-R while also assessing folding by circular dichroism or thermal stability."
                 },
                 {
                     "id": "D",
                     "text": "Sequence the mRNA encoding LDH-R but do not measure protein behavior."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "A direct NADH-binding assay can determine whether the deletion weakens cofactor binding, while an independent folding assay addresses the alternative explanation of global misfolding. The design targets both competing hypotheses.",
             "choiceExplanations": {
-                "A": "This directly tests cofactor binding and includes a control for overall protein folding.",
+                "A": "Denaturing SDS-PAGE gives subunit size, not native folding or NADH-binding affinity.",
                 "B": "Whole-cell lactate is indirect and confounded by many pathways.",
-                "C": "Denaturing SDS-PAGE gives subunit size, not native folding or NADH-binding affinity.",
+                "C": "This directly tests cofactor binding and includes a control for overall protein folding.",
                 "D": "mRNA sequence does not directly test the biochemical effect of the protein deletion."
             },
             "testedTopicIds": [
@@ -3271,7 +3271,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Fragment 1 has a higher melting temperature because GC-rich DNA is generally more thermally stable."
+                    "text": "Fragment 1 cannot form a double helix because GC pairs are not complementary."
                 },
                 {
                     "id": "B",
@@ -3283,16 +3283,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Fragment 1 cannot form a double helix because GC pairs are not complementary."
+                    "text": "Fragment 1 has a higher melting temperature because GC-rich DNA is generally more thermally stable."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "GC-rich DNA typically melts at a higher temperature because GC base pairs have three hydrogen bonds and favorable stacking interactions relative to AT-rich DNA of the same length.",
             "choiceExplanations": {
-                "A": "This correctly predicts higher thermal stability for the GC-rich fragment.",
+                "A": "G and C are complementary Watson-Crick partners.",
                 "B": "AT pairs have two hydrogen bonds, not more than GC pairs.",
                 "C": "Length matters, but base composition also affects melting temperature.",
-                "D": "G and C are complementary Watson-Crick partners."
+                "D": "This correctly predicts higher thermal stability for the GC-rich fragment."
             },
             "testedTopicIds": ["bb_nucleic_acid_structure_and_function"],
             "testedSkillIds": ["sirs_1", "sirs_2"],
@@ -3314,11 +3314,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Binding of substrate to one site decreases substrate affinity at other sites."
+                    "text": "Binding of substrate to one site increases substrate affinity at other sites."
                 },
                 {
                     "id": "B",
-                    "text": "Binding of substrate to one site increases substrate affinity at other sites."
+                    "text": "Binding of substrate to one site decreases substrate affinity at other sites."
                 },
                 {
                     "id": "C",
@@ -3329,11 +3329,11 @@
                     "text": "The enzyme has exactly 0.6 active sites per molecule."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "A Hill coefficient less than 1 indicates negative cooperativity, meaning substrate binding at one site lowers the apparent affinity of other binding sites. It does not directly equal the number of active sites.",
             "choiceExplanations": {
-                "A": "This correctly describes negative cooperativity.",
-                "B": "This describes positive cooperativity, which corresponds to a Hill coefficient greater than 1.",
+                "A": "This describes positive cooperativity, which corresponds to a Hill coefficient greater than 1.",
+                "B": "This correctly describes negative cooperativity.",
                 "C": "Hill coefficients below 1 can occur and are interpreted as negative cooperativity.",
                 "D": "The Hill coefficient is not simply the number of active sites."
             },
@@ -3403,7 +3403,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "FADH2-derived electrons enter at Complex II and bypass proton pumping at Complex I."
+                    "text": "FADH2 oxidation consumes the proton gradient rather than contributing to it."
                 },
                 {
                     "id": "B",
@@ -3415,16 +3415,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "FADH2 oxidation consumes the proton gradient rather than contributing to it."
+                    "text": "FADH2-derived electrons enter at Complex II and bypass proton pumping at Complex I."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "NADH donates electrons through Complex I, which pumps protons. FADH2-derived electrons often enter through Complex II, which does not pump protons, so fewer protons are moved per electron pair and less ATP is generated.",
             "choiceExplanations": {
-                "A": "This correctly identifies the bypass of Complex I proton pumping.",
+                "A": "FADH2 oxidation supports electron transport; it does not directly consume the proton gradient.",
                 "B": "ATP synthase uses proton flow and does not directly accept electrons from FADH2.",
                 "C": "Mitochondrial NADH donates electrons to Complex I.",
-                "D": "FADH2 oxidation supports electron transport; it does not directly consume the proton gradient."
+                "D": "This correctly identifies the bypass of Complex I proton pumping."
             },
             "testedTopicIds": [
                 "bb_oxidative_phosphorylation",
@@ -3449,7 +3449,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "RBP-K promotes exon 3 inclusion without substantially increasing LUM1 transcription initiation."
+                    "text": "RBP-K directly converts LUM1 protein monomers into DNA."
                 },
                 {
                     "id": "B",
@@ -3457,19 +3457,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "RBP-K directly converts LUM1 protein monomers into DNA."
+                    "text": "RBP-K promotes exon 3 inclusion without substantially increasing LUM1 transcription initiation."
                 },
                 {
                     "id": "D",
                     "text": "RBP-K knockdown increases exon 3 inclusion but blocks translation elongation."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "RBP-K knockdown leaves the pre-mRNA transcription rate essentially unchanged but sharply reduces the fraction of mature mRNA containing exon 3. This indicates a role in splicing regulation rather than transcription initiation.",
             "choiceExplanations": {
-                "A": "This correctly compares unchanged transcription with reduced exon 3 inclusion.",
+                "A": "Proteins are not converted into DNA by RNA-binding proteins.",
                 "B": "The passage describes an RNA-binding splicing regulator, not DNA polymerase.",
-                "C": "Proteins are not converted into DNA by RNA-binding proteins.",
+                "C": "This correctly compares unchanged transcription with reduced exon 3 inclusion.",
                 "D": "Exon 3 inclusion decreases, not increases, after RBP-K knockdown."
             },
             "testedTopicIds": [
@@ -3495,7 +3495,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Intron retention introduces a premature termination codon that promotes mRNA degradation."
+                    "text": "The mutation changes every exon into an intron before transcription begins."
                 },
                 {
                     "id": "B",
@@ -3507,16 +3507,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "The mutation changes every exon into an intron before transcription begins."
+                    "text": "Intron retention introduces a premature termination codon that promotes mRNA degradation."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "The passage states that the intron 2 donor mutation causes intron retention and creates a premature termination codon predicted to trigger nonsense-mediated mRNA decay. This explains normal transcription but low mature mRNA.",
             "choiceExplanations": {
-                "A": "This directly fits the passage model and the mRNA data.",
+                "A": "Exon and intron identity is not globally converted before transcription.",
                 "B": "Pre-mRNA transcription rate remains 100%, so polymerase recruitment is not the main defect.",
                 "C": "Protein is very low, and the mutation is in a splice donor, not the Kozak sequence.",
-                "D": "Exon and intron identity is not globally converted before transcription."
+                "D": "This directly fits the passage model and the mRNA data."
             },
             "testedTopicIds": ["bb_transcription", "bb_translation"],
             "testedSkillIds": ["sirs_2", "sirs_4"],
@@ -3538,7 +3538,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Eukaryotic translation initiation"
+                    "text": "Protein dimerization by the exon 3 helix"
                 },
                 {
                     "id": "B",
@@ -3550,16 +3550,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Protein dimerization by the exon 3 helix"
+                    "text": "Eukaryotic translation initiation"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "The Kozak sequence helps eukaryotic ribosomes identify the start codon. The mutant has nearly normal mature mRNA and exon 3 inclusion but much lower protein, which is consistent with impaired translation initiation.",
             "choiceExplanations": {
-                "A": "This matches the role of the Kozak sequence and the observed low protein with preserved mRNA.",
+                "A": "Among detected protein, dimeric LUM1 remains high, so dimerization is not the primary defect.",
                 "B": "Exon 3 inclusion remains high in the Kozak mutant.",
                 "C": "The mutation affects mRNA translation, not DNA replication.",
-                "D": "Among detected protein, dimeric LUM1 remains high, so dimerization is not the primary defect."
+                "D": "This matches the role of the Kozak sequence and the observed low protein with preserved mRNA."
             },
             "testedTopicIds": [
                 "bb_translation",
@@ -3584,7 +3584,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "It disrupts the protein-protein interface required for LUM1 dimerization."
+                    "text": "It increases the percentage of LUM1 protein that is dimeric."
                 },
                 {
                     "id": "B",
@@ -3596,16 +3596,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "It increases the percentage of LUM1 protein that is dimeric."
+                    "text": "It disrupts the protein-protein interface required for LUM1 dimerization."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "The coding mutant leaves transcription, exon 3 inclusion, and total mature mRNA nearly normal but greatly reduces dimeric LUM1. Replacing hydrophobic residues in a dimerization helix with charged residues is likely to disrupt the protein interface.",
             "choiceExplanations": {
-                "A": "This directly connects the coding change to reduced dimer formation.",
+                "A": "Dimeric LUM1 decreases from 80% to 20%.",
                 "B": "Pre-mRNA transcription and exon 3-containing mRNA remain high.",
                 "C": "The spliceosome does not remove mature mRNA caps, and the data do not support cap loss.",
-                "D": "Dimeric LUM1 decreases from 80% to 20%."
+                "D": "This directly connects the coding change to reduced dimer formation."
             },
             "testedTopicIds": [
                 "bb_protein_structure",
@@ -3631,7 +3631,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Reduce a core nonsense-mediated decay factor and measure whether the intron-retaining LUM1 transcript accumulates."
+                    "text": "Replace exon 3 with a mitochondrial electron transport protein and measure oxygen consumption only."
                 },
                 {
                     "id": "B",
@@ -3639,19 +3639,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Replace exon 3 with a mitochondrial electron transport protein and measure oxygen consumption only."
+                    "text": "Reduce a core nonsense-mediated decay factor and measure whether the intron-retaining LUM1 transcript accumulates."
                 },
                 {
                     "id": "D",
                     "text": "Boil the cells before RNA extraction to improve splice-site recognition."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "If nonsense-mediated decay is degrading the mutant transcript, reducing an essential decay factor should increase the abundance of the intron-retaining mRNA. Measuring the specific transcript tests the proposed mechanism directly.",
             "choiceExplanations": {
-                "A": "This experiment directly perturbs the proposed decay pathway and measures the relevant RNA species.",
+                "A": "Oxygen consumption would not isolate nonsense-mediated decay of LUM1 mRNA.",
                 "B": "Charged tRNAs do not directly test mRNA decay of a premature-stop transcript.",
-                "C": "Oxygen consumption would not isolate nonsense-mediated decay of LUM1 mRNA.",
+                "C": "This experiment directly perturbs the proposed decay pathway and measures the relevant RNA species.",
                 "D": "Boiling cells would damage biomolecules and would not improve splice-site recognition."
             },
             "testedTopicIds": ["bb_transcription", "bb_translation"],
@@ -3674,7 +3674,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "NAD+ is reduced by accepting electrons as a hydride equivalent."
+                    "text": "NAD+ forms a peptide bond with pyruvate."
                 },
                 {
                     "id": "B",
@@ -3682,19 +3682,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "NAD+ forms a peptide bond with pyruvate."
+                    "text": "NAD+ is reduced by accepting electrons as a hydride equivalent."
                 },
                 {
                     "id": "D",
                     "text": "NAD+ is converted into ATP by substrate-level phosphorylation."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "When lactate is oxidized to pyruvate, NAD+ accepts reducing equivalents and becomes NADH. Gain of electrons is reduction.",
             "choiceExplanations": {
-                "A": "This correctly describes NAD+ as the electron acceptor that is reduced to NADH.",
+                "A": "NAD+ does not form peptide bonds with pyruvate.",
                 "B": "NAD+ is reduced, not oxidized, in this reaction.",
-                "C": "NAD+ does not form peptide bonds with pyruvate.",
+                "C": "This correctly describes NAD+ as the electron acceptor that is reduced to NADH.",
                 "D": "NADH formation is a redox event, not substrate-level phosphorylation."
             },
             "testedTopicIds": [
@@ -3720,7 +3720,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Adenosine monophosphate"
+                    "text": "Guanosine"
                 },
                 {
                     "id": "B",
@@ -3728,19 +3728,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Guanosine"
+                    "text": "Adenosine monophosphate"
                 },
                 {
                     "id": "D",
                     "text": "Cytidine"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "A nucleotide contains a nitrogenous base, a sugar, and at least one phosphate group. Adenosine monophosphate contains adenine, ribose, and phosphate, whereas adenosine, guanosine, and cytidine are nucleosides without phosphate in their names.",
             "choiceExplanations": {
-                "A": "This contains a phosphate group and is therefore a nucleotide.",
+                "A": "Guanosine is a nucleoside composed of guanine plus ribose.",
                 "B": "Adenosine is a nucleoside composed of adenine plus ribose.",
-                "C": "Guanosine is a nucleoside composed of guanine plus ribose.",
+                "C": "This contains a phosphate group and is therefore a nucleotide.",
                 "D": "Cytidine is a nucleoside composed of cytosine plus ribose."
             },
             "testedTopicIds": ["bb_nucleic_acid_structure_and_function"],
@@ -3763,7 +3763,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Vmax decreases, while the Km of the remaining active enzyme is largely unchanged."
+                    "text": "The enzyme becomes positively cooperative even if it was monomeric."
                 },
                 {
                     "id": "B",
@@ -3775,16 +3775,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "The enzyme becomes positively cooperative even if it was monomeric."
+                    "text": "Vmax decreases, while the Km of the remaining active enzyme is largely unchanged."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Irreversible inactivation reduces the concentration of active enzyme molecules. This lowers Vmax, which depends on active enzyme concentration, while the substrate affinity of the remaining unmodified enzyme molecules can remain approximately the same.",
             "choiceExplanations": {
-                "A": "This is the expected effect of reducing active enzyme concentration.",
+                "A": "Irreversible modification does not by itself create cooperativity in a monomeric enzyme.",
                 "B": "This pattern is typical of competitive inhibition, not irreversible loss of enzyme molecules.",
                 "C": "Dialysis removes free inhibitor but does not reverse covalent modification in the stem.",
-                "D": "Irreversible modification does not by itself create cooperativity in a monomeric enzyme."
+                "D": "This is the expected effect of reducing active enzyme concentration."
             },
             "testedTopicIds": [
                 "bb_control_of_enzyme_activity",
@@ -3809,7 +3809,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Reduced ATP formation from 1,3-bisphosphoglycerate"
+                    "text": "Direct oxidation of pyruvate to CO2 in the cytosol"
                 },
                 {
                     "id": "B",
@@ -3817,19 +3817,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Direct oxidation of pyruvate to CO2 in the cytosol"
+                    "text": "Reduced ATP formation from 1,3-bisphosphoglycerate"
                 },
                 {
                     "id": "D",
                     "text": "Replacement of NAD+ with FAD as the glycolytic electron acceptor"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Phosphoglycerate kinase catalyzes a substrate-level phosphorylation step in which 1,3-bisphosphoglycerate transfers a phosphoryl group to ADP to form ATP and 3-phosphoglycerate.",
             "choiceExplanations": {
-                "A": "This is the direct reaction catalyzed by phosphoglycerate kinase.",
+                "A": "Complete oxidation of pyruvate to CO2 does not occur directly in the cytosol.",
                 "B": "ATP synthase is part of oxidative phosphorylation, not ribose 5-phosphate production.",
-                "C": "Complete oxidation of pyruvate to CO2 does not occur directly in the cytosol.",
+                "C": "This is the direct reaction catalyzed by phosphoglycerate kinase.",
                 "D": "Glycolysis uses NAD+ at the glyceraldehyde 3-phosphate dehydrogenase step, not FAD as a replacement."
             },
             "testedTopicIds": [
@@ -3855,7 +3855,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Recruitment of general transcription factors and RNA polymerase II"
+                    "text": "Base pairing between codons and anticodons during elongation"
                 },
                 {
                     "id": "B",
@@ -3863,19 +3863,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Base pairing between codons and anticodons during elongation"
+                    "text": "Recruitment of general transcription factors and RNA polymerase II"
                 },
                 {
                     "id": "D",
                     "text": "Proton pumping by Complex IV"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "The TATA box is a promoter element that helps position the transcription initiation machinery for many eukaryotic protein-coding genes. Disrupting it most directly impairs transcription initiation by RNA polymerase II.",
             "choiceExplanations": {
-                "A": "This correctly identifies the promoter-level effect.",
+                "A": "Codon-anticodon pairing occurs during translation, not promoter recognition.",
                 "B": "tRNA editing is a translation fidelity process and is unrelated to a TATA-box mutation.",
-                "C": "Codon-anticodon pairing occurs during translation, not promoter recognition.",
+                "C": "This correctly identifies the promoter-level effect.",
                 "D": "Complex IV is part of oxidative phosphorylation, not transcription initiation."
             },
             "testedTopicIds": [
@@ -3901,11 +3901,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Formation of an aminoacyl-AMP intermediate"
+                    "text": "Peptide bond formation between two amino acids"
                 },
                 {
                     "id": "B",
-                    "text": "Peptide bond formation between two amino acids"
+                    "text": "Formation of an aminoacyl-AMP intermediate"
                 },
                 {
                     "id": "C",
@@ -3916,11 +3916,11 @@
                     "text": "Oxidation of NADH by Complex I"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Aminoacyl-tRNA synthetases activate amino acids by using ATP to form aminoacyl-AMP intermediates. The passage states that ThrRS-F forms threonyl-AMP from threonine and ATP.",
             "choiceExplanations": {
-                "A": "This is the ATP-dependent activation step described in the passage.",
-                "B": "Peptide bond formation occurs on the ribosome and does not explain ATP-to-AMP conversion by ThrRS-F.",
+                "A": "Peptide bond formation occurs on the ribosome and does not explain ATP-to-AMP conversion by ThrRS-F.",
+                "B": "This is the ATP-dependent activation step described in the passage.",
                 "C": "tRNA backbone hydrolysis is not part of normal aminoacylation.",
                 "D": "Complex I is part of oxidative phosphorylation and is unrelated to ThrRS-F amino acid activation."
             },
@@ -3948,7 +3948,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Amino acid activation is mostly intact, but hydrolysis of mischarged Val-tRNAThr is impaired."
+                    "text": "The variant cannot recognize any tRNA molecule."
                 },
                 {
                     "id": "B",
@@ -3956,19 +3956,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "The variant cannot recognize any tRNA molecule."
+                    "text": "Amino acid activation is mostly intact, but hydrolysis of mischarged Val-tRNAThr is impaired."
                 },
                 {
                     "id": "D",
                     "text": "The variant improves reporter activity by eliminating translation errors."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "D201A maintains high Thr-tRNAThr charging and high ATP-to-AMP conversion but accumulates much more Val-tRNAThr and lowers reporter activity. This indicates a specific editing defect rather than failure of activation or tRNA recognition.",
             "choiceExplanations": {
-                "A": "This matches high charging with increased mischarged tRNA accumulation.",
+                "A": "The enzyme still charges wild-type tRNAThr efficiently.",
                 "B": "Charging and ATP-to-AMP conversion remain high, so activation is not nearly absent.",
-                "C": "The enzyme still charges wild-type tRNAThr efficiently.",
+                "C": "This matches high charging with increased mischarged tRNA accumulation.",
                 "D": "Reporter activity decreases, consistent with more translation errors."
             },
             "testedTopicIds": [
@@ -4041,11 +4041,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "The acceptor stem contains identity elements important for recognition by ThrRS-F."
+                    "text": "The acceptor stem is the site where ribosomes synthesize DNA."
                 },
                 {
                     "id": "B",
-                    "text": "The acceptor stem is the site where ribosomes synthesize DNA."
+                    "text": "The acceptor stem contains identity elements important for recognition by ThrRS-F."
                 },
                 {
                     "id": "C",
@@ -4056,11 +4056,11 @@
                     "text": "ThrRS-F no longer requires ATP when the acceptor stem is changed."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Wild-type ThrRS-F charges acceptor-stem mutant tRNAThr poorly, indicating that tRNA structural features in the acceptor stem contribute to proper recognition and aminoacylation.",
             "choiceExplanations": {
-                "A": "This directly follows from poor charging of the altered tRNA.",
-                "B": "Ribosomes synthesize proteins, not DNA.",
+                "A": "Ribosomes synthesize proteins, not DNA.",
+                "B": "This directly follows from poor charging of the altered tRNA.",
                 "C": "Editing hydrolyzes mischarged tRNA; it does not convert valine into threonine.",
                 "D": "ATP-to-AMP conversion is reduced, not made unnecessary."
             },
@@ -4134,11 +4134,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Resonance gives the peptide bond partial double-bond character."
+                    "text": "Peptide bonds are phosphodiester bonds between amino acids."
                 },
                 {
                     "id": "B",
-                    "text": "Peptide bonds are phosphodiester bonds between amino acids."
+                    "text": "Resonance gives the peptide bond partial double-bond character."
                 },
                 {
                     "id": "C",
@@ -4149,11 +4149,11 @@
                     "text": "Peptide bonds are held together only by hydrogen bonds."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "The peptide bond has resonance between the carbonyl carbon, carbonyl oxygen, and amide nitrogen. This gives the C-N bond partial double-bond character, making it planar and restricting rotation.",
             "choiceExplanations": {
-                "A": "This correctly explains peptide bond planarity.",
-                "B": "Phosphodiester bonds are found in nucleic acid backbones, not between amino acids in proteins.",
+                "A": "Phosphodiester bonds are found in nucleic acid backbones, not between amino acids in proteins.",
+                "B": "This correctly explains peptide bond planarity.",
                 "C": "Disulfide linkages occur between cysteine side chains, not in every peptide bond.",
                 "D": "Peptide bonds are covalent amide bonds, not merely hydrogen bonds."
             },
@@ -4177,7 +4177,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "A frameshift that changes downstream codons and may introduce a premature stop codon"
+                    "text": "Improved ribosome proofreading of the original mRNA sequence"
                 },
                 {
                     "id": "B",
@@ -4189,16 +4189,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Improved ribosome proofreading of the original mRNA sequence"
+                    "text": "A frameshift that changes downstream codons and may introduce a premature stop codon"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Insertions or deletions that are not multiples of three shift the reading frame. A frameshift near the start of a coding sequence changes many downstream codons and can produce an early stop codon.",
             "choiceExplanations": {
-                "A": "This correctly describes the likely consequence of a non-triplet insertion.",
+                "A": "Ribosome proofreading would not restore the original mRNA sequence.",
                 "B": "Insertions can strongly affect the reading frame.",
                 "C": "A single amino acid substitution is more typical of a missense point mutation, not a frameshift insertion.",
-                "D": "Ribosome proofreading would not restore the original mRNA sequence."
+                "D": "This correctly describes the likely consequence of a non-triplet insertion."
             },
             "testedTopicIds": [
                 "bb_translation",
@@ -4223,7 +4223,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "High ATP signals sufficient energy, while fructose 1,6-bisphosphate provides feed-forward activation when glycolytic flux is high."
+                    "text": "Fructose 1,6-bisphosphate is the direct product of pyruvate kinase."
                 },
                 {
                     "id": "B",
@@ -4231,19 +4231,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Fructose 1,6-bisphosphate is the direct product of pyruvate kinase."
+                    "text": "High ATP signals sufficient energy, while fructose 1,6-bisphosphate provides feed-forward activation when glycolytic flux is high."
                 },
                 {
                     "id": "D",
                     "text": "Pyruvate kinase is a mitochondrial electron transport complex."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Pyruvate kinase catalyzes a late glycolytic step. ATP inhibition helps slow glycolysis when energy is abundant, whereas fructose 1,6-bisphosphate indicates upstream glycolytic commitment and activates the downstream step.",
             "choiceExplanations": {
-                "A": "This correctly connects energy status and feed-forward regulation.",
+                "A": "Fructose 1,6-bisphosphate is produced upstream of pyruvate kinase, not by pyruvate kinase.",
                 "B": "High ATP usually inhibits energy-producing catabolic pathways.",
-                "C": "Fructose 1,6-bisphosphate is produced upstream of pyruvate kinase, not by pyruvate kinase.",
+                "C": "This correctly connects energy status and feed-forward regulation.",
                 "D": "Pyruvate kinase is a cytosolic glycolytic enzyme, not an electron transport complex."
             },
             "testedTopicIds": [
@@ -4270,7 +4270,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "The free 3' hydroxyl group"
+                    "text": "The amino terminus of the first nucleotide"
                 },
                 {
                     "id": "B",
@@ -4278,19 +4278,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "The amino terminus of the first nucleotide"
+                    "text": "The free 3' hydroxyl group"
                 },
                 {
                     "id": "D",
                     "text": "The peptide bond of the previous nucleotide"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "DNA polymerases extend nucleic acid strands by adding incoming nucleotides to the free 3' hydroxyl of the growing strand, forming a phosphodiester bond and synthesizing in the 5' to 3' direction.",
             "choiceExplanations": {
-                "A": "This correctly identifies the reactive group on the growing strand.",
+                "A": "Nucleotides do not have amino termini analogous to proteins.",
                 "B": "The thymine methyl group is not used to extend DNA.",
-                "C": "Nucleotides do not have amino termini analogous to proteins.",
+                "C": "This correctly identifies the reactive group on the growing strand.",
                 "D": "Nucleotides are joined by phosphodiester bonds, not peptide bonds."
             },
             "testedTopicIds": ["bb_nucleic_acid_structure_and_function"],
@@ -4359,7 +4359,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "9 normal : 7 slow"
+                    "text": "1 normal : 1 slow"
                 },
                 {
                     "id": "B",
@@ -4371,16 +4371,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "1 normal : 1 slow"
+                    "text": "9 normal : 7 slow"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Normal respiration requires at least one functional E allele and one functional F allele, giving E_F_ = 9/16. All other genotypes lack at least one required component and are slow, giving 7/16.",
             "choiceExplanations": {
-                "A": "This correctly applies complementary gene action for two independently assorting genes.",
+                "A": "This is a simple testcross-like ratio, not the expected F2 ratio from EeFf selfing.",
                 "B": "No lethal class is described, and loss of both genes is not more severe than single loss.",
                 "C": "This is a one-gene heterozygote self-cross ratio.",
-                "D": "This is a simple testcross-like ratio, not the expected F2 ratio from EeFf selfing."
+                "D": "This correctly applies complementary gene action for two independently assorting genes."
             },
             "testedTopicIds": [
                 "bb_mendelian_concepts",
@@ -4451,7 +4451,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Blocked downstream electron transfer slows NADH oxidation, causing upstream carriers to remain more reduced."
+                    "text": "Complex IV inhibition increases the amount of oxygen available as a carbon source."
                 },
                 {
                     "id": "B",
@@ -4459,19 +4459,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Complex IV inhibition increases the amount of oxygen available as a carbon source."
+                    "text": "Blocked downstream electron transfer slows NADH oxidation, causing upstream carriers to remain more reduced."
                 },
                 {
                     "id": "D",
                     "text": "Loss of Complex IV forces NADH to become a peptide bond donor."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Complex IV transfers electrons to oxygen. When Complex IV is deficient, electrons accumulate upstream and NADH oxidation slows, increasing the NADH/NAD+ ratio.",
             "choiceExplanations": {
-                "A": "This correctly links downstream blockade to reduced upstream carriers.",
+                "A": "Oxygen is the terminal electron acceptor, not a carbon source in this context.",
                 "B": "Complex IV does not synthesize NADH from ATP.",
-                "C": "Oxygen is the terminal electron acceptor, not a carbon source in this context.",
+                "C": "This correctly links downstream blockade to reduced upstream carriers.",
                 "D": "NADH does not donate peptide bonds."
             },
             "testedTopicIds": [
@@ -4497,7 +4497,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Normal respiration"
+                    "text": "No growth on fermentable carbon"
                 },
                 {
                     "id": "B",
@@ -4505,19 +4505,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "No growth on fermentable carbon"
+                    "text": "Normal respiration"
                 },
                 {
                     "id": "D",
                     "text": "Respiration faster than wild type because both mutations complement excessively"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "The cross restores one functional allele at each gene, producing EeFf progeny. Because both E and F functions are present, normal respiration is expected under the complementary gene model.",
             "choiceExplanations": {
-                "A": "This correctly predicts complementation between mutations in different genes.",
+                "A": "The passage states even mutant strains are slow but viable on fermentable carbon.",
                 "B": "EeFf contains functional alleles of both genes and should not resemble eeff.",
-                "C": "The passage states even mutant strains are slow but viable on fermentable carbon.",
+                "C": "This correctly predicts complementation between mutations in different genes.",
                 "D": "Complementation restores normal function but does not imply respiration above wild type."
             },
             "testedTopicIds": [
@@ -4586,11 +4586,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Aspartate"
+                    "text": "Lysine"
                 },
                 {
                     "id": "B",
-                    "text": "Lysine"
+                    "text": "Aspartate"
                 },
                 {
                     "id": "C",
@@ -4601,11 +4601,11 @@
                     "text": "Asparagine"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Glutamate and aspartate are both negatively charged acidic amino acids at physiological pH, but aspartate has a shorter side chain. This makes Asp the best substitution for preserving charge while changing length.",
             "choiceExplanations": {
-                "A": "This preserves negative charge while shortening the side chain.",
-                "B": "Lysine is positively charged at physiological pH.",
+                "A": "Lysine is positively charged at physiological pH.",
+                "B": "This preserves negative charge while shortening the side chain.",
                 "C": "Phenylalanine is bulky and hydrophobic rather than negatively charged.",
                 "D": "Asparagine is polar but uncharged at physiological pH."
             },
@@ -4721,7 +4721,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "1 dominant phenotype : 1 recessive phenotype"
+                    "text": "All dominant phenotype"
                 },
                 {
                     "id": "B",
@@ -4733,16 +4733,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "All dominant phenotype"
+                    "text": "1 dominant phenotype : 1 recessive phenotype"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "The Aa parent produces A and a gametes in equal proportions, while the aa parent produces only a gametes. The offspring are 1 Aa and 1 aa, giving a 1:1 phenotype ratio.",
             "choiceExplanations": {
-                "A": "This is the expected result of a single-locus testcross.",
+                "A": "Half the offspring are expected to be aa and show the recessive phenotype.",
                 "B": "A 3:1 ratio is expected from selfing two heterozygotes at one locus.",
                 "C": "A 9:7 ratio is a two-gene complementary interaction pattern, not this single-locus cross.",
-                "D": "Half the offspring are expected to be aa and show the recessive phenotype."
+                "D": "This is the expected result of a single-locus testcross."
             },
             "testedTopicIds": ["bb_mendelian_concepts"],
             "testedSkillIds": ["sirs_1", "sirs_2"],
@@ -4764,7 +4764,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "ATP synthesis decreases because the proton gradient cannot be maintained."
+                    "text": "Electron transfer becomes unnecessary because ADP donates electrons directly to oxygen."
                 },
                 {
                     "id": "B",
@@ -4772,19 +4772,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Electron transfer becomes unnecessary because ADP donates electrons directly to oxygen."
+                    "text": "ATP synthesis decreases because the proton gradient cannot be maintained."
                 },
                 {
                     "id": "D",
                     "text": "The mitochondrial DNA code changes to compensate for membrane rupture."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Oxidative phosphorylation requires an intact inner mitochondrial membrane to maintain the proton-motive force. If the membrane is ruptured, protons cannot be compartmentalized effectively, so ATP synthesis by ATP synthase decreases.",
             "choiceExplanations": {
-                "A": "This correctly identifies loss of the proton gradient as the key consequence.",
+                "A": "ADP does not donate electrons to oxygen in the electron transport chain.",
                 "B": "Free proton diffusion dissipates the gradient rather than improving ATP synthesis.",
-                "C": "ADP does not donate electrons to oxygen in the electron transport chain.",
+                "C": "This correctly identifies loss of the proton gradient as the key consequence.",
                 "D": "Membrane damage does not alter the genetic code."
             },
             "testedTopicIds": [
@@ -4810,7 +4810,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Pyruvate enters or accumulates, but conversion to mitochondrial oxaloacetate is impaired."
+                    "text": "MPC import is accelerated, preventing cytosolic pyruvate accumulation."
                 },
                 {
                     "id": "B",
@@ -4818,19 +4818,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "MPC import is accelerated, preventing cytosolic pyruvate accumulation."
+                    "text": "Pyruvate enters or accumulates, but conversion to mitochondrial oxaloacetate is impaired."
                 },
                 {
                     "id": "D",
                     "text": "Gluconeogenesis increases because PC normally inhibits glucose output."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "PC inhibitor C causes high cytosolic pyruvate, low mitochondrial OAA/malate pool, and very low glucose output. This supports a block at pyruvate carboxylase, which normally converts mitochondrial pyruvate to oxaloacetate.",
             "choiceExplanations": {
-                "A": "This matches the accumulation of pyruvate with depletion of downstream OAA/malate.",
+                "A": "Cytosolic pyruvate increases, not decreases, with PC inhibitor C.",
                 "B": "PEPCK knockdown, not PC inhibition, causes OAA/malate accumulation in the table.",
-                "C": "Cytosolic pyruvate increases, not decreases, with PC inhibitor C.",
+                "C": "This matches the accumulation of pyruvate with depletion of downstream OAA/malate.",
                 "D": "Glucose output falls, showing PC supports rather than inhibits gluconeogenesis in this context."
             },
             "testedTopicIds": [
@@ -4856,7 +4856,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "PEPCK knockdown causes accumulation of the mitochondrial OAA/malate pool, whereas PC inhibition lowers it."
+                    "text": "PEPCK knockdown eliminates cytosolic pyruvate, whereas PC inhibition has no effect on pyruvate."
                 },
                 {
                     "id": "B",
@@ -4864,19 +4864,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "PEPCK knockdown eliminates cytosolic pyruvate, whereas PC inhibition has no effect on pyruvate."
+                    "text": "PEPCK knockdown causes accumulation of the mitochondrial OAA/malate pool, whereas PC inhibition lowers it."
                 },
                 {
                     "id": "D",
                     "text": "PEPCK knockdown raises ATP/ADP to a higher value than control."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "PC acts before oxaloacetate formation, so PC inhibition lowers the OAA/malate pool. PEPCK acts after oxaloacetate formation, so PEPCK knockdown causes OAA/malate accumulation while still lowering glucose output.",
             "choiceExplanations": {
-                "A": "This correctly uses the opposite OAA/malate pool changes to localize the blocks.",
+                "A": "Both conditions show elevated cytosolic pyruvate relative to control.",
                 "B": "Both perturbations lower glucose output.",
-                "C": "Both conditions show elevated cytosolic pyruvate relative to control.",
+                "C": "This correctly uses the opposite OAA/malate pool changes to localize the blocks.",
                 "D": "ATP/ADP is lower than control with PEPCK knockdown."
             },
             "testedTopicIds": [
@@ -4901,11 +4901,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Reduced oxidative phosphorylation lowers ATP availability for energy-requiring gluconeogenic steps."
+                    "text": "The ETC inhibitor directly removes all lactate and alanine from the medium."
                 },
                 {
                     "id": "B",
-                    "text": "The ETC inhibitor directly removes all lactate and alanine from the medium."
+                    "text": "Reduced oxidative phosphorylation lowers ATP availability for energy-requiring gluconeogenic steps."
                 },
                 {
                     "id": "C",
@@ -4916,11 +4916,11 @@
                     "text": "Reduced O2 consumption necessarily means PC becomes more active than control."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "The passage states that gluconeogenesis requires substantial energy input. The ETC inhibitor lowers O2 consumption and ATP/ADP ratio, so reduced ATP availability provides a plausible explanation for lower glucose output.",
             "choiceExplanations": {
-                "A": "This integrates the lower O2 consumption, lower ATP/ADP ratio, and energy requirement of gluconeogenesis.",
-                "B": "No passage data indicate removal of lactate or alanine from the medium.",
+                "A": "No passage data indicate removal of lactate or alanine from the medium.",
+                "B": "This integrates the lower O2 consumption, lower ATP/ADP ratio, and energy requirement of gluconeogenesis.",
                 "C": "Glucose is not converted into mitochondrial DNA.",
                 "D": "The ETC inhibitor lowers the OAA/malate pool and glucose output; increased PC activity is not supported."
             },

@@ -520,7 +520,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Impaired formation of new explicit memories"
+                    "text": "Complete loss of autonomic regulation"
                 },
                 {
                     "id": "B",
@@ -532,16 +532,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Complete loss of autonomic regulation"
+                    "text": "Impaired formation of new explicit memories"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "The hippocampus is important for forming new explicit, declarative memories. Damage often produces difficulty encoding new facts and events, while many reflexive and sensory functions remain mediated by other structures.",
             "choiceExplanations": {
-                "A": "This is correct. The hippocampus supports consolidation of new explicit memories.",
+                "A": "Autonomic regulation involves hypothalamic, brainstem, and peripheral mechanisms more directly than the hippocampus.",
                 "B": "Spinal reflexes are mediated by spinal circuits and do not depend on the hippocampus.",
                 "C": "Light detection begins with retinal photoreceptors and visual pathways, not the hippocampus.",
-                "D": "Autonomic regulation involves hypothalamic, brainstem, and peripheral mechanisms more directly than the hippocampus."
+                "D": "This is correct. The hippocampus supports consolidation of new explicit memories."
             },
             "testedTopicIds": ["ps_biological_bases_of_behavior", "ps_memory"],
             "testedSkillIds": ["sirs_1"],
@@ -606,7 +606,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Vibration notifications were associated with slower responses than the no-notification condition."
+                    "text": "Vibration notifications improved target detection by increasing arousal."
                 },
                 {
                     "id": "B",
@@ -618,16 +618,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Vibration notifications improved target detection by increasing arousal."
+                    "text": "Vibration notifications were associated with slower responses than the no-notification condition."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "The mean reaction time was 420 ms with no notification and 470 ms with vibration notification. This supports the conclusion that vibration notifications were associated with slower responses in this task. The data do not show elimination of distraction or improved detection.",
             "choiceExplanations": {
-                "A": "This is correct. The vibration condition had the slowest mean reaction time.",
+                "A": "The vibration condition was associated with slower responses and higher errors, not improved detection.",
                 "B": "The visual banner condition still had a slower mean reaction time and higher error rate than no notification, so distraction was not eliminated.",
                 "C": "Low error rates do not imply no performance relationship; reaction time varied across conditions.",
-                "D": "The vibration condition was associated with slower responses and higher errors, not improved detection."
+                "D": "This is correct. The vibration condition had the slowest mean reaction time."
             },
             "testedTopicIds": ["ps_cognition", "ps_sensory_processing"],
             "testedSkillIds": ["sirs_4"],
@@ -649,7 +649,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Conditioned stimulus"
+                    "text": "Punisher"
                 },
                 {
                     "id": "B",
@@ -661,16 +661,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Punisher"
+                    "text": "Conditioned stimulus"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "A phone vibration can become a conditioned stimulus if it is repeatedly paired with meaningful notifications. It can then evoke orienting, checking, or arousal even when the current message does not require a response.",
             "choiceExplanations": {
-                "A": "This is correct. A formerly neutral vibration can acquire meaning through repeated association with messages.",
+                "A": "A punisher decreases behavior when applied or removed; the observed checking behavior increased after notifications.",
                 "B": "An unconditioned stimulus naturally elicits a response without prior learning; a phone vibration does not inherently signal social information.",
                 "C": "A negative reinforcer increases behavior by removing an aversive stimulus, which is not what the vibration itself represents.",
-                "D": "A punisher decreases behavior when applied or removed; the observed checking behavior increased after notifications."
+                "D": "This is correct. A formerly neutral vibration can acquire meaning through repeated association with messages."
             },
             "testedTopicIds": [
                 "ps_associative_learning",
@@ -695,11 +695,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Each participant completed all three notification conditions."
+                    "text": "The phone was face down during the vibration condition."
                 },
                 {
                     "id": "B",
-                    "text": "The phone was face down during the vibration condition."
+                    "text": "Each participant completed all three notification conditions."
                 },
                 {
                     "id": "C",
@@ -710,11 +710,11 @@
                     "text": "Participants were told notifications did not require a response."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "A within-subject design means each participant serves as their own comparison across conditions. This reduces confounding from stable individual differences, such as baseline reaction speed or general phone attachment.",
             "choiceExplanations": {
-                "A": "This is correct. Repeated measurement across all conditions controls many person-level differences.",
-                "B": "Phone orientation defines part of the manipulation but does not control individual differences across conditions as directly.",
+                "A": "Phone orientation defines part of the manipulation but does not control individual differences across conditions as directly.",
+                "B": "This is correct. Repeated measurement across all conditions controls many person-level differences.",
                 "C": "Stress ratings provide a dependent variable; they do not by themselves reduce confounding.",
                 "D": "This instruction standardizes expectations but does not control individual differences as strongly as the within-subject design."
             },
@@ -738,7 +738,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Participants showed greater slowing on trials in which distracting shapes appeared near the target."
+                    "text": "Participants reported owning phones for similar numbers of years."
                 },
                 {
                     "id": "B",
@@ -746,19 +746,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Participants reported owning phones for similar numbers of years."
+                    "text": "Participants showed greater slowing on trials in which distracting shapes appeared near the target."
                 },
                 {
                     "id": "D",
                     "text": "Participants completed the visual banner condition before the vibration condition."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Selective attention involves prioritizing task-relevant stimuli while filtering distractors. A disproportionate slowing when distracting shapes are present would support an attentional filtering explanation rather than a general motor slowing explanation.",
             "choiceExplanations": {
-                "A": "This is correct. It links the notification effect specifically to distractor processing and attentional control.",
+                "A": "Similar phone ownership duration would not directly test the mechanism of slower task responses.",
                 "B": "Equivalent resting heart rate would address baseline physiology but not distinguish attentional disruption from motor slowing.",
-                "C": "Similar phone ownership duration would not directly test the mechanism of slower task responses.",
+                "C": "This is correct. It links the notification effect specifically to distractor processing and attentional control.",
                 "D": "A fixed order could introduce order effects and would not clarify the attentional mechanism."
             },
             "testedTopicIds": ["ps_cognition", "ps_sensory_processing"],
@@ -867,11 +867,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Cultural capital"
+                    "text": "Role strain"
                 },
                 {
                     "id": "B",
-                    "text": "Role strain"
+                    "text": "Cultural capital"
                 },
                 {
                     "id": "C",
@@ -882,11 +882,11 @@
                     "text": "Social facilitation"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Cultural capital refers to nonfinancial social assets, such as language styles, tastes, knowledge, and dispositions, that can provide advantages in institutional settings. The scenario focuses on how schools reward class-linked cultural resources.",
             "choiceExplanations": {
-                "A": "This is correct. The argument concerns unequal rewards for class-linked cultural knowledge and interaction styles.",
-                "B": "Role strain involves tension within a single social role, not institutional reproduction of inequality.",
+                "A": "Role strain involves tension within a single social role, not institutional reproduction of inequality.",
+                "B": "This is correct. The argument concerns unequal rewards for class-linked cultural knowledge and interaction styles.",
                 "C": "Primary deviance refers to initial norm violation before deviant identity is internalized, which is unrelated to the school reward system described.",
                 "D": "Social facilitation is improved performance in the presence of others on simple or well-learned tasks."
             },
@@ -910,11 +910,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Activation of the hypothalamic-pituitary-adrenal axis and sustained glucocorticoid release"
+                    "text": "Inactivation of all sympathetic nervous system responses"
                 },
                 {
                     "id": "B",
-                    "text": "Inactivation of all sympathetic nervous system responses"
+                    "text": "Activation of the hypothalamic-pituitary-adrenal axis and sustained glucocorticoid release"
                 },
                 {
                     "id": "C",
@@ -925,11 +925,11 @@
                     "text": "Immediate elimination of negative feedback in the pancreas"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Chronic stress can activate the hypothalamic-pituitary-adrenal axis, increasing glucocorticoid exposure and affecting sleep, immune function, and other physiological systems. The other choices describe overly broad or unrelated mechanisms.",
             "choiceExplanations": {
-                "A": "This is correct. The HPA axis is a central biological pathway in stress physiology.",
-                "B": "Stress generally activates, rather than inactivates, sympathetic responses.",
+                "A": "Stress generally activates, rather than inactivates, sympathetic responses.",
+                "B": "This is correct. The HPA axis is a central biological pathway in stress physiology.",
                 "C": "Stress does not require permanent loss of sensory transduction to cause headaches or sleep difficulty.",
                 "D": "The pancreas is not the primary pathway linking psychosocial stress to the outcomes described."
             },
@@ -1039,11 +1039,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Retrieval cues improved access to encoded information."
+                    "text": "Cued recall prevented encoding from occurring."
                 },
                 {
                     "id": "B",
-                    "text": "Cued recall prevented encoding from occurring."
+                    "text": "Retrieval cues improved access to encoded information."
                 },
                 {
                     "id": "C",
@@ -1054,11 +1054,11 @@
                     "text": "The restricted-sleep group had no stored memories of the word pairs."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Both groups recalled more words when given the first word of each pair. This pattern indicates that retrieval cues can improve access to information that was encoded and stored, even when free recall is lower.",
             "choiceExplanations": {
-                "A": "This is correct. Cues helped participants retrieve more target words.",
-                "B": "Cued recall occurs at test, after encoding; it does not prevent encoding.",
+                "A": "Cued recall occurs at test, after encoding; it does not prevent encoding.",
+                "B": "This is correct. Cues helped participants retrieve more target words.",
                 "C": "Free recall of studied words after a filler task is not a measure of sensory memory.",
                 "D": "The restricted-sleep group recalled many words, especially with cues, so stored memories were not absent."
             },
@@ -1082,11 +1082,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Working memory updating"
+                    "text": "Classical conditioning"
                 },
                 {
                     "id": "B",
-                    "text": "Classical conditioning"
+                    "text": "Working memory updating"
                 },
                 {
                     "id": "C",
@@ -1097,11 +1097,11 @@
                     "text": "Social identity formation"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "A 2-back task requires participants to monitor incoming stimuli and compare each current item with one presented two steps earlier. This requires working memory maintenance and updating.",
             "choiceExplanations": {
-                "A": "This is correct. The task requires active updating of recently presented information.",
-                "B": "Classical conditioning involves learned associations between stimuli, not tracking recent items in memory.",
+                "A": "Classical conditioning involves learned associations between stimuli, not tracking recent items in memory.",
+                "B": "This is correct. The task requires active updating of recently presented information.",
                 "C": "An absolute sensory threshold is the minimum detectable stimulus intensity, which the 2-back task does not assess.",
                 "D": "Social identity formation concerns self-concept and group membership, not short-term cognitive updating."
             },
@@ -1297,7 +1297,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Major depressive disorder"
+                    "text": "Dissociative identity disorder"
                 },
                 {
                     "id": "B",
@@ -1305,19 +1305,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Dissociative identity disorder"
+                    "text": "Major depressive disorder"
                 },
                 {
                     "id": "D",
                     "text": "Antisocial personality disorder"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "The symptom cluster of sustained low mood, anhedonia, sleep disruption, and worthlessness is characteristic of depressive disorders, especially major depressive disorder in broad MCAT-level classification. This is an educational classification, not a diagnosis.",
             "choiceExplanations": {
-                "A": "This is correct. The pattern aligns most closely with depressive symptoms.",
+                "A": "Dissociative identity disorder involves distinct identity states and memory disruption, which are not described.",
                 "B": "Specific phobia centers on intense fear of a specific object or situation, not persistent low mood and anhedonia.",
-                "C": "Dissociative identity disorder involves distinct identity states and memory disruption, which are not described.",
+                "C": "This is correct. The pattern aligns most closely with depressive symptoms.",
                 "D": "Antisocial personality disorder involves pervasive disregard for others' rights and social norms, which is not described."
             },
             "testedTopicIds": ["ps_psychological_disorders"],
@@ -1383,7 +1383,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Sympathetic division of the autonomic nervous system"
+                    "text": "Somatic motor division controlling skeletal muscles only"
                 },
                 {
                     "id": "B",
@@ -1391,19 +1391,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Somatic motor division controlling skeletal muscles only"
+                    "text": "Sympathetic division of the autonomic nervous system"
                 },
                 {
                     "id": "D",
                     "text": "Enteric nervous system controlling digestion only"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "The sympathetic division supports fight-or-flight responses, including increased heart rate and sweating. Calming after reappraisal involves reduced sympathetic activation and increased parasympathetic influence.",
             "choiceExplanations": {
-                "A": "This is correct. Sympathetic activation produces the immediate arousal response.",
+                "A": "The somatic motor division controls voluntary skeletal muscle movement, not sweating and heart rate directly.",
                 "B": "Parasympathetic activity generally supports rest-and-digest functions and slowing of heart rate.",
-                "C": "The somatic motor division controls voluntary skeletal muscle movement, not sweating and heart rate directly.",
+                "C": "This is correct. Sympathetic activation produces the immediate arousal response.",
                 "D": "The enteric nervous system regulates gastrointestinal functions and is not the direct source of the described arousal response."
             },
             "testedTopicIds": ["ps_biological_bases_of_behavior", "ps_stress"],
@@ -1426,7 +1426,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Microsociology"
+                    "text": "Demographic transition theory"
                 },
                 {
                     "id": "B",
@@ -1434,19 +1434,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Demographic transition theory"
+                    "text": "Microsociology"
                 },
                 {
                     "id": "D",
                     "text": "Structural mobility analysis only"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Microsociology focuses on small-scale social interactions and meanings in everyday life. Studying politeness rituals in brief interpersonal encounters fits this level of analysis.",
             "choiceExplanations": {
-                "A": "This is correct. The study examines small-scale interactions.",
+                "A": "Demographic transition theory concerns population changes associated with industrialization and development.",
                 "B": "World-systems theory examines global economic relationships among countries or regions.",
-                "C": "Demographic transition theory concerns population changes associated with industrialization and development.",
+                "C": "This is correct. The study examines small-scale interactions.",
                 "D": "Structural mobility concerns movement caused by changes in the social hierarchy, not microlevel interaction rituals."
             },
             "testedTopicIds": ["ps_theoretical_approaches"],
@@ -1469,7 +1469,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Lower neighborhood resource level is associated with higher perceived stress and higher morning cortisol."
+                    "text": "Income is unrelated to neighborhood resource level."
                 },
                 {
                     "id": "B",
@@ -1481,16 +1481,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Income is unrelated to neighborhood resource level."
+                    "text": "Lower neighborhood resource level is associated with higher perceived stress and higher morning cortisol."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "The table shows that as neighborhood resource level decreases from high to low, perceived stress rises from 13.1 to 22.0 and morning cortisol rises from 11.2 to 16.7 nmol/L. Because participants were not randomly assigned to neighborhoods, a causal conclusion is not warranted from these data alone.",
             "choiceExplanations": {
-                "A": "This is correct. The table supports an association between resource level and both stress indicators.",
+                "A": "Mean income differs across resource levels, so this statement is contradicted by the table.",
                 "B": "The observational design and income differences prevent a strong independent causal conclusion.",
                 "C": "Recreational-space use varies with resource level in a direction consistent with stress differences; the table does not show no relationship.",
-                "D": "Mean income differs across resource levels, so this statement is contradicted by the table."
+                "D": "This is correct. The table supports an association between resource level and both stress indicators."
             },
             "testedTopicIds": ["ps_social_class", "ps_stress"],
             "testedSkillIds": ["sirs_4"],
@@ -1512,11 +1512,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Act as confounders related to both neighborhood resources and stress outcomes."
+                    "text": "Guarantee that the study becomes a randomized experiment."
                 },
                 {
                     "id": "B",
-                    "text": "Guarantee that the study becomes a randomized experiment."
+                    "text": "Act as confounders related to both neighborhood resources and stress outcomes."
                 },
                 {
                     "id": "C",
@@ -1527,11 +1527,11 @@
                     "text": "Convert perceived stress into an independent variable."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Income and employment status may influence where people live and may also influence stress physiology and perceived stress. Including them as covariates helps evaluate whether the neighborhood association remains after accounting for these potential confounds.",
             "choiceExplanations": {
-                "A": "This is correct. Covariates can help address plausible confounding in observational research.",
-                "B": "Statistical adjustment does not make a nonrandomized study equivalent to a randomized experiment.",
+                "A": "Statistical adjustment does not make a nonrandomized study equivalent to a randomized experiment.",
+                "B": "This is correct. Covariates can help address plausible confounding in observational research.",
                 "C": "Cortisol remains a separate physiological outcome measure even if covariates are included.",
                 "D": "Perceived stress remains an outcome measure in the described analysis."
             },
@@ -1598,7 +1598,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Mediator"
+                    "text": "Randomization procedure"
                 },
                 {
                     "id": "B",
@@ -1610,16 +1610,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Randomization procedure"
+                    "text": "Mediator"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "A mediator is a variable through which an independent variable may influence an outcome. The passage's conceptual model suggests neighborhood resources may affect stress partly by shaping opportunities for exercise, social interaction, and perceived control through recreational-space use.",
             "choiceExplanations": {
-                "A": "This is correct. Recreational-space use is proposed as part of the pathway linking resources to stress.",
+                "A": "Randomization is an assignment procedure, not a measured explanatory pathway.",
                 "B": "A placebo is an inert treatment or condition used as a comparison, which is not described.",
                 "C": "Recreational-space use is measured, but the hypothesis gives it a pathway role rather than treating it only as an endpoint.",
-                "D": "Randomization is an assignment procedure, not a measured explanatory pathway."
+                "D": "This is correct. Recreational-space use is proposed as part of the pathway linking resources to stress."
             },
             "testedTopicIds": ["ps_stress", "ps_social_class"],
             "testedSkillIds": ["sirs_3", "sirs_2"],
@@ -1641,7 +1641,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Randomly assign comparable neighborhoods to receive new recreational-space improvements at different times and measure stress before and after implementation."
+                    "text": "Exclude cortisol measurements and rely only on self-reported neighborhood satisfaction."
                 },
                 {
                     "id": "B",
@@ -1649,19 +1649,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Exclude cortisol measurements and rely only on self-reported neighborhood satisfaction."
+                    "text": "Randomly assign comparable neighborhoods to receive new recreational-space improvements at different times and measure stress before and after implementation."
                 },
                 {
                     "id": "D",
                     "text": "Recruit only participants who already use recreational spaces daily."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Randomly assigning comparable neighborhoods to receive improvements at different times creates a stronger quasi-experimental or experimental basis for causal inference, especially with pre-post measurement. The other options do not adequately address confounding or temporal order.",
             "choiceExplanations": {
-                "A": "This is correct. Random assignment and pre-post measurement strengthen causal inference.",
+                "A": "Removing physiological measurement would reduce measurement breadth and not improve causality.",
                 "B": "A larger cross-sectional sample may improve precision but does not solve the causal limitation.",
-                "C": "Removing physiological measurement would reduce measurement breadth and not improve causality.",
+                "C": "This is correct. Random assignment and pre-post measurement strengthen causal inference.",
                 "D": "Recruiting only daily users restricts the sample and prevents evaluating changes in access for nonusers."
             },
             "testedTopicIds": ["ps_stress", "ps_social_class"],
@@ -1684,7 +1684,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Serving as a cue that helps orient attention before the target appears"
+                    "text": "Preventing the target from entering sensory memory"
                 },
                 {
                     "id": "B",
@@ -1696,16 +1696,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Preventing the target from entering sensory memory"
+                    "text": "Serving as a cue that helps orient attention before the target appears"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "A reliable warning cue can orient attention and prepare a response, reducing reaction time. It does not improve performance by raising the detection threshold or preventing sensory encoding.",
             "choiceExplanations": {
-                "A": "This is correct. A predictive cue can improve attentional readiness.",
+                "A": "Preventing sensory memory would impair detection, not improve reaction time.",
                 "B": "Increasing an absolute threshold would make detection harder, not faster.",
                 "C": "The stem does not involve sustained stimulation or adaptation.",
-                "D": "Preventing sensory memory would impair detection, not improve reaction time."
+                "D": "This is correct. A predictive cue can improve attentional readiness."
             },
             "testedTopicIds": ["ps_cognition", "ps_sensory_processing"],
             "testedSkillIds": ["sirs_2"],
@@ -1727,7 +1727,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Negative reinforcement"
+                    "text": "Habituation"
                 },
                 {
                     "id": "B",
@@ -1735,19 +1735,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Habituation"
+                    "text": "Negative reinforcement"
                 },
                 {
                     "id": "D",
                     "text": "Latent inhibition"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Avoidance is strengthened because it removes or reduces anxiety, which is an aversive state. This is negative reinforcement because behavior increases when something unpleasant is removed.",
             "choiceExplanations": {
-                "A": "This is correct. Taking the stairs is reinforced by relief from anxiety.",
+                "A": "Habituation would involve reduced response after repeated exposure; avoidance prevents such exposure.",
                 "B": "Positive punishment would add an unpleasant consequence to decrease behavior, which is not described.",
-                "C": "Habituation would involve reduced response after repeated exposure; avoidance prevents such exposure.",
+                "C": "This is correct. Taking the stairs is reinforced by relief from anxiety.",
                 "D": "Latent inhibition refers to slower conditioning to a familiar stimulus, not maintenance of avoidance through relief."
             },
             "testedTopicIds": [
@@ -1773,11 +1773,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Retroactive interference"
+                    "text": "Proactive interference"
                 },
                 {
                     "id": "B",
-                    "text": "Proactive interference"
+                    "text": "Retroactive interference"
                 },
                 {
                     "id": "C",
@@ -1788,11 +1788,11 @@
                     "text": "Priming"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Retroactive interference occurs when newly learned information interferes with retrieval of previously learned information. The second list reduces later memory for the first list.",
             "choiceExplanations": {
-                "A": "This is correct. New learning interferes with old learning.",
-                "B": "Proactive interference occurs when old learning interferes with new learning, the reverse direction.",
+                "A": "Proactive interference occurs when old learning interferes with new learning, the reverse direction.",
+                "B": "This is correct. New learning interferes with old learning.",
                 "C": "Iconic memory is brief visual sensory memory and does not explain list interference.",
                 "D": "Priming is facilitated processing due to prior exposure, not impaired recall due to similar later material."
             },
@@ -1816,11 +1816,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "How do patients and clinicians negotiate the meaning of the label \"noncompliant\" during clinical conversations?"
+                    "text": "How do national income distributions predict mortality across countries?"
                 },
                 {
                     "id": "B",
-                    "text": "How do national income distributions predict mortality across countries?"
+                    "text": "How do patients and clinicians negotiate the meaning of the label \"noncompliant\" during clinical conversations?"
                 },
                 {
                     "id": "C",
@@ -1831,11 +1831,11 @@
                     "text": "How does random assignment reduce selection bias in experiments?"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Symbolic interactionism focuses on how people create, interpret, and negotiate meaning through social interaction. The meaning of a label in clinician-patient interaction is a strong fit.",
             "choiceExplanations": {
-                "A": "This is correct. It examines meaning-making in interaction.",
-                "B": "This is a macrosociological question about population-level inequality and health.",
+                "A": "This is a macrosociological question about population-level inequality and health.",
+                "B": "This is correct. It examines meaning-making in interaction.",
                 "C": "This is a biological question about hormone signaling, not social meaning.",
                 "D": "This is a methods question about study design rather than symbolic interaction."
             },
@@ -1905,11 +1905,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Conditioned stimulus"
+                    "text": "Unconditioned response"
                 },
                 {
                     "id": "B",
-                    "text": "Unconditioned response"
+                    "text": "Conditioned stimulus"
                 },
                 {
                     "id": "C",
@@ -1920,11 +1920,11 @@
                     "text": "Extinction stimulus"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Tone A was initially neutral but was repeatedly presented before an unpleasant burst of white noise. Through pairing, Tone A became a conditioned stimulus capable of producing increased autonomic arousal.",
             "choiceExplanations": {
-                "A": "This is correct. Tone A acquired predictive value through pairing with the white noise.",
-                "B": "The unconditioned response would be the natural arousal response to the unpleasant white noise, not Tone A.",
+                "A": "The unconditioned response would be the natural arousal response to the unpleasant white noise, not Tone A.",
+                "B": "This is correct. Tone A acquired predictive value through pairing with the white noise.",
                 "C": "A negative reinforcer strengthens behavior by removing an aversive stimulus; Tone A is a cue, not a removed consequence.",
                 "D": "Extinction is a process in which the conditioned stimulus is presented without the unconditioned stimulus, not the label for Tone A during acquisition."
             },
@@ -1951,7 +1951,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Late acquisition response was higher to Tone A than to Tone B."
+                    "text": "Tone B was presented equally often as Tone A."
                 },
                 {
                     "id": "B",
@@ -1963,16 +1963,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Tone B was presented equally often as Tone A."
+                    "text": "Late acquisition response was higher to Tone A than to Tone B."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Conditioning is shown by a larger response to the stimulus paired with the unpleasant white noise than to the unpaired control stimulus. Tone A produced a mean response of 0.78, compared with 0.22 for Tone B during late acquisition.",
             "choiceExplanations": {
-                "A": "This is correct. A higher response to the paired tone than the unpaired tone indicates learned association.",
+                "A": "Equal presentation frequency is a useful control, but it is a design feature rather than the observed evidence of conditioning.",
                 "B": "A low response to Tone B during extinction does not by itself demonstrate acquisition.",
                 "C": "This relates more to generalization and reduced responding after extinction than to acquisition itself.",
-                "D": "Equal presentation frequency is a useful control, but it is a design feature rather than the observed evidence of conditioning."
+                "D": "This is correct. A higher response to the paired tone than the unpaired tone indicates learned association."
             },
             "testedTopicIds": [
                 "ps_associative_learning",
@@ -1997,7 +1997,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Stimulus generalization"
+                    "text": "Retroactive interference"
                 },
                 {
                     "id": "B",
@@ -2009,16 +2009,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Retroactive interference"
+                    "text": "Stimulus generalization"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Tone C was similar to Tone A and produced an elevated skin conductance response relative to Tone B. Responding to a stimulus similar to the conditioned stimulus is stimulus generalization.",
             "choiceExplanations": {
-                "A": "This is correct. Tone C resembles Tone A and evokes a conditioned-like response.",
+                "A": "Retroactive interference concerns new learning impairing old memory, not generalization of conditioned responses.",
                 "B": "Negative punishment involves removing a desirable consequence to reduce behavior, not responding to a similar sensory cue.",
                 "C": "Conservation is a cognitive-developmental concept unrelated to conditioned arousal.",
-                "D": "Retroactive interference concerns new learning impairing old memory, not generalization of conditioned responses."
+                "D": "This is correct. Tone C resembles Tone A and evokes a conditioned-like response."
             },
             "testedTopicIds": [
                 "ps_associative_learning",
@@ -2043,7 +2043,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Autonomic nervous system arousal"
+                    "text": "Photoreceptor adaptation"
                 },
                 {
                     "id": "B",
@@ -2055,16 +2055,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Photoreceptor adaptation"
+                    "text": "Autonomic nervous system arousal"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Skin conductance is commonly used as an index of autonomic arousal because sweat gland activity changes electrical conductance at the skin. It is not primarily a measure of voluntary movement or visual receptor adaptation.",
             "choiceExplanations": {
-                "A": "This is correct. Skin conductance reflects autonomic arousal, especially sympathetic activity.",
+                "A": "Photoreceptor adaptation occurs in the visual system and is unrelated to the skin conductance measure.",
                 "B": "Skeletal muscle contraction is measured more directly by motor behavior or electromyography, not skin conductance.",
                 "C": "Declarative memory storage is not directly measured by skin conductance.",
-                "D": "Photoreceptor adaptation occurs in the visual system and is unrelated to the skin conductance measure."
+                "D": "This is correct. Skin conductance reflects autonomic arousal, especially sympathetic activity."
             },
             "testedTopicIds": ["ps_biological_bases_of_behavior", "ps_stress"],
             "testedSkillIds": ["sirs_1"],
@@ -2129,11 +2129,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Randomly assign interested participants to app access or a comparison condition."
+                    "text": "Advertise the study using brighter colors."
                 },
                 {
                     "id": "B",
-                    "text": "Advertise the study using brighter colors."
+                    "text": "Randomly assign interested participants to app access or a comparison condition."
                 },
                 {
                     "id": "C",
@@ -2144,11 +2144,11 @@
                     "text": "Exclude all participants who report high baseline stress."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Selection bias is likely if app users differ systematically from nonusers before the intervention. Random assignment to app access or comparison condition helps create more equivalent groups.",
             "choiceExplanations": {
-                "A": "This is correct. Random assignment directly addresses preexisting group differences.",
-                "B": "Advertising design does not address whether app users differ from nonusers.",
+                "A": "Advertising design does not address whether app users differ from nonusers.",
+                "B": "This is correct. Random assignment directly addresses preexisting group differences.",
                 "C": "Measuring only after app use prevents evaluating baseline differences and change over time.",
                 "D": "Excluding high-stress participants reduces generalizability and does not solve selection bias among remaining participants."
             },
@@ -2172,7 +2172,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Procedural memory"
+                    "text": "Semantic memory"
                 },
                 {
                     "id": "B",
@@ -2180,19 +2180,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Semantic memory"
+                    "text": "Procedural memory"
                 },
                 {
                     "id": "D",
                     "text": "Echoic memory"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Procedural memory stores skills and habits, such as riding a bicycle. Remembering the teacher's name would involve declarative memory rather than the motor skill itself.",
             "choiceExplanations": {
-                "A": "This is correct. Bicycle riding is a learned motor skill.",
+                "A": "Semantic memory concerns facts and general knowledge, not a motor skill.",
                 "B": "Episodic memory concerns personal events and experiences, such as a specific lesson.",
-                "C": "Semantic memory concerns facts and general knowledge, not a motor skill.",
+                "C": "This is correct. Bicycle riding is a learned motor skill.",
                 "D": "Echoic memory is brief auditory sensory memory."
             },
             "testedTopicIds": ["ps_memory", "ps_biological_bases_of_behavior"],
@@ -2350,11 +2350,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Students were randomly assigned to the writing prompt conditions."
+                    "text": "Students completed a difficult reasoning task."
                 },
                 {
                     "id": "B",
-                    "text": "Students completed a difficult reasoning task."
+                    "text": "Students were randomly assigned to the writing prompt conditions."
                 },
                 {
                     "id": "C",
@@ -2365,11 +2365,11 @@
                     "text": "Students rated willingness on a 1 to 7 scale."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Random assignment helps make the groups comparable before the manipulation, supporting a causal interpretation of differences after feedback. The other features describe the task, sample, or measurement scale but do not support causality as directly.",
             "choiceExplanations": {
-                "A": "This is correct. Random assignment is the key causal design feature.",
-                "B": "The difficult task helps create a feedback situation but does not control preexisting group differences.",
+                "A": "The difficult task helps create a feedback situation but does not control preexisting group differences.",
+                "B": "This is correct. Random assignment is the key causal design feature.",
                 "C": "The sample describes who participated, not whether the prompt caused rating differences.",
                 "D": "A rating scale measures an outcome but does not establish causality."
             },
@@ -2436,7 +2436,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Social identity"
+                    "text": "HPA-axis negative feedback"
                 },
                 {
                     "id": "B",
@@ -2448,16 +2448,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "HPA-axis negative feedback"
+                    "text": "Social identity"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Social identity refers to the portion of self-concept derived from group memberships. Writing about how one's school group is viewed by another school group makes group membership salient.",
             "choiceExplanations": {
-                "A": "This is correct. The prompt explicitly concerns group membership and intergroup perception.",
+                "A": "HPA-axis feedback is a stress physiology mechanism, not the self-concept element manipulated by the prompt.",
                 "B": "A sensory threshold concerns stimulus detection, not self-concept.",
                 "C": "Procedural memory concerns learned skills and habits, not group-based self-definition.",
-                "D": "HPA-axis feedback is a stress physiology mechanism, not the self-concept element manipulated by the prompt."
+                "D": "This is correct. The prompt explicitly concerns group membership and intergroup perception."
             },
             "testedTopicIds": [
                 "ps_formation_of_identity",
@@ -2482,7 +2482,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "The writing prompt changed students' immediate reactions to standardized negative feedback in this study."
+                    "text": "Personal-values writing eliminates all stress responses to academic feedback."
                 },
                 {
                     "id": "B",
@@ -2490,19 +2490,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Personal-values writing eliminates all stress responses to academic feedback."
+                    "text": "The writing prompt changed students' immediate reactions to standardized negative feedback in this study."
                 },
                 {
                     "id": "D",
                     "text": "Group identity has no effect on cognition or motivation."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "The study measured immediate ratings after a specific prompt and feedback manipulation. The data support differences in immediate reactions, not permanent changes in ability or complete elimination of stress.",
             "choiceExplanations": {
-                "A": "This is correct. It stays close to the design and measured outcomes.",
+                "A": "The personal-values condition had lower threat than the comparison condition but did not eliminate all stress.",
                 "B": "The study measured expected performance, not actual permanent academic ability.",
-                "C": "The personal-values condition had lower threat than the comparison condition but did not eliminate all stress.",
+                "C": "This is correct. It stays close to the design and measured outcomes.",
                 "D": "The passage data suggest group identity salience may affect perceived threat and motivation-related ratings."
             },
             "testedTopicIds": [
@@ -2661,7 +2661,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Confirmation bias"
+                    "text": "The representativeness heuristic"
                 },
                 {
                     "id": "B",
@@ -2673,16 +2673,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "The representativeness heuristic"
+                    "text": "Confirmation bias"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Confirmation bias occurs when people preferentially seek, notice, or interpret evidence that supports an existing belief while discounting contrary evidence. The researcher selectively attends to transcript evidence that supports the hypothesis.",
             "choiceExplanations": {
-                "A": "This is correct. The researcher gives more weight to belief-consistent evidence.",
+                "A": "The representativeness heuristic involves judging category membership by similarity to a prototype.",
                 "B": "Functional fixedness is difficulty using an object in a novel way, not biased evidence evaluation.",
                 "C": "Belief perseverance refers to maintaining a belief after it has been discredited; the stem focuses on selective evidence processing.",
-                "D": "The representativeness heuristic involves judging category membership by similarity to a prototype."
+                "D": "This is correct. The researcher gives more weight to belief-consistent evidence."
             },
             "testedTopicIds": ["ps_cognition"],
             "testedSkillIds": ["sirs_2", "sirs_3"],
@@ -2704,7 +2704,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Obsessive-compulsive symptoms"
+                    "text": "Narcoleptic episodes"
                 },
                 {
                     "id": "B",
@@ -2716,16 +2716,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Narcoleptic episodes"
+                    "text": "Obsessive-compulsive symptoms"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Obsessions are intrusive, unwanted thoughts, and compulsions are repetitive behaviors performed to reduce distress. The vignette describes contamination obsessions and washing compulsions in a fictional educational context.",
             "choiceExplanations": {
-                "A": "This is correct. Intrusive contamination thoughts and repetitive washing align with obsessive-compulsive symptoms.",
+                "A": "Narcoleptic episodes involve sleep-wake disruption, not intrusive thoughts and compulsive rituals.",
                 "B": "Dissociative amnesia involves inability to recall important autobiographical information, not repetitive washing rituals.",
                 "C": "Antisocial traits involve disregard for others' rights and norms, which is not described.",
-                "D": "Narcoleptic episodes involve sleep-wake disruption, not intrusive thoughts and compulsive rituals."
+                "D": "This is correct. Intrusive contamination thoughts and repetitive washing align with obsessive-compulsive symptoms."
             },
             "testedTopicIds": ["ps_psychological_disorders"],
             "testedSkillIds": ["sirs_1"],
@@ -2747,7 +2747,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Sympathetic-adrenal-medullary activation"
+                    "text": "Thyroxine suppression by the auditory cortex"
                 },
                 {
                     "id": "B",
@@ -2759,16 +2759,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Thyroxine suppression by the auditory cortex"
+                    "text": "Sympathetic-adrenal-medullary activation"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Acute stress can activate the sympathetic nervous system and adrenal medulla, leading to rapid release of catecholamines such as epinephrine and norepinephrine. This supports immediate physiological arousal.",
             "choiceExplanations": {
-                "A": "This is correct. The adrenal medulla is part of the rapid sympathetic-adrenal-medullary stress response.",
+                "A": "The auditory cortex does not directly suppress thyroxine in the described pathway.",
                 "B": "Melatonin is involved in circadian regulation and is not the rapid catecholamine response described.",
                 "C": "Insulin regulates blood glucose after nutrient intake rather than mediating the startle response.",
-                "D": "The auditory cortex does not directly suppress thyroxine in the described pathway."
+                "D": "This is correct. The adrenal medulla is part of the rapid sympathetic-adrenal-medullary stress response."
             },
             "testedTopicIds": ["ps_stress", "ps_biological_bases_of_behavior"],
             "testedSkillIds": ["sirs_1"],
@@ -2833,7 +2833,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Multisensory integration"
+                    "text": "Negative symptoms of psychosis"
                 },
                 {
                     "id": "B",
@@ -2845,16 +2845,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Negative symptoms of psychosis"
+                    "text": "Multisensory integration"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Multisensory integration occurs when information from different sensory modalities combines to shape perception. Here, smell influenced taste-related judgments of the same beverage.",
             "choiceExplanations": {
-                "A": "This is correct. Olfactory context influenced gustatory perception.",
+                "A": "Negative symptoms of psychosis involve reductions in normal functioning, not odor-taste interaction.",
                 "B": "Operant extinction concerns decreased behavior after reinforcement is removed, which is not the perceptual process tested.",
                 "C": "Intergenerational mobility concerns class movement across generations and is unrelated to beverage perception.",
-                "D": "Negative symptoms of psychosis involve reductions in normal functioning, not odor-taste interaction."
+                "D": "This is correct. Olfactory context influenced gustatory perception."
             },
             "testedTopicIds": ["ps_sensory_processing"],
             "testedSkillIds": ["sirs_1", "sirs_2"],
@@ -2876,11 +2876,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Sensory adaptation"
+                    "text": "Long-term potentiation"
                 },
                 {
                     "id": "B",
-                    "text": "Long-term potentiation"
+                    "text": "Sensory adaptation"
                 },
                 {
                     "id": "C",
@@ -2891,11 +2891,11 @@
                     "text": "Role conflict"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "After continuous exposure to the lemon scent, participants needed a higher odor concentration to detect it. Reduced sensitivity after sustained stimulation is sensory adaptation.",
             "choiceExplanations": {
-                "A": "This is correct. Sustained exposure reduced sensitivity to that odor.",
-                "B": "Long-term potentiation is a neural mechanism related to synaptic strengthening, not the immediate threshold shift shown here.",
+                "A": "Long-term potentiation is a neural mechanism related to synaptic strengthening, not the immediate threshold shift shown here.",
+                "B": "This is correct. Sustained exposure reduced sensitivity to that odor.",
                 "C": "Social loafing involves reduced individual effort in groups, not odor detection.",
                 "D": "Role conflict involves incompatible demands from different social roles."
             },
@@ -2922,7 +2922,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "It reduced the likelihood that condition order alone explained the rating differences."
+                    "text": "It guaranteed that participants could not experience sensory adaptation."
                 },
                 {
                     "id": "B",
@@ -2934,16 +2934,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "It guaranteed that participants could not experience sensory adaptation."
+                    "text": "It reduced the likelihood that condition order alone explained the rating differences."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Counterbalancing distributes order effects across conditions. Because each participant experienced all scent conditions, counterbalancing helps prevent fatigue, practice, or carryover from being confounded with a specific scent condition.",
             "choiceExplanations": {
-                "A": "This is correct. Counterbalancing addresses order as an alternative explanation.",
+                "A": "Counterbalancing reduces order confounds but does not make adaptation impossible.",
                 "B": "The passage states that the same beverage was used across conditions.",
                 "C": "Participant ratings were still needed as dependent measures.",
-                "D": "Counterbalancing reduces order confounds but does not make adaptation impossible."
+                "D": "This is correct. Counterbalancing addresses order as an alternative explanation."
             },
             "testedTopicIds": ["ps_cognition", "ps_sensory_processing"],
             "testedSkillIds": ["sirs_3"],
@@ -2965,7 +2965,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Use a cover story that plausibly masks the purpose of the ambient scent manipulation."
+                    "text": "Present only the congruent lemon scent condition to all participants."
                 },
                 {
                     "id": "B",
@@ -2973,19 +2973,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Present only the congruent lemon scent condition to all participants."
+                    "text": "Use a cover story that plausibly masks the purpose of the ambient scent manipulation."
                 },
                 {
                     "id": "D",
                     "text": "Remove the no-scent comparison condition."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Demand characteristics occur when participants infer the study hypothesis and alter behavior accordingly. A plausible cover story or masking procedure would reduce the chance that participants intentionally adjust ratings to match perceived expectations.",
             "choiceExplanations": {
-                "A": "This is correct. Masking the study purpose can reduce hypothesis guessing.",
+                "A": "Using only one scent condition would eliminate key comparisons.",
                 "B": "This would increase demand characteristics by revealing the expected effect.",
-                "C": "Using only one scent condition would eliminate key comparisons.",
+                "C": "This is correct. Masking the study purpose can reduce hypothesis guessing.",
                 "D": "Removing the no-scent condition would weaken the design by eliminating a baseline comparison."
             },
             "testedTopicIds": ["ps_cognition", "ps_sensory_processing"],
@@ -3051,7 +3051,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Role conflict"
+                    "text": "Anomie"
                 },
                 {
                     "id": "B",
@@ -3063,16 +3063,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Anomie"
+                    "text": "Role conflict"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Role conflict occurs when expectations from different social roles are incompatible. The student role and family caregiver role impose conflicting demands at the same time.",
             "choiceExplanations": {
-                "A": "This is correct. The tension is between two distinct roles.",
+                "A": "Anomie refers to normlessness or weakened social regulation, not incompatible role expectations.",
                 "B": "Role strain occurs when demands within a single role are difficult to meet.",
                 "C": "Status consistency refers to alignment among social status indicators, such as income and education.",
-                "D": "Anomie refers to normlessness or weakened social regulation, not incompatible role expectations."
+                "D": "This is correct. The tension is between two distinct roles."
             },
             "testedTopicIds": [
                 "ps_formation_of_identity",
@@ -3097,11 +3097,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Transduction of mechanical sound vibrations into neural signals"
+                    "text": "Secretion of cortisol after social stress"
                 },
                 {
                     "id": "B",
-                    "text": "Secretion of cortisol after social stress"
+                    "text": "Transduction of mechanical sound vibrations into neural signals"
                 },
                 {
                     "id": "C",
@@ -3112,11 +3112,11 @@
                     "text": "Formation of class-based social networks"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Cochlear hair cells convert mechanical vibrations caused by sound into neural signals sent through the auditory pathway. Damage to these cells can impair hearing.",
             "choiceExplanations": {
-                "A": "This is correct. Cochlear hair cells are sensory receptors for auditory transduction.",
-                "B": "Cortisol secretion involves endocrine stress pathways rather than cochlear receptors.",
+                "A": "Cortisol secretion involves endocrine stress pathways rather than cochlear receptors.",
+                "B": "This is correct. Cochlear hair cells are sensory receptors for auditory transduction.",
                 "C": "Autobiographical event encoding involves memory systems, not cochlear hair cells.",
                 "D": "Class-based social networks are sociological phenomena rather than sensory transduction processes."
             },
@@ -3143,7 +3143,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Serial position effect"
+                    "text": "Habituation"
                 },
                 {
                     "id": "B",
@@ -3155,16 +3155,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Habituation"
+                    "text": "Serial position effect"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "The serial position effect refers to better recall of items at the beginning and end of a list. The beginning reflects a primacy component, and the end reflects a recency component.",
             "choiceExplanations": {
-                "A": "This is correct. The recall pattern favors early and late list items.",
+                "A": "Habituation is decreased response to repeated stimulation.",
                 "B": "Opponent-process theory explains aspects of color vision and some motivational states, not list-position memory patterns.",
                 "C": "Fundamental attribution error concerns explaining others' behavior by dispositions rather than situations.",
-                "D": "Habituation is decreased response to repeated stimulation."
+                "D": "This is correct. The recall pattern favors early and late list items."
             },
             "testedTopicIds": ["ps_memory"],
             "testedSkillIds": ["sirs_1", "sirs_2"],
@@ -3186,7 +3186,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Functional fixedness"
+                    "text": "Out-group homogeneity"
                 },
                 {
                     "id": "B",
@@ -3198,16 +3198,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Out-group homogeneity"
+                    "text": "Functional fixedness"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Functional fixedness is a cognitive bias that limits problem solving by making it difficult to see objects as having uses beyond their typical functions.",
             "choiceExplanations": {
-                "A": "This is correct. The participant is constrained by the object's usual function.",
+                "A": "Out-group homogeneity involves perceiving members of another group as more similar to one another.",
                 "B": "Divided attention concerns processing multiple tasks or stimuli at once, not generating alternate object uses.",
                 "C": "Sensory accommodation is not the relevant problem-solving concept here.",
-                "D": "Out-group homogeneity involves perceiving members of another group as more similar to one another."
+                "D": "This is correct. The participant is constrained by the object's usual function."
             },
             "testedTopicIds": ["ps_cognition"],
             "testedSkillIds": ["sirs_2"],
@@ -3229,7 +3229,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Challenge framing was associated with lower cortisol increase and better working-memory accuracy than threat framing during the same speech task."
+                    "text": "The private-reading group experienced the strongest stress response."
                 },
                 {
                     "id": "B",
@@ -3237,19 +3237,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "The private-reading group experienced the strongest stress response."
+                    "text": "Challenge framing was associated with lower cortisol increase and better working-memory accuracy than threat framing during the same speech task."
                 },
                 {
                     "id": "D",
                     "text": "Threat and challenge framing produced identical perceived control ratings."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "The challenge and threat groups completed the same speech task but differed in framing. Compared with threat framing, challenge framing showed lower cortisol increase, higher perceived control, and higher working-memory accuracy, while heart rate still increased substantially.",
             "choiceExplanations": {
-                "A": "This is correct. The table supports a difference between challenge and threat framing on cortisol and working memory.",
+                "A": "The private-reading group had the lowest physiological changes.",
                 "B": "The challenge group still showed a 16 beats/min heart rate increase and a cortisol increase.",
-                "C": "The private-reading group had the lowest physiological changes.",
+                "C": "This is correct. The table supports a difference between challenge and threat framing on cortisol and working memory.",
                 "D": "Perceived control was higher in the challenge group than in the threat group."
             },
             "testedTopicIds": ["ps_stress", "ps_cognition"],
@@ -3272,7 +3272,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Whether their resources could help them meet the task demands"
+                    "text": "Whether social class is inherited genetically"
                 },
                 {
                     "id": "B",
@@ -3284,16 +3284,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Whether social class is inherited genetically"
+                    "text": "Whether their resources could help them meet the task demands"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Stress appraisal involves evaluating a situation's demands and one's resources for coping with those demands. The challenge statement reframed arousal as potentially useful, increasing perceived control and resource appraisal.",
             "choiceExplanations": {
-                "A": "This is correct. Challenge appraisal emphasizes the possibility that available resources can meet demands.",
+                "A": "The passage does not concern genetic inheritance of class.",
                 "B": "The framing did not manipulate auditory transduction.",
                 "C": "No reinforcement schedule was used in the speech task.",
-                "D": "The passage does not concern genetic inheritance of class."
+                "D": "This is correct. Challenge appraisal emphasizes the possibility that available resources can meet demands."
             },
             "testedTopicIds": ["ps_stress", "ps_cognition"],
             "testedSkillIds": ["sirs_1", "sirs_2"],
@@ -3315,7 +3315,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Participants were randomly assigned to the three groups."
+                    "text": "Heart rate was reported in beats per minute."
                 },
                 {
                     "id": "B",
@@ -3327,16 +3327,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Heart rate was reported in beats per minute."
+                    "text": "Participants were randomly assigned to the three groups."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Random assignment helps distribute preexisting differences across conditions, strengthening the claim that differences in outcomes were caused by the task and framing manipulations.",
             "choiceExplanations": {
-                "A": "This is correct. Random assignment is the key design feature for causal inference.",
+                "A": "Measurement units do not address causal inference.",
                 "B": "A neutral reading task provides a comparison condition but does not by itself ensure equivalent groups.",
                 "C": "Post-task measurement establishes timing but does not control selection differences as directly as random assignment.",
-                "D": "Measurement units do not address causal inference."
+                "D": "This is correct. Random assignment is the key design feature for causal inference."
             },
             "testedTopicIds": ["ps_stress", "ps_cognition"],
             "testedSkillIds": ["sirs_3"],
@@ -3358,7 +3358,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Across participants, lower perceived control statistically predicts lower working-memory accuracy even after accounting for task condition."
+                    "text": "The speech task lasts the same number of minutes in both evaluative groups."
                 },
                 {
                     "id": "B",
@@ -3370,16 +3370,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "The speech task lasts the same number of minutes in both evaluative groups."
+                    "text": "Across participants, lower perceived control statistically predicts lower working-memory accuracy even after accounting for task condition."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "If perceived control is part of the pathway linking threat framing to working-memory performance, then lower control should be associated with lower accuracy even when task condition is considered. This would support, though not prove by itself, a mediating role for perceived control.",
             "choiceExplanations": {
-                "A": "This is correct. It directly links the proposed psychological mediator to the cognitive outcome.",
+                "A": "Equal task duration is a procedural control but not evidence for the proposed mediator.",
                 "B": "This describes a physiological difference for the comparison group but does not test perceived control as an explanatory pathway.",
                 "C": "Instruction comprehension is useful but does not connect control appraisal to working memory.",
-                "D": "Equal task duration is a procedural control but not evidence for the proposed mediator."
+                "D": "This is correct. It directly links the proposed psychological mediator to the cognitive outcome."
             },
             "testedTopicIds": ["ps_stress", "ps_cognition"],
             "testedSkillIds": ["sirs_3", "sirs_2"],
@@ -3444,7 +3444,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Source monitoring error"
+                    "text": "Formal operational thought"
                 },
                 {
                     "id": "B",
@@ -3452,19 +3452,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Formal operational thought"
+                    "text": "Source monitoring error"
                 },
                 {
                     "id": "D",
                     "text": "Negative reinforcement"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Source monitoring involves identifying where a memory came from. Misattributing a fact learned from reading to a conversation with a friend is a source monitoring error.",
             "choiceExplanations": {
-                "A": "This is correct. The content is remembered, but the source is misidentified.",
+                "A": "Formal operational thought involves abstract reasoning, not source attribution.",
                 "B": "Sensory adaptation is reduced responsiveness after sustained stimulation.",
-                "C": "Formal operational thought involves abstract reasoning, not source attribution.",
+                "C": "This is correct. The content is remembered, but the source is misidentified.",
                 "D": "Negative reinforcement strengthens behavior by removing an aversive stimulus."
             },
             "testedTopicIds": ["ps_memory", "ps_cognition"],
@@ -3487,7 +3487,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Learned helplessness"
+                    "text": "Observational modeling"
                 },
                 {
                     "id": "B",
@@ -3495,19 +3495,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Observational modeling"
+                    "text": "Learned helplessness"
                 },
                 {
                     "id": "D",
                     "text": "Latent learning in a maze"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Learned helplessness can occur when exposure to uncontrollable aversive events leads an organism to stop trying to avoid or escape even when control becomes possible.",
             "choiceExplanations": {
-                "A": "This is correct. Prior uncontrollability reduces later escape attempts.",
+                "A": "Observational modeling involves learning by watching another individual.",
                 "B": "Stimulus discrimination involves responding differently to distinct cues.",
-                "C": "Observational modeling involves learning by watching another individual.",
+                "C": "This is correct. Prior uncontrollability reduces later escape attempts.",
                 "D": "Latent learning refers to learning that is not immediately expressed until motivation or reinforcement changes."
             },
             "testedTopicIds": [
@@ -3534,7 +3534,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Social constructionism"
+                    "text": "Punishment generalization"
                 },
                 {
                     "id": "B",
@@ -3546,16 +3546,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Punishment generalization"
+                    "text": "Social constructionism"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Social constructionism emphasizes that categories and meanings are created and maintained through social processes. The idea that adulthood is defined differently across cultures and time periods fits this perspective.",
             "choiceExplanations": {
-                "A": "This is correct. The concept of adulthood is treated as socially defined rather than purely biological.",
+                "A": "Punishment generalization is not the concept described.",
                 "B": "Vestibular transduction concerns balance and motion sensation.",
                 "C": "Fixed action patterns are innate behavioral sequences and do not explain culturally variable meanings.",
-                "D": "Punishment generalization is not the concept described."
+                "D": "This is correct. The concept of adulthood is treated as socially defined rather than purely biological."
             },
             "testedTopicIds": [
                 "ps_formation_of_identity",
@@ -3580,7 +3580,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Dopamine"
+                    "text": "Oxytocin only"
                 },
                 {
                     "id": "B",
@@ -3592,16 +3592,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Oxytocin only"
+                    "text": "Dopamine"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Dopaminergic pathways from the midbrain to reward-related regions such as the nucleus accumbens are strongly involved in reward prediction and reinforcement learning.",
             "choiceExplanations": {
-                "A": "This is correct. The mesolimbic dopamine system is central to reward processing.",
+                "A": "Oxytocin is associated with social bonding and other functions but is not the main midbrain-to-nucleus accumbens reward signal described.",
                 "B": "Melatonin is primarily associated with circadian rhythms.",
                 "C": "Histamine has roles in arousal and immune responses but is not the primary reward-prediction system described.",
-                "D": "Oxytocin is associated with social bonding and other functions but is not the main midbrain-to-nucleus accumbens reward signal described."
+                "D": "This is correct. The mesolimbic dopamine system is central to reward processing."
             },
             "testedTopicIds": [
                 "ps_biological_bases_of_behavior",
@@ -3626,7 +3626,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Problem-focused coping"
+                    "text": "Classical conditioning"
                 },
                 {
                     "id": "B",
@@ -3634,19 +3634,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Classical conditioning"
+                    "text": "Problem-focused coping"
                 },
                 {
                     "id": "D",
                     "text": "Identity diffusion"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Problem-focused coping attempts to change the stressor or one's practical relationship to it. Scheduling, requesting an extension, and breaking tasks into parts directly address the demands.",
             "choiceExplanations": {
-                "A": "This is correct. The student is taking actions to manage the source of stress.",
+                "A": "Classical conditioning involves associating stimuli, not planning around deadlines.",
                 "B": "Emotion-focused coping regulates emotional distress; the stem emphasizes practical changes to the stressor.",
-                "C": "Classical conditioning involves associating stimuli, not planning around deadlines.",
+                "C": "This is correct. The student is taking actions to manage the source of stress.",
                 "D": "Identity diffusion involves lack of exploration and commitment, not coping with deadlines."
             },
             "testedTopicIds": ["ps_stress", "ps_cognition"],
@@ -3669,11 +3669,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Workshop attendance was associated with higher four-week comprehension scores at all three centers, but resource differences across districts remained visible."
+                    "text": "The workshop fully eliminated baseline differences among districts."
                 },
                 {
                     "id": "B",
-                    "text": "The workshop fully eliminated baseline differences among districts."
+                    "text": "Workshop attendance was associated with higher four-week comprehension scores at all three centers, but resource differences across districts remained visible."
                 },
                 {
                     "id": "C",
@@ -3684,11 +3684,11 @@
                     "text": "Broadband access was identical across the three districts."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Workshop attendees had higher four-week scores than nonattendees in every district. However, the professional-class district still had the highest scores and greatest broadband access, showing persistent resource differences.",
             "choiceExplanations": {
-                "A": "This is correct. The table supports both workshop-associated gains and continuing district differences.",
-                "B": "Four-week scores still differed by district, so baseline differences were not fully eliminated.",
+                "A": "Four-week scores still differed by district, so baseline differences were not fully eliminated.",
+                "B": "This is correct. The table supports both workshop-associated gains and continuing district differences.",
                 "C": "Working-class nonattendees scored 60, whereas professional-class attendees scored 82.",
                 "D": "Broadband access ranged from 62% to 94%, so it was not identical."
             },
@@ -3712,7 +3712,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Participants chose whether to attend the workshop."
+                    "text": "The study included more than one education center."
                 },
                 {
                     "id": "B",
@@ -3720,19 +3720,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "The study included more than one education center."
+                    "text": "Participants chose whether to attend the workshop."
                 },
                 {
                     "id": "D",
                     "text": "The researchers measured broadband access."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Because attendance was optional, attendees may have differed from nonattendees in motivation, time availability, baseline skills, or access to resources. This selection issue limits causal inference.",
             "choiceExplanations": {
-                "A": "This is correct. Self-selection into attendance creates a plausible confound.",
+                "A": "Including multiple centers can improve external relevance and does not itself weaken causality.",
                 "B": "A 100-point scale is a measurement format, not the key causal limitation.",
-                "C": "Including multiple centers can improve external relevance and does not itself weaken causality.",
+                "C": "This is correct. Self-selection into attendance creates a plausible confound.",
                 "D": "Measuring broadband access provides contextual information and does not create the main causal limitation."
             },
             "testedTopicIds": ["ps_social_class", "ps_cognition"],
@@ -3798,11 +3798,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "The workshop helps an institution teach skills that support informed participation in social systems."
+                    "text": "The workshop matters only because all health categories are meaningless."
                 },
                 {
                     "id": "B",
-                    "text": "The workshop matters only because all health categories are meaningless."
+                    "text": "The workshop helps an institution teach skills that support informed participation in social systems."
                 },
                 {
                     "id": "C",
@@ -3813,11 +3813,11 @@
                     "text": "The workshop is unrelated to any social institution."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Functionalism emphasizes how social institutions contribute to social stability and functioning. An adult education center teaching health-information skills can be interpreted as helping individuals participate effectively in health and civic systems.",
             "choiceExplanations": {
-                "A": "This is correct. It frames the institution as serving a social function.",
-                "B": "Functionalism does not claim that categories are meaningless.",
+                "A": "Functionalism does not claim that categories are meaningless.",
+                "B": "This is correct. It frames the institution as serving a social function.",
                 "C": "The passage shows resource differences across districts, so this claim is not supported.",
                 "D": "Adult education centers are social institutions, and the workshop is institutional activity."
             },
@@ -3884,11 +3884,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Retinal disparity"
+                    "text": "Weber fraction"
                 },
                 {
                     "id": "B",
-                    "text": "Weber fraction"
+                    "text": "Retinal disparity"
                 },
                 {
                     "id": "C",
@@ -3899,11 +3899,11 @@
                     "text": "Auditory shadowing"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Retinal disparity is a binocular depth cue created by the slightly different images projected onto the two retinas. The visual system uses this difference to infer depth.",
             "choiceExplanations": {
-                "A": "This is correct. It describes a binocular cue based on differences between the two retinal images.",
-                "B": "A Weber fraction concerns the proportional change needed to detect a stimulus difference.",
+                "A": "A Weber fraction concerns the proportional change needed to detect a stimulus difference.",
+                "B": "This is correct. It describes a binocular cue based on differences between the two retinal images.",
                 "C": "Olfactory adaptation concerns reduced smell sensitivity after sustained odor exposure.",
                 "D": "Auditory shadowing is an attention task involving repeated speech input, not binocular depth perception."
             },
@@ -3927,7 +3927,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "An algorithm"
+                    "text": "Social facilitation"
                 },
                 {
                     "id": "B",
@@ -3939,16 +3939,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Social facilitation"
+                    "text": "An algorithm"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "An algorithm is a systematic, step-by-step procedure that can guarantee a solution if applied correctly. Testing every possible arrangement is algorithmic problem solving.",
             "choiceExplanations": {
-                "A": "This is correct. The strategy is exhaustive and rule-based.",
+                "A": "Social facilitation concerns performance changes due to the presence of others.",
                 "B": "A heuristic is a mental shortcut that may be efficient but does not guarantee a solution.",
                 "C": "Sensitization is increased response after repeated or intense stimulation.",
-                "D": "Social facilitation concerns performance changes due to the presence of others."
+                "D": "This is correct. The strategy is exhaustive and rule-based."
             },
             "testedTopicIds": ["ps_cognition"],
             "testedSkillIds": ["sirs_1", "sirs_2"],
@@ -3970,7 +3970,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Negative symptoms"
+                    "text": "Panic symptoms"
                 },
                 {
                     "id": "B",
@@ -3978,19 +3978,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Panic symptoms"
+                    "text": "Negative symptoms"
                 },
                 {
                     "id": "D",
                     "text": "Somatic reflexes"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Negative symptoms involve reductions or losses of typical functions, such as reduced emotional expression, reduced speech, and decreased motivation. The vignette is educational and not a diagnosis.",
             "choiceExplanations": {
-                "A": "This is correct. The symptoms reflect diminished normal functioning.",
+                "A": "Panic symptoms involve sudden episodes of intense fear with physiological arousal.",
                 "B": "Manic symptoms typically involve elevated or irritable mood, increased energy, and decreased need for sleep.",
-                "C": "Panic symptoms involve sudden episodes of intense fear with physiological arousal.",
+                "C": "This is correct. The symptoms reflect diminished normal functioning.",
                 "D": "Somatic reflexes are automatic motor responses, not a psychiatric symptom category."
             },
             "testedTopicIds": ["ps_psychological_disorders"],
@@ -4013,7 +4013,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Structural downward mobility"
+                    "text": "Exchange mobility with no class change"
                 },
                 {
                     "id": "B",
@@ -4021,19 +4021,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Exchange mobility with no class change"
+                    "text": "Structural downward mobility"
                 },
                 {
                     "id": "D",
                     "text": "Primary socialization only"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "Structural mobility occurs when broader economic or social changes shift many people's class positions. A recession causing widespread movement into lower-paying temporary work is structural downward mobility.",
             "choiceExplanations": {
-                "A": "This is correct. The cause is a broad economic change and the direction is downward.",
+                "A": "Exchange mobility involves individuals trading places in the hierarchy without changing the overall distribution.",
                 "B": "Meritocratic upward mobility would involve rising status through achievement, not recession-driven decline.",
-                "C": "Exchange mobility involves individuals trading places in the hierarchy without changing the overall distribution.",
+                "C": "This is correct. The cause is a broad economic change and the direction is downward.",
                 "D": "Primary socialization occurs early in life through family and close caregivers."
             },
             "testedTopicIds": ["ps_social_class"],
@@ -4188,7 +4188,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Behavior reinforced on variable schedules is often more resistant to extinction than behavior reinforced on predictable schedules."
+                    "text": "Reinforcement schedules affect only reflexes, not voluntary behavior."
                 },
                 {
                     "id": "B",
@@ -4196,19 +4196,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Reinforcement schedules affect only reflexes, not voluntary behavior."
+                    "text": "Behavior reinforced on variable schedules is often more resistant to extinction than behavior reinforced on predictable schedules."
                 },
                 {
                     "id": "D",
                     "text": "Removing rewards always increases the reinforced behavior."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "The variable-ratio condition declined less after reward removal than the fixed-ratio condition. Variable schedules can produce persistent responding because the absence of immediate reward is less clearly informative that reinforcement has ended.",
             "choiceExplanations": {
-                "A": "This is correct. The table shows greater persistence after a variable-ratio schedule.",
+                "A": "Operant reinforcement schedules can affect voluntary behavior such as recycling choices.",
                 "B": "The table shows the opposite pattern during reward removal.",
-                "C": "Operant reinforcement schedules can affect voluntary behavior such as recycling choices.",
+                "C": "This is correct. The table shows greater persistence after a variable-ratio schedule.",
                 "D": "Removing rewards usually decreases reinforced behavior, although the degree of decrease can vary."
             },
             "testedTopicIds": ["ps_associative_learning"],
@@ -4231,7 +4231,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Percentage of items correctly sorted"
+                    "text": "The presence of dormitory kitchens"
                 },
                 {
                     "id": "B",
@@ -4239,19 +4239,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "The presence of dormitory kitchens"
+                    "text": "Percentage of items correctly sorted"
                 },
                 {
                     "id": "D",
                     "text": "The number of possible answer choices on a survey"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "The dependent variable is the measured outcome. The table reports recycling accuracy as the percentage of items correctly sorted across time and conditions.",
             "choiceExplanations": {
-                "A": "This is correct. Recycling accuracy is the outcome measured.",
+                "A": "Dormitory kitchens are part of the setting, not the measured behavioral outcome.",
                 "B": "Condition assignment is an independent variable manipulated by the researchers.",
-                "C": "Dormitory kitchens are part of the setting, not the measured behavioral outcome.",
+                "C": "This is correct. Recycling accuracy is the outcome measured.",
                 "D": "The passage does not describe a survey-answer-choice measure as the primary outcome."
             },
             "testedTopicIds": ["ps_associative_learning"],
@@ -4320,11 +4320,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Fundamental attribution error"
+                    "text": "Latent inhibition"
                 },
                 {
                     "id": "B",
-                    "text": "Latent inhibition"
+                    "text": "Fundamental attribution error"
                 },
                 {
                     "id": "C",
@@ -4335,11 +4335,11 @@
                     "text": "Iconic storage"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "Fundamental attribution error involves overemphasizing dispositional explanations for others' behavior while underemphasizing situational factors. The teacher attributes quietness to disinterest rather than the family emergency.",
             "choiceExplanations": {
-                "A": "This is correct. The teacher overweights a dispositional explanation and underweights the situation.",
-                "B": "Latent inhibition is slower conditioning to a familiar stimulus previously experienced without consequence.",
+                "A": "Latent inhibition is slower conditioning to a familiar stimulus previously experienced without consequence.",
+                "B": "This is correct. The teacher overweights a dispositional explanation and underweights the situation.",
                 "C": "Absolute poverty refers to lacking basic resources for survival.",
                 "D": "Iconic storage is brief visual sensory memory."
             },
@@ -4495,7 +4495,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Debrief participants about the deception and the study purpose."
+                    "text": "Publish participants' names to improve transparency."
                 },
                 {
                     "id": "B",
@@ -4503,19 +4503,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "Publish participants' names to improve transparency."
+                    "text": "Debrief participants about the deception and the study purpose."
                 },
                 {
                     "id": "D",
                     "text": "Prevent participants from withdrawing their data."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "When deception is used in human-subjects research, participants should generally be debriefed afterward, including an explanation of the deception and study purpose, while protecting confidentiality and autonomy.",
             "choiceExplanations": {
-                "A": "This is correct. Debriefing is central when deception is ethically permitted.",
+                "A": "Publishing names would breach confidentiality.",
                 "B": "Permanently withholding the deception would violate ethical expectations for debriefing.",
-                "C": "Publishing names would breach confidentiality.",
+                "C": "This is correct. Debriefing is central when deception is ethically permitted.",
                 "D": "Participants' rights and autonomy should be respected within the approved research protocol."
             },
             "testedTopicIds": ["ps_stress", "ps_theoretical_approaches"],
@@ -4538,7 +4538,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "The danger-focused message produced the highest recognition rate but also the highest stigma and lowest willingness to recommend help-seeking."
+                    "text": "The neutral message produced the highest willingness to recommend help-seeking."
                 },
                 {
                     "id": "B",
@@ -4546,19 +4546,19 @@
                 },
                 {
                     "id": "C",
-                    "text": "The neutral message produced the highest willingness to recommend help-seeking."
+                    "text": "The danger-focused message produced the highest recognition rate but also the highest stigma and lowest willingness to recommend help-seeking."
                 },
                 {
                     "id": "D",
                     "text": "All messages had identical effects on stigma."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "C",
             "explanation": "The danger-focused message had 80% recognition, the highest of all groups, but it also had the highest stigma rating, 5.2, and the lowest help-seeking willingness, 3.1.",
             "choiceExplanations": {
-                "A": "This is correct. It captures the tradeoff shown in the table.",
+                "A": "The neutral message had willingness of 3.9, lower than the biological and coping-continuum messages.",
                 "B": "The coping-continuum message had the lowest stigma rating, 2.7.",
-                "C": "The neutral message had willingness of 3.9, lower than the biological and coping-continuum messages.",
+                "C": "This is correct. It captures the tradeoff shown in the table.",
                 "D": "Stigma ratings varied substantially across conditions."
             },
             "testedTopicIds": ["ps_psychological_disorders", "ps_stress"],
@@ -4581,7 +4581,7 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Applying stigmatizing labels can shape social reactions to the person described in the vignette."
+                    "text": "Help-seeking ratings are unrelated to social meaning."
                 },
                 {
                     "id": "B",
@@ -4593,16 +4593,16 @@
                 },
                 {
                     "id": "D",
-                    "text": "Help-seeking ratings are unrelated to social meaning."
+                    "text": "Applying stigmatizing labels can shape social reactions to the person described in the vignette."
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "D",
             "explanation": "Labeling theory examines how labels and social reactions can influence identity, stigma, and treatment by others. The danger-focused message may increase stigmatizing interpretations of the vignette.",
             "choiceExplanations": {
-                "A": "This is correct. It focuses on how labels affect social responses.",
+                "A": "Help-seeking attitudes can be strongly shaped by social meaning and stigma.",
                 "B": "The vignette concerns psychological distress, not a retinal mechanism.",
                 "C": "Random assignment improves causal inference but does not eliminate all measurement error.",
-                "D": "Help-seeking attitudes can be strongly shaped by social meaning and stigma."
+                "D": "This is correct. It focuses on how labels affect social responses."
             },
             "testedTopicIds": [
                 "ps_theoretical_approaches",
@@ -4628,11 +4628,11 @@
             "choices": [
                 {
                     "id": "A",
-                    "text": "Panic disorder"
+                    "text": "Specific learning disorder"
                 },
                 {
                     "id": "B",
-                    "text": "Specific learning disorder"
+                    "text": "Panic disorder"
                 },
                 {
                     "id": "C",
@@ -4643,11 +4643,11 @@
                     "text": "A circadian rhythm sleep-wake disorder only"
                 }
             ],
-            "correctChoiceId": "A",
+            "correctChoiceId": "B",
             "explanation": "The vignette describes recurrent sudden fear episodes with physiological arousal and worry about future episodes, which is broadly consistent with panic-related symptoms. The passage is educational and does not diagnose any real person.",
             "choiceExplanations": {
-                "A": "This is correct. The symptom pattern is most consistent with panic-related symptoms.",
-                "B": "Specific learning disorder concerns difficulties in academic skills such as reading or mathematics.",
+                "A": "Specific learning disorder concerns difficulties in academic skills such as reading or mathematics.",
+                "B": "This is correct. The symptom pattern is most consistent with panic-related symptoms.",
                 "C": "Dissociative fugue involves unexpected travel or wandering with autobiographical memory disruption.",
                 "D": "Circadian rhythm sleep-wake disorders concern misalignment of sleep timing, not sudden fear episodes with autonomic arousal."
             },
