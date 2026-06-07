@@ -1,4 +1,5 @@
 import { QUESTION_BANK_PROVIDER_ID } from "../data/bank/catalog.js";
+import { MISTAKE_TYPES, normalizeMistakeTypeIds } from "../data/mistakes.js";
 import { SECTIONS, TOPICS } from "../data/taxonomy.js";
 import { computeMastery } from "./mastery.js";
 
@@ -134,6 +135,8 @@ const normalizeAttempt = (attempt, sessionIndex) => {
     const startedAtMs = dateMs(attempt.startedAt, dateMs(session?.createdAt, answeredAtMs));
     const elapsedMs = safeNumber(attempt.elapsedMs, answeredAtMs && startedAtMs ? answeredAtMs - startedAtMs : 0);
     const targetTimeMs = getTargetTimeMs({ sectionId, timingMode, config, attempt });
+    const isCorrect = Boolean(attempt.isCorrect);
+    const mistakeTypeIds = isCorrect ? [] : normalizeMistakeTypeIds(attempt.mistakeTypeIds);
     return {
         ...attempt,
         sectionId,
@@ -143,7 +146,8 @@ const normalizeAttempt = (attempt, sessionIndex) => {
         timingMode,
         reviewMode,
         isTimed: timingMode === "timed",
-        isCorrect: Boolean(attempt.isCorrect),
+        isCorrect,
+        mistakeTypeIds,
         confidence: typeof attempt.confidence === "number" ? attempt.confidence : null,
         answeredAtMs,
         answeredAt: toIsoOrNull(attempt.answeredAt) ?? toIsoOrNull(answeredAtMs),
@@ -364,6 +368,48 @@ const buildTopicSkillMatrix = (pairs) => {
             totalWeightedAttempts: round(row.totalWeightedAttempts, 0.01),
             cells: row.cells.sort((a, b) => b.priorityScore - a.priorityScore || b.attempts - a.attempts)
         })).sort((a, b) => b.maxPriorityScore - a.maxPriorityScore || b.attempts - a.attempts)
+    };
+};
+
+const buildMistakeTypeAnalytics = (attempts) => {
+    const incorrectAttempts = attempts.filter((attempt) => !attempt.isCorrect);
+    const summariesById = new Map(MISTAKE_TYPES.map((type) => [type.id, { count: 0, elapsedCount: 0, elapsedTotalMs: 0, timeRatioCount: 0, timeRatioTotal: 0 }]));
+    let taggedIncorrectAttemptCount = 0;
+    let totalSelections = 0;
+    incorrectAttempts.forEach((attempt) => {
+        const ids = normalizeMistakeTypeIds(attempt.mistakeTypeIds);
+        if (ids.length) taggedIncorrectAttemptCount += 1;
+        ids.forEach((id) => {
+            const summary = summariesById.get(id);
+            if (!summary) return;
+            summary.count += 1;
+            totalSelections += 1;
+            if (Number.isFinite(attempt.elapsedMs)) { summary.elapsedCount += 1; summary.elapsedTotalMs += cb.stat.max([0, attempt.elapsedMs]); }
+            if (Number.isFinite(attempt.timeRatio)) { summary.timeRatioCount += 1; summary.timeRatioTotal += cb.stat.max([0, attempt.timeRatio]); }
+        });
+    });
+    const incorrectAttemptCount = incorrectAttempts.length;
+    const rows = MISTAKE_TYPES.map((type, index) => {
+        const summary = summariesById.get(type.id) ?? {};
+        const count = summary.count ?? 0;
+        return {
+            id: type.id,
+            label: type.label,
+            count,
+            selectionRate: totalSelections ? count / totalSelections : 0,
+            incorrectQuestionRate: incorrectAttemptCount ? count / incorrectAttemptCount : 0,
+            averageElapsedMs: summary.elapsedCount ? summary.elapsedTotalMs / summary.elapsedCount : null,
+            averageTimeRatio: summary.timeRatioCount ? summary.timeRatioTotal / summary.timeRatioCount : null,
+            sortIndex: index
+        };
+    }).sort((a, b) => b.count - a.count || a.sortIndex - b.sortIndex).map(({ sortIndex, ...row }) => row);
+    return {
+        incorrectAttemptCount,
+        taggedIncorrectAttemptCount,
+        untaggedIncorrectAttemptCount: incorrectAttemptCount - taggedIncorrectAttemptCount,
+        totalSelections,
+        tagCoverageRate: incorrectAttemptCount ? taggedIncorrectAttemptCount / incorrectAttemptCount : 0,
+        rows
     };
 };
 
@@ -601,6 +647,7 @@ export const computeMetrics = ({ attempts = [], sessions = [], filters = {} }) =
     const topicSkillPairs = buildTopicSkillPairs(filteredAttempts, minAttempts);
     const topicSkillMatrix = buildTopicSkillMatrix(topicSkillPairs);
     const confidence = buildConfidenceAnalytics(filteredAttempts);
+    const mistakes = buildMistakeTypeAnalytics(filteredAttempts);
     const sessionSummaries = buildSessionSummaries(filteredAttempts, supportedSessions, normalizedFilters);
     const modelUsage = buildModelUsage(sessionSummaries);
     const totalGeneratedQuestions = modelUsage.totalGeneratedQuestions;
@@ -691,6 +738,7 @@ export const computeMetrics = ({ attempts = [], sessions = [], filters = {} }) =
         byDifficulty,
         confidence,
         confidenceGroups: confidence.groups,
+        mistakes,
         timedAccuracy,
         untimedAccuracy,
         trends,

@@ -1,5 +1,6 @@
 import { createHighlightableText, getQuestionHighlightScopeKey, getQuestionStemHighlightKey } from "../components/highlights.js";
 import { createPassageCard, createPassageMetadataById, getPassageCardTitle } from "../components/questions.js";
+import { MISTAKE_TYPES, normalizeMistakeTypeIds } from "../data/mistakes.js";
 import { formatDurationMs } from "../components/timer.js";
 
 const cb = Chalkboard;
@@ -68,6 +69,54 @@ const makeFilterButton = (label, filterId, currentFilter, onClick) => {
     return button;
 };
 
+const makeMistakeTypePanel = (questionId, qState, actions) => {
+    const selectedIds = new Set(normalizeMistakeTypeIds(qState.mistakeTypeIds));
+    const panel = document.createElement("aside");
+    panel.className = "card card-pad mistake-type-panel";
+    const heading = document.createElement("h5");
+    heading.textContent = "What went wrong?";
+    const note = document.createElement("p");
+    note.className = "tiny";
+    note.textContent = "Optional. Select all that apply.";
+    const chipList = document.createElement("div");
+    chipList.className = "mistake-type-chip-list";
+    MISTAKE_TYPES.forEach((mistakeType) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "mistake-type-chip";
+        button.textContent = mistakeType.label;
+        const selected = selectedIds.has(mistakeType.id);
+        button.setAttribute("aria-pressed", selected ? "true" : "false");
+        if (selected) button.classList.add("is-selected");
+        button.addEventListener("click", () => actions.toggleMistakeTypeForQuestion(questionId, mistakeType.id));
+        chipList.append(button);
+    });
+    panel.append(heading, note, chipList);
+    return panel;
+};
+
+const getIncorrectReviewRows = (root) => {
+    const rows = Array.from(root?.querySelectorAll?.(".review-question-row.is-incorrect") ?? []);
+    if (root?.matches?.(".review-question-row.is-incorrect")) rows.unshift(root);
+    return rows;
+};
+
+const syncMistakeTypePanelHeights = (root) => {
+    if (typeof window === "undefined" || typeof window.requestAnimationFrame !== "function") return;
+    window.requestAnimationFrame(() => {
+        const shouldSync = typeof window.matchMedia !== "function" || window.matchMedia("(min-width: 901px)").matches;
+        getIncorrectReviewRows(root).forEach((row) => {
+            const questionCard = row.querySelector(".review-question");
+            const mistakePanel = row.querySelector(".mistake-type-panel");
+            if (!questionCard || !mistakePanel) return;
+            mistakePanel.style.height = "";
+            if (!shouldSync) return;
+            const questionHeight = Math.ceil(questionCard.getBoundingClientRect().height);
+            if (questionHeight > 0) mistakePanel.style.height = `${questionHeight}px`;
+        });
+    });
+};
+
 const createReviewPassageDropdown = (passage, passageMetadata = {}, highlightRangesByTargetKey = {}) => {
     const details = document.createElement("details");
     details.className = "review-passage-dropdown";
@@ -89,11 +138,12 @@ const createReviewPassageDropdown = (passage, passageMetadata = {}, highlightRan
     details.addEventListener("toggle", () => {
         label.textContent = details.open ? `Hide ${passageTitle}` : `Show ${passageTitle}`;
         expandIcon.textContent = details.open ? "expand_less" : "expand_more";
+        syncMistakeTypePanelHeights(details.closest(".review-question-row") ?? details);
     });
     return details;
 };
 
-const makeQuestionReviewBlock = (record, index, isFocused, passagesById, passageMetadataById, highlightRangesByTargetKey) => {
+const makeQuestionReviewBlock = (record, index, isFocused, passagesById, passageMetadataById, highlightRangesByTargetKey, actions) => {
     const { question, state } = record;
     const card = document.createElement("article");
     const resultClass = state.submitted ? state.isCorrect ? "is-correct" : "is-incorrect" : "is-unanswered";
@@ -138,7 +188,12 @@ const makeQuestionReviewBlock = (record, index, isFocused, passagesById, passage
     }
     const passage = question.passageId ? passagesById.get(question.passageId) : null;
     if (passage) card.append(createReviewPassageDropdown(passage, passageMetadataById.get(passage.id) ?? {}, highlightRangesByTargetKey));
-    return card;
+    if (!state.submitted || state.isCorrect) return card;
+    const row = document.createElement("div");
+    row.className = "review-question-row is-incorrect";
+    if (isFocused) row.classList.add("is-focused");
+    row.append(card, makeMistakeTypePanel(question.id, state, actions));
+    return row;
 };
 
 export const renderReviewView = (state, actions) => {
@@ -211,7 +266,7 @@ export const renderReviewView = (state, actions) => {
         reviewList.append(empty);
     } else {
         const focusedIndex = state.activeSession.viewQuestionIndex ?? 0;
-        records.forEach((record) => { reviewList.append(makeQuestionReviewBlock(record, record.index, record.index === focusedIndex, passagesById, passageMetadataById, highlightRangesByTargetKey)); });
+        records.forEach((record) => { reviewList.append(makeQuestionReviewBlock(record, record.index, record.index === focusedIndex, passagesById, passageMetadataById, highlightRangesByTargetKey, actions)); });
     };
     root.append(reviewList);
     const actionRow = document.createElement("div");
@@ -258,5 +313,6 @@ export const renderReviewView = (state, actions) => {
         actionRow.append(bank);
     }
     root.append(actionRow);
+    syncMistakeTypePanelHeights(root);
     return root;
 };

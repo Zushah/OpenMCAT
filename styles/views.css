@@ -1919,3 +1919,124 @@
     background-color: color-mix(in srgb, var(--surface-tint), transparent 94.5%);
     color: var(--text-primary);
 }
+
+.review-question-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+    gap: var(--space-md);
+    align-items: start;
+}
+
+.review-question-row .review-question {
+    min-width: 0;
+}
+
+.mistake-type-panel.card-pad {
+    padding: 0.7rem;
+}
+
+.mistake-type-panel {
+    display: grid;
+    gap: 0.38rem;
+    align-content: start;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--accent), transparent 45%) color-mix(in srgb, var(--surface-tint), transparent 94%);
+}
+
+.mistake-type-panel::-webkit-scrollbar {
+    width: 10px;
+}
+
+.mistake-type-panel::-webkit-scrollbar-track {
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--surface-tint), transparent 95.5%);
+}
+
+.mistake-type-panel::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent), transparent 45%);
+    background-clip: padding-box;
+}
+
+.mistake-type-panel::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--accent), transparent 28%);
+    background-clip: padding-box;
+}
+
+.mistake-type-panel h5 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 0.86rem;
+}
+
+.mistake-type-panel .tiny {
+    margin: 0;
+    font-size: 0.68rem;
+    line-height: 1.28;
+}
+
+.mistake-type-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.36rem;
+}
+
+.mistake-type-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.9rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.32rem 0.58rem;
+    background: color-mix(in srgb, var(--surface-tint), transparent 82%);
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 700;
+    line-height: 1.15;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.mistake-type-chip:hover, .mistake-type-chip:focus-visible {
+    border-color: color-mix(in srgb, var(--danger), transparent 34%);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+}
+
+.mistake-type-chip.is-selected {
+    border-color: color-mix(in srgb, var(--danger), transparent 16%);
+    background: color-mix(in srgb, var(--danger), transparent 82%);
+    color: var(--text-primary);
+}
+
+.review-question-row.is-focused .mistake-type-panel {
+    border-color: color-mix(in srgb, var(--danger), transparent 44%);
+}
+
+.chart-empty-wrap {
+    display: grid;
+    place-items: center;
+    min-height: 260px;
+    text-align: center;
+}
+
+.chart-empty-message {
+    max-width: 26rem;
+    margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+    .review-question-row {
+        grid-template-columns: 1fr;
+    }
+
+    .mistake-type-panel {
+        height: auto !important;
+        max-height: none;
+    }
+}

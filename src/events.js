@@ -3,6 +3,7 @@ import { DEFAULT_CONFIG, QUESTION_COUNT_LIMITS } from "./data/defaults.js";
 import { QUESTION_BANK_PROVIDER_ID } from "./data/bank/catalog.js";
 import { buildQuestionBankSession, clearQuestionBankCache, loadQuestionBankOverviews } from "./data/bank/loader.js";
 import { SCIENCE_SKILLS, SECTIONS, TOPICS, getSkillsForSection, getTopicsBySection } from "./data/taxonomy.js";
+import { isValidMistakeTypeId, normalizeMistakeTypeIds } from "./data/mistakes.js";
 import { compilePracticePrompt } from "./prompts/compiler.js";
 import { extractJsonObject } from "./schema/repair.js";
 import { validatePracticeSession } from "./schema/validators.js";
@@ -270,7 +271,8 @@ export const createActions = ({ render, applyTheme }) => {
                     firstStartedAt: null,
                     answeredAt: null,
                     flagged: false,
-                    attemptId: null
+                    attemptId: null,
+                    mistakeTypeIds: []
                 }
             ]
         ));
@@ -476,6 +478,7 @@ export const createActions = ({ render, applyTheme }) => {
         const startedAt = qState.firstStartedAt ?? qState.startedAt ?? active.createdAt;
         const elapsedMs = qState.submitted ? qState.elapsedMs ?? 0 : getQuestionElapsedMs(qState, answeredAt);
         const isCorrect = qState.selectedChoiceId === question.correctChoiceId;
+        const mistakeTypeIds = isCorrect ? [] : normalizeMistakeTypeIds(qState.mistakeTypeIds);
         qState.submittedChoiceId = qState.selectedChoiceId;
         qState.submittedConfidence = currentConfidence;
         qState.submitted = true;
@@ -483,6 +486,7 @@ export const createActions = ({ render, applyTheme }) => {
         qState.answeredAt = answeredAt.toISOString();
         qState.elapsedMs = elapsedMs;
         qState.startedAt = null;
+        qState.mistakeTypeIds = mistakeTypeIds;
         const attemptPatch = {
             sessionId: active.id,
             questionId: question.id,
@@ -498,7 +502,8 @@ export const createActions = ({ render, applyTheme }) => {
             answeredAt: qState.answeredAt,
             elapsedMs,
             reviewMode: active.config.reviewMode,
-            timingMode: active.config.timingMode
+            timingMode: active.config.timingMode,
+            mistakeTypeIds
         };
         if (isQuestionBankSession(active)) {
             attemptPatch.bankId = active.providerMeta?.bankId ?? question.bankId ?? null;
@@ -650,6 +655,20 @@ export const createActions = ({ render, applyTheme }) => {
         target?.scrollIntoView({ behavior: "smooth", block: "center" });
     };
 
+    const toggleMistakeTypeForQuestion = async (questionId, mistakeTypeId) => {
+        const active = state.activeSession;
+        if (!active || !isValidMistakeTypeId(mistakeTypeId)) return;
+        const qState = active.questionStateById?.[questionId];
+        if (!qState?.submitted || qState.isCorrect) return;
+        const currentIds = normalizeMistakeTypeIds(qState.mistakeTypeIds);
+        const nextIds = currentIds.includes(mistakeTypeId) ? currentIds.filter((id) => id !== mistakeTypeId) : normalizeMistakeTypeIds([...currentIds, mistakeTypeId]);
+        qState.mistakeTypeIds = nextIds;
+        await updateSession(active.id, { questionStateById: structuredClone(active.questionStateById) });
+        if (qState.attemptId) await updateAttempt(qState.attemptId, { mistakeTypeIds: structuredClone(nextIds) });
+        await refreshAnalytics();
+        render();
+    };
+
     const exportData = async () => {
         const payload = await buildExportPayload();
         downloadExport(payload);
@@ -739,6 +758,7 @@ export const createActions = ({ render, applyTheme }) => {
         finishSession,
         setReviewFilter,
         setReviewQuestionIndex,
+        toggleMistakeTypeForQuestion,
         exportData,
         importDataFromText,
         deleteAllLocalData,
