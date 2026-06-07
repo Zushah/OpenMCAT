@@ -314,6 +314,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
     const index = activeSession.currentQuestionIndex;
     const question = questions[index];
     const questionState = activeSession.questionStateById[question.id];
+    const hasReachedReviewPoint = activeSession.hasReachedFinalQuestion === true || (questions.length > 0 && index + 1 >= questions.length);
     const showFeedback = questionState.submitted && activeSession.config.reviewMode === "immediate";
     const passage = question.passageId ? activeSession.generatedSession.passages.find((item) => item.id === question.passageId) : null;
     const passageMetadataById = createPassageMetadataById(activeSession.generatedSession.passages ?? [], questions);
@@ -367,8 +368,10 @@ export const renderPracticeView = (state, actions, nowMs) => {
     reviewButton.type = "button";
     reviewButton.className = "btn btn-primary";
     reviewButton.textContent = "Review";
+    reviewButton.title = "Open final review before ending.";
     reviewButton.addEventListener("click", () => actions.openFinalReviewPanel());
-    actionRow.append(flagButton, highlightButton, navigationButton, reviewButton);
+    if (hasReachedReviewPoint) actionRow.append(flagButton, highlightButton, reviewButton);
+    else actionRow.append(flagButton, highlightButton, navigationButton);
     const timerRow = document.createElement("div");
     timerRow.className = "session-timer-row";
     timerRow.append(totalTimer, timer);
@@ -452,7 +455,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
     questionCard.append(controls);
     const shortcutHint = document.createElement("p");
     shortcutHint.className = "tiny practice-shortcuts";
-    shortcutHint.textContent = "Shortcuts: A/B/C/D select, Enter submit, Left/Right navigate, N navigation, F flag, H highlight.";
+    shortcutHint.textContent = hasReachedReviewPoint ? "Shortcuts: A/B/C/D select, Enter submit, Left/Right navigate, R review, F flag, H highlight." : "Shortcuts: A/B/C/D select, Enter submit, Left/Right navigate, N navigation, F flag, H highlight.";
     questionCard.append(shortcutHint);
     if (showFeedback) {
         const explanation = document.createElement("div");

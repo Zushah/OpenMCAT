@@ -82,6 +82,8 @@ const setupKeyboardShortcuts = () => {
                 return;
             }
             const key = event.key.toLowerCase();
+            const questionCount = state.activeSession.generatedSession?.questions?.length ?? 0;
+            const hasReachedReviewPoint = state.activeSession.hasReachedFinalQuestion === true || (questionCount > 0 && state.activeSession.currentQuestionIndex + 1 >= questionCount);
             if (["a", "b", "c", "d"].includes(key)) {
                 actions.selectChoice(key.toUpperCase());
                 event.preventDefault();
@@ -100,8 +102,11 @@ const setupKeyboardShortcuts = () => {
             } else if (key === "f") {
                 actions.flagCurrentQuestion();
                 event.preventDefault();
-            } else if (key === "n") {
+            } else if (key === "n" && !hasReachedReviewPoint) {
                 actions.openNavigationPanel();
+                event.preventDefault();
+            } else if (key === "r" && hasReachedReviewPoint) {
+                actions.openFinalReviewPanel();
                 event.preventDefault();
             }
         }

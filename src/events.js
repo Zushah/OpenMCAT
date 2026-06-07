@@ -28,6 +28,10 @@ const getDefaultSkillsForSection = (sectionId) => getSkillsForSection(sectionId)
 
 const isQuestionBankSession = (activeSession) => activeSession?.providerMeta?.source === QUESTION_BANK_PROVIDER_ID || activeSession?.generatedSession?.bank?.source === QUESTION_BANK_PROVIDER_ID;
 
+const hasReachedSessionReviewPoint = (activeSession) => { const questionCount = activeSession?.generatedSession?.questions?.length ?? 0; return activeSession?.hasReachedFinalQuestion === true || (questionCount > 0 && activeSession.currentQuestionIndex >= questionCount - 1); };
+
+const markFinalQuestionReached = (activeSession, questionIndex = activeSession?.currentQuestionIndex ?? 0) => { const questionCount = activeSession?.generatedSession?.questions?.length ?? 0; if (questionCount > 0 && questionIndex >= questionCount - 1) activeSession.hasReachedFinalQuestion = true; return hasReachedSessionReviewPoint(activeSession); };
+
 const normalizeConfig = (config) => {
     const source = { ...structuredClone(DEFAULT_CONFIG), ...(config ?? {}) };
     const normalized = structuredClone(DEFAULT_CONFIG);
@@ -253,7 +257,8 @@ export const createActions = ({ render, applyTheme }) => {
             config: structuredClone(runtimeConfig),
             generatedSession: prepared,
             providerMeta: normalizedProviderMeta,
-            highlightRangesByTargetKey: {}
+            highlightRangesByTargetKey: {},
+            hasReachedFinalQuestion: prepared.questions.length <= 1
         };
         await saveSession(sessionRecord);
         const questionStateById = Object.fromEntries(prepared.questions.map((question) =>
@@ -271,8 +276,8 @@ export const createActions = ({ render, applyTheme }) => {
                     firstStartedAt: null,
                     answeredAt: null,
                     flagged: false,
-                    attemptId: null,
-                    mistakeTypeIds: []
+                    mistakeTypeIds: [],
+                    attemptId: null
                 }
             ]
         ));
@@ -291,6 +296,7 @@ export const createActions = ({ render, applyTheme }) => {
             currentQuestionIndex: 0,
             questionStateById,
             highlightRangesByTargetKey: {},
+            hasReachedFinalQuestion: prepared.questions.length <= 1,
             navigationOpen: false,
             navigationFilter: "all",
             finalReviewOpen: false,
@@ -478,7 +484,7 @@ export const createActions = ({ render, applyTheme }) => {
         const startedAt = qState.firstStartedAt ?? qState.startedAt ?? active.createdAt;
         const elapsedMs = qState.submitted ? qState.elapsedMs ?? 0 : getQuestionElapsedMs(qState, answeredAt);
         const isCorrect = qState.selectedChoiceId === question.correctChoiceId;
-        const mistakeTypeIds = isCorrect ? [] : normalizeMistakeTypeIds(qState.mistakeTypeIds);
+        qState.mistakeTypeIds = isCorrect ? [] : normalizeMistakeTypeIds(qState.mistakeTypeIds);
         qState.submittedChoiceId = qState.selectedChoiceId;
         qState.submittedConfidence = currentConfidence;
         qState.submitted = true;
@@ -486,7 +492,6 @@ export const createActions = ({ render, applyTheme }) => {
         qState.answeredAt = answeredAt.toISOString();
         qState.elapsedMs = elapsedMs;
         qState.startedAt = null;
-        qState.mistakeTypeIds = mistakeTypeIds;
         const attemptPatch = {
             sessionId: active.id,
             questionId: question.id,
@@ -501,9 +506,9 @@ export const createActions = ({ render, applyTheme }) => {
             startedAt,
             answeredAt: qState.answeredAt,
             elapsedMs,
+            mistakeTypeIds: structuredClone(qState.mistakeTypeIds),
             reviewMode: active.config.reviewMode,
-            timingMode: active.config.timingMode,
-            mistakeTypeIds
+            timingMode: active.config.timingMode
         };
         if (isQuestionBankSession(active)) {
             attemptPatch.bankId = active.providerMeta?.bankId ?? question.bankId ?? null;
@@ -549,6 +554,7 @@ export const createActions = ({ render, applyTheme }) => {
         }
         pauseQuestionTimer(active, question.id);
         active.currentQuestionIndex = nextIndex;
+        markFinalQuestionReached(active, nextIndex);
         const nextQuestionId = active.generatedSession.questions[nextIndex].id;
         ensureQuestionStart(active, nextQuestionId);
         render();
@@ -558,6 +564,10 @@ export const createActions = ({ render, applyTheme }) => {
         const active = state.activeSession;
         const question = getActiveQuestion();
         if (!active) return;
+        if (hasReachedSessionReviewPoint(active)) {
+            openFinalReviewPanel();
+            return;
+        }
         if (question) pauseQuestionTimer(active, question.id);
         active.navigationOpen = true;
         active.finalReviewOpen = false;
@@ -586,6 +596,7 @@ export const createActions = ({ render, applyTheme }) => {
         const active = state.activeSession;
         const question = getActiveQuestion();
         if (!active) return;
+        markFinalQuestionReached(active);
         if (question) pauseQuestionTimer(active, question.id);
         active.navigationOpen = false;
         active.finalReviewOpen = true;
@@ -599,6 +610,7 @@ export const createActions = ({ render, applyTheme }) => {
         const nextIndex = Math.floor(clamp(Number(index) || 0, 0, active.generatedSession.questions.length - 1));
         if (question) pauseQuestionTimer(active, question.id);
         active.currentQuestionIndex = nextIndex;
+        markFinalQuestionReached(active, nextIndex);
         const questionId = active.generatedSession.questions[nextIndex]?.id;
         if (questionId) ensureQuestionStart(active, questionId);
         active.navigationOpen = false;
@@ -626,6 +638,7 @@ export const createActions = ({ render, applyTheme }) => {
             completedAt,
             questionStateById: structuredClone(active.questionStateById),
             highlightRangesByTargetKey: structuredClone(active.highlightRangesByTargetKey ?? {}),
+            hasReachedFinalQuestion: active.hasReachedFinalQuestion === true,
             summary: {
                 submitted,
                 incomplete: records.length - submitted,
@@ -658,13 +671,15 @@ export const createActions = ({ render, applyTheme }) => {
     const toggleMistakeTypeForQuestion = async (questionId, mistakeTypeId) => {
         const active = state.activeSession;
         if (!active || !isValidMistakeTypeId(mistakeTypeId)) return;
+        const question = active.generatedSession.questions.find((item) => item.id === questionId);
         const qState = active.questionStateById?.[questionId];
-        if (!qState?.submitted || qState.isCorrect) return;
-        const currentIds = normalizeMistakeTypeIds(qState.mistakeTypeIds);
-        const nextIds = currentIds.includes(mistakeTypeId) ? currentIds.filter((id) => id !== mistakeTypeId) : normalizeMistakeTypeIds([...currentIds, mistakeTypeId]);
-        qState.mistakeTypeIds = nextIds;
+        if (!question || !qState?.submitted || qState.isCorrect) return;
+        const selected = new Set(normalizeMistakeTypeIds(qState.mistakeTypeIds));
+        if (selected.has(mistakeTypeId)) selected.delete(mistakeTypeId);
+        else selected.add(mistakeTypeId);
+        qState.mistakeTypeIds = normalizeMistakeTypeIds(Array.from(selected));
         await updateSession(active.id, { questionStateById: structuredClone(active.questionStateById) });
-        if (qState.attemptId) await updateAttempt(qState.attemptId, { mistakeTypeIds: structuredClone(nextIds) });
+        if (qState.attemptId) await updateAttempt(qState.attemptId, { mistakeTypeIds: structuredClone(qState.mistakeTypeIds) });
         await refreshAnalytics();
         render();
     };
