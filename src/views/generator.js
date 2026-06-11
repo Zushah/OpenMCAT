@@ -249,7 +249,7 @@ export const renderGeneratorView = (state, actions) => {
     rightColumn.className = "generator-session-column";
     leftColumn.append(makeChipSelector({
         title: "Skills",
-        subtitle: "Select one or more reasoning skills for this session.",
+        subtitle: "Select one or more skills for this session.",
         selectedIds: state.currentConfig.skillIds,
         options: sectionSkills,
         onToggle: (skillId) => actions.toggleMultiValue("skillIds", skillId)
@@ -268,10 +268,10 @@ export const renderGeneratorView = (state, actions) => {
     formatCountRow.append(makeFormatSelect(state.currentConfig, actions));
     formatCountRow.append(makeNumberField({
         id: "question-count",
-        labelText: "Question count (1-50)",
+        labelText: "Question count (1-59)",
         value: state.currentConfig.questionCount,
         min: 1,
-        max: 50,
+        max: 59,
         onChange: (questionCount) => actions.updateConfig({ questionCount })
     }));
     rightColumn.append(formatCountRow);

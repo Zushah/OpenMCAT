@@ -12,7 +12,7 @@ export const DEFAULT_CONFIG = {
 
 export const QUESTION_COUNT_LIMITS = {
     min: 1,
-    max: 50
+    max: 59
 };
 
 export const DEFAULT_SETTINGS = {
