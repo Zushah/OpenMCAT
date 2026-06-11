@@ -58,6 +58,7 @@ export const compileUserPrompt = (config) => {
     - Include session.estimatedTimeMinutes.
     - If the AI model is known (otherwise enter it as "unknown"), set session.aiModel as the exact provider/model identifier for the currently active and specific architecture that you are, e.g. openai/gpt-5.5-instant, anthropic/claude-haiku-4.5, google/gemini-3.5-flash, deepseek/deepseek-v4-flash, etc.
     - Include selfCheck for each question.
+    - Randomize correctChoiceId across A, B, C, and D; do not overuse any one answer letter, and use multiple correct letters when the requested count allows.
     - Do not include text besides a single-line (i.e., no line breaks) JSON object.`;
 };
 
