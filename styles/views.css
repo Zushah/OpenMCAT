@@ -1120,6 +1120,55 @@
     overflow-wrap: anywhere;
 }
 
+.recommendation-mistake-focus {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 0.1rem;
+    padding: 0.85rem 0.95rem;
+    border: 1px solid color-mix(in srgb, var(--accent), transparent 78%);
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--accent), transparent 93%);
+}
+
+.recommendation-mistake-focus h3 {
+    margin: 0;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+}
+
+.recommendation-mistake-eyebrow {
+    margin-bottom: 0;
+}
+
+.recommendation-mistake-basis, .recommendation-mistake-caveat {
+    margin: 0;
+}
+
+.recommendation-review-focus {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+    line-height: 1.45;
+}
+
+.recommendation-mistake-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.1rem;
+}
+
+.recommendation-mistake-chip {
+    border-color: color-mix(in srgb, var(--accent), transparent 72%);
+    background: color-mix(in srgb, var(--surface-tint), transparent 90%);
+}
+
+.recommendation-mistake-chip.is-actionable {
+    color: var(--text-primary);
+    border-color: color-mix(in srgb, var(--accent), transparent 50%);
+    background: color-mix(in srgb, var(--accent), transparent 86%);
+}
+
 .recommendation-alternatives {
     display: grid;
     gap: 0.45rem;

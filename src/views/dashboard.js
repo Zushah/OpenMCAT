@@ -39,6 +39,8 @@ const seconds = (ms) => Number.isFinite(ms) && ms > 0 ? `${round(ms / 1000, 0.1)
 
 const attemptCount = (value) => Number.isInteger(value) ? `${value}` : `${round(value || 0, 0.01)}`;
 
+const pluralText = (count, singular, pluralLabel = `${singular}s`) => `${count} ${count === 1 ? singular : pluralLabel}`;
+
 const getRecentTrend = (attempts = []) => {
     const sortedAttempts = (attempts ?? []).slice().sort((a, b) => safeNumber(a.answeredAtMs, 0) - safeNumber(b.answeredAtMs, 0));
     if (sortedAttempts.length < 20) {
@@ -430,6 +432,7 @@ const renderSummaryGrid = (metrics, recommendation) => {
 
 const renderEvidenceChips = (evidence = {}) => {
     const chips = createElement("div", "evidence-chip-list");
+    const mistakeFocusLabel = evidence.mistakeFocusLabel ? `${evidence.mistakeFocusLabel}${Number.isFinite(evidence.mistakeFocusTaggedMisses) ? ` (${pluralText(evidence.mistakeFocusTaggedMisses, "tagged miss", "tagged misses")})` : ""}` : null;
     const entries = [
         ["Attempts", evidence.attempts !== undefined ? attemptCount(evidence.attempts) : null],
         ["Raw accuracy", evidence.accuracy !== undefined ? pct(evidence.accuracy) : null],
@@ -437,6 +440,7 @@ const renderEvidenceChips = (evidence = {}) => {
         ["Mastery", evidence.mastery !== undefined ? `${score(evidence.mastery)}/100` : null],
         ["Average time", evidence.averageElapsedMs !== undefined ? seconds(evidence.averageElapsedMs) : null],
         ["Priority score", evidence.priorityScore !== undefined ? score(evidence.priorityScore) : null],
+        ["Mistake focus", mistakeFocusLabel],
         ["Signal", evidence.signalStrength ?? null]
     ].filter(([, value]) => value !== null && value !== undefined);
     entries.forEach(([label, value]) => {
@@ -447,6 +451,32 @@ const renderEvidenceChips = (evidence = {}) => {
     return chips;
 };
 
+const getMistakeFocusLabel = (mistakeFocus = {}) => mistakeFocus.label ?? "Tagged mistake pattern";
+
+const renderMistakeFocusCard = (mistakeFocus) => {
+    if (!mistakeFocus?.label) return null;
+    const panel = createElement("section", "recommendation-mistake-focus");
+    appendText(panel, "p", "dashboard-eyebrow recommendation-mistake-eyebrow", "Mistake focus");
+    const heading = createElement("h3", "", mistakeFocus.strategyLabel ? `${getMistakeFocusLabel(mistakeFocus)} · ${mistakeFocus.strategyLabel}` : getMistakeFocusLabel(mistakeFocus));
+    const basis = `${pluralText(safeNumber(mistakeFocus.taggedIncorrectAttemptCount, 0), "tagged miss", "tagged misses")} in ${mistakeFocus.scopeLabel ?? "the active filter"}`;
+    panel.append(heading);
+    appendText(panel, "p", "tiny recommendation-mistake-basis", `Based on ${basis}. Multiple tags can apply to one miss.`);
+    if (mistakeFocus.reviewFocus) appendText(panel, "p", "recommendation-review-focus", mistakeFocus.reviewFocus);
+    if (mistakeFocus.flawedQuestionSelections) appendText(panel, "p", "tiny recommendation-mistake-caveat", "Flawed-question tags are shown as quality context but do not steer drill settings.");
+    else if (!mistakeFocus.isDrillSteering) appendText(panel, "p", "tiny recommendation-mistake-caveat", "This tag is shown as context and does not change drill settings.");
+    const rows = Array.isArray(mistakeFocus.rows) ? mistakeFocus.rows : [];
+    if (rows.length) {
+        const chipList = createElement("div", "recommendation-mistake-chip-list");
+        rows.forEach((row) => {
+            const chip = createElement("span", `evidence-chip recommendation-mistake-chip${row.id === (mistakeFocus.actionableMistakeTypeId ?? mistakeFocus.dominantMistakeTypeId) && mistakeFocus.isDrillSteering ? " is-actionable" : ""}`);
+            chip.textContent = `${row.label}: ${safeNumber(row.count, 0)}`;
+            chipList.append(chip);
+        });
+        panel.append(chipList);
+    }
+    return panel;
+};
+
 const renderRecommendationCard = (recommendation, actions) => {
     const card = createElement("section", "card card-pad dashboard-recommendation");
     const content = createElement("div", "dashboard-recommendation-content");
@@ -454,6 +484,8 @@ const renderRecommendationCard = (recommendation, actions) => {
     appendText(content, "h2", "", "Next drill");
     appendText(content, "p", "", recommendation?.body ?? "Complete more questions to generate a recommendation.");
     if (recommendation?.evidence) content.append(renderEvidenceChips(recommendation.evidence));
+    const mistakeFocus = renderMistakeFocusCard(recommendation?.mistakeFocus);
+    if (mistakeFocus) content.append(mistakeFocus);
     if (recommendation?.rationale?.length) {
         const list = createElement("ul", "recommendation-rationale");
         recommendation.rationale.forEach((item) => { const li = document.createElement("li"); li.textContent = item; list.append(li); });

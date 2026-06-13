@@ -195,6 +195,40 @@ const formatMistakeTypeRow = (row = {}) => compactObject({
     incorrectQuestionRate: nullableRound(row.incorrectQuestionRate, ROUND_RATIO)
 });
 
+const formatMistakeFocusRow = (row = {}) => compactObject({
+    id: row.id,
+    label: row.label ?? getMistakeTypeLabel(row.id),
+    selections: nullableNumber(row.count),
+    selectionRate: nullableRound(row.selectionRate, ROUND_RATIO),
+    taggedQuestionRate: nullableRound(row.taggedQuestionRate, ROUND_RATIO)
+});
+
+const formatMistakeFocus = (mistakeFocus = null) => {
+    if (!mistakeFocus) return null;
+    return compactObject({
+        scope: mistakeFocus.scope,
+        scopeLabel: mistakeFocus.scopeLabel,
+        taggedIncorrectAttemptCount: nullableNumber(mistakeFocus.taggedIncorrectAttemptCount),
+        totalSelections: nullableNumber(mistakeFocus.totalSelections),
+        dominantMistakeTypeId: mistakeFocus.dominantMistakeTypeId,
+        dominantMistakeTypeLabel: mistakeFocus.dominantMistakeTypeLabel,
+        actionableMistakeTypeId: mistakeFocus.actionableMistakeTypeId,
+        actionableMistakeTypeLabel: mistakeFocus.actionableMistakeTypeLabel,
+        ignoredDominantMistakeTypeId: mistakeFocus.ignoredDominantMistakeTypeId,
+        ignoredDominantMistakeTypeLabel: mistakeFocus.ignoredDominantMistakeTypeLabel,
+        label: mistakeFocus.label,
+        strategyLabel: mistakeFocus.strategyLabel,
+        strategyRationale: mistakeFocus.strategyRationale,
+        reviewFocus: mistakeFocus.reviewFocus,
+        configPatch: mistakeFocus.configPatch,
+        questionCountAdjustment: nullableNumber(mistakeFocus.questionCountAdjustment),
+        isDrillSteering: Boolean(mistakeFocus.isDrillSteering),
+        nonSteeringSelectionCount: nullableNumber(mistakeFocus.nonSteeringSelectionCount),
+        flawedQuestionSelections: nullableNumber(mistakeFocus.flawedQuestionSelections),
+        rows: (mistakeFocus.rows ?? mistakeFocus.topMistakeTypes ?? []).map(formatMistakeFocusRow)
+    });
+};
+
 const formatRecommendationConfig = (config = {}) => compactObject({
     sectionId: config.sectionId,
     sectionLabel: sectionLabel(config.sectionId),
@@ -226,8 +260,10 @@ const formatRecommendation = (recommendation = null) => {
             targetTimeMs: nullableRound(recommendation.evidence.targetTimeMs, ROUND_INTEGER),
             confidenceAverage: nullableRound(recommendation.evidence.confidenceAverage, ROUND_SCORE),
             signalStrength: recommendation.evidence.signalStrength,
-            priorityScore: nullableRound(recommendation.evidence.priorityScore, ROUND_SCORE)
+            priorityScore: nullableRound(recommendation.evidence.priorityScore, ROUND_SCORE),
+            mistakeFocusLabel: recommendation.evidence.mistakeFocusLabel
         }) : null,
+        mistakeFocus: formatMistakeFocus(recommendation.mistakeFocus),
         config: formatRecommendationConfig(recommendation.config),
         alternatives: (recommendation.alternatives ?? []).map((alternative) => compactObject({
             label: alternative.label,
@@ -368,7 +404,8 @@ const FIELD_DESCRIPTIONS = {
     topicCoverageMultiplier: "Coverage adjustment applied to mastery so narrow practice does not look like broad mastery.",
     filteredOutAttempts: "Answered attempts stored locally but excluded by the active dashboard filters.",
     aiModelUsage: "Generated question counts grouped by recorded session AI model metadata when available.",
-    mistakeTypes: "Optional self-reported labels for incorrect questions. Multiple mistake types can be selected for one incorrect question, so selections can exceed the number of incorrect questions."
+    mistakeTypes: "Optional self-reported labels for incorrect questions. Multiple mistake types can be selected for one incorrect question, so selections can exceed the number of incorrect questions.",
+    mistakeFocus: "Mistake-aware recommendation evidence. The exact topic-skill pair is preferred; if it has too few tagged misses, the focus may fall back to topic, skill, section, or the active dashboard filter. Flawed question and Other are context only and should not steer learner-weakness diagnosis."
 };
 
 export const compileAnalyticsPrompt = ({ metrics, recommendation } = {}) => {
