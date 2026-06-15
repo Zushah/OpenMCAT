@@ -1,6 +1,6 @@
 import { QUESTION_BANK_PROVIDER_ID } from "../data/bank/catalog.js";
 import { MISTAKE_TYPES, normalizeMistakeTypeIds } from "../data/mistakes.js";
-import { SECTIONS, TOPICS } from "../data/taxonomy.js";
+import { SCIENCE_SKILLS, SECTIONS, TOPICS } from "../data/taxonomy.js";
 import { computeMastery } from "./mastery.js";
 
 const cb = Chalkboard;
@@ -12,6 +12,8 @@ const DEFAULT_TARGET_TIME_MS = 95000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const validSectionIds = new Set(SECTIONS.map((section) => section.id));
 const validTopicIds = new Set(TOPICS.map((topic) => topic.id));
+const validSkillIds = new Set(SCIENCE_SKILLS.map((skill) => skill.id));
+const topicsById = Object.fromEntries(TOPICS.map((topic) => [topic.id, topic]));
 
 export const DEFAULT_DASHBOARD_FILTERS = {
     range: "all",
@@ -371,9 +373,183 @@ const buildTopicSkillMatrix = (pairs) => {
     };
 };
 
+const NON_DRILL_DRIVER_MISTAKE_IDS = new Set(["flawed_question", "other"]);
+
+const roundWeightedCount = (value) => Math.abs(safeNumber(value) - Math.round(safeNumber(value))) < 0.000001 ? Math.round(safeNumber(value)) : round(value, 0.01);
+
+const createMistakeSummaryMap = () => new Map(MISTAKE_TYPES.map((type, index) => [type.id, {
+    id: type.id,
+    label: type.label,
+    count: 0,
+    elapsedWeight: 0,
+    elapsedTotalMs: 0,
+    timeRatioWeight: 0,
+    timeRatioTotal: 0,
+    sortIndex: index
+}]));
+
+const sortMistakeRows = (summariesById, { totalSelections = 0, incorrectAttemptCount = 0 } = {}) => MISTAKE_TYPES.map((type, index) => {
+    const summary = summariesById.get(type.id) ?? {};
+    const count = summary.count ?? 0;
+    return {
+        id: type.id,
+        label: summary.label ?? type.label,
+        count: roundWeightedCount(count),
+        selectionRate: totalSelections ? count / totalSelections : 0,
+        incorrectQuestionRate: incorrectAttemptCount ? count / incorrectAttemptCount : 0,
+        averageElapsedMs: summary.elapsedWeight ? summary.elapsedTotalMs / summary.elapsedWeight : null,
+        averageTimeRatio: summary.timeRatioWeight ? summary.timeRatioTotal / summary.timeRatioWeight : null,
+        sortIndex: summary.sortIndex ?? index
+    };
+}).sort((a, b) => b.count - a.count || a.sortIndex - b.sortIndex).map(({ sortIndex, ...row }) => row);
+
+const createMistakeBreakdownRecord = ({ id, sectionId = null, topicId = null, skillId = null }) => ({
+    id,
+    sectionId,
+    topicId,
+    skillId,
+    incorrectAttemptCount: 0,
+    taggedIncorrectAttemptCount: 0,
+    rawIncorrectAttemptCount: 0,
+    rawTaggedIncorrectAttemptCount: 0,
+    totalSelections: 0,
+    elapsedWeight: 0,
+    elapsedTotalMs: 0,
+    timeRatioWeight: 0,
+    timeRatioTotal: 0,
+    summariesById: createMistakeSummaryMap(),
+    sectionCounts: new Map()
+});
+
+const addMistakeBreakdownAttempt = (record, attempt, weight = 1) => {
+    const normalizedWeight = safeNumber(weight, 0);
+    if (!normalizedWeight) return;
+    const mistakeTypeIds = normalizeMistakeTypeIds(attempt.mistakeTypeIds);
+    record.incorrectAttemptCount += normalizedWeight;
+    record.rawIncorrectAttemptCount += 1;
+    if (!mistakeTypeIds.length) return;
+    record.taggedIncorrectAttemptCount += normalizedWeight;
+    record.rawTaggedIncorrectAttemptCount += 1;
+    if (Number.isFinite(attempt.elapsedMs)) {
+        record.elapsedWeight += normalizedWeight;
+        record.elapsedTotalMs += cb.stat.max([0, attempt.elapsedMs]) * normalizedWeight;
+    }
+    if (Number.isFinite(attempt.timeRatio)) {
+        record.timeRatioWeight += normalizedWeight;
+        record.timeRatioTotal += cb.stat.max([0, attempt.timeRatio]) * normalizedWeight;
+    }
+    if (attempt.sectionId) record.sectionCounts.set(attempt.sectionId, (record.sectionCounts.get(attempt.sectionId) ?? 0) + (normalizedWeight * mistakeTypeIds.length));
+    mistakeTypeIds.forEach((mistakeTypeId) => {
+        const summary = record.summariesById.get(mistakeTypeId);
+        if (!summary) return;
+        summary.count += normalizedWeight;
+        record.totalSelections += normalizedWeight;
+        if (Number.isFinite(attempt.elapsedMs)) {
+            summary.elapsedWeight += normalizedWeight;
+            summary.elapsedTotalMs += cb.stat.max([0, attempt.elapsedMs]) * normalizedWeight;
+        }
+        if (Number.isFinite(attempt.timeRatio)) {
+            summary.timeRatioWeight += normalizedWeight;
+            summary.timeRatioTotal += cb.stat.max([0, attempt.timeRatio]) * normalizedWeight;
+        }
+    });
+};
+
+const getSectionBreakdownRows = (sectionCounts) => Array.from(sectionCounts.entries()).map(([sectionId, count]) => ({
+    sectionId,
+    count: roundWeightedCount(count)
+})).sort((a, b) => b.count - a.count || a.sectionId.localeCompare(b.sectionId));
+
+const finalizeMistakeBreakdownRecord = (record) => {
+    const rows = sortMistakeRows(record.summariesById, {
+        totalSelections: record.totalSelections,
+        incorrectAttemptCount: record.incorrectAttemptCount
+    }).filter((row) => row.count > 0);
+    const dominantRow = rows[0] ?? null;
+    const actionableRow = rows.find((row) => !NON_DRILL_DRIVER_MISTAKE_IDS.has(row.id)) ?? null;
+    const sectionBreakdown = getSectionBreakdownRows(record.sectionCounts);
+    const resolvedSectionId = record.sectionId ?? sectionBreakdown[0]?.sectionId ?? null;
+    return {
+        id: record.id,
+        sectionId: resolvedSectionId,
+        topicId: record.topicId,
+        skillId: record.skillId,
+        incorrectAttemptCount: roundWeightedCount(record.incorrectAttemptCount),
+        taggedIncorrectAttemptCount: roundWeightedCount(record.taggedIncorrectAttemptCount),
+        untaggedIncorrectAttemptCount: roundWeightedCount(cb.stat.max([0, record.incorrectAttemptCount - record.taggedIncorrectAttemptCount])),
+        rawIncorrectAttemptCount: record.rawIncorrectAttemptCount,
+        rawTaggedIncorrectAttemptCount: record.rawTaggedIncorrectAttemptCount,
+        totalSelections: roundWeightedCount(record.totalSelections),
+        tagCoverageRate: record.incorrectAttemptCount ? record.taggedIncorrectAttemptCount / record.incorrectAttemptCount : 0,
+        dominantMistakeTypeId: dominantRow?.id ?? null,
+        dominantMistakeTypeLabel: dominantRow?.label ?? null,
+        dominantMistakeRate: dominantRow?.selectionRate ?? 0,
+        actionableMistakeTypeId: actionableRow?.id ?? null,
+        actionableMistakeTypeLabel: actionableRow?.label ?? null,
+        actionableMistakeRate: actionableRow?.selectionRate ?? 0,
+        averageElapsedMs: record.elapsedWeight ? record.elapsedTotalMs / record.elapsedWeight : null,
+        averageTimeRatio: record.timeRatioWeight ? record.timeRatioTotal / record.timeRatioWeight : null,
+        sectionBreakdown,
+        rows
+    };
+};
+
+const sortMistakeBreakdownRows = (rows) => rows.sort((a, b) => {
+    return safeNumber(b.totalSelections) - safeNumber(a.totalSelections)
+        || safeNumber(b.taggedIncorrectAttemptCount) - safeNumber(a.taggedIncorrectAttemptCount)
+        || safeNumber(b.incorrectAttemptCount) - safeNumber(a.incorrectAttemptCount)
+        || String(a.id).localeCompare(String(b.id));
+});
+
+const buildMistakeBreakdownAnalytics = (incorrectAttempts) => {
+    const byTopicRecords = new Map();
+    const bySkillRecords = new Map();
+    const byTopicSkillRecords = new Map();
+    const ensureRecord = (records, entry) => {
+        if (!records.has(entry.id)) records.set(entry.id, createMistakeBreakdownRecord(entry));
+        return records.get(entry.id);
+    };
+    incorrectAttempts.forEach((attempt) => {
+        const topicIds = uniqueValues(attempt.topicIds).filter((topicId) => validTopicIds.has(topicId));
+        const skillIds = uniqueValues(attempt.skillIds).filter((skillId) => validSkillIds.has(skillId));
+        const topicWeight = topicIds.length ? 1 / topicIds.length : 0;
+        const skillWeight = skillIds.length ? 1 / skillIds.length : 0;
+        const pairWeight = topicIds.length && skillIds.length ? 1 / (topicIds.length * skillIds.length) : 0;
+        topicIds.forEach((topicId) => {
+            addMistakeBreakdownAttempt(ensureRecord(byTopicRecords, {
+                id: topicId,
+                topicId,
+                sectionId: topicsById[topicId]?.sectionId ?? attempt.sectionId
+            }), attempt, topicWeight);
+        });
+        skillIds.forEach((skillId) => {
+            addMistakeBreakdownAttempt(ensureRecord(bySkillRecords, {
+                id: skillId,
+                skillId
+            }), attempt, skillWeight);
+        });
+        topicIds.forEach((topicId) => {
+            skillIds.forEach((skillId) => {
+                addMistakeBreakdownAttempt(ensureRecord(byTopicSkillRecords, {
+                    id: `${topicId}__${skillId}`,
+                    topicId,
+                    skillId,
+                    sectionId: topicsById[topicId]?.sectionId ?? attempt.sectionId
+                }), attempt, pairWeight);
+            });
+        });
+    });
+    const finalizeRows = (records) => sortMistakeBreakdownRows(Array.from(records.values()).map(finalizeMistakeBreakdownRecord).filter((row) => safeNumber(row.totalSelections) > 0));
+    return {
+        byTopic: finalizeRows(byTopicRecords),
+        bySkill: finalizeRows(bySkillRecords),
+        byTopicSkill: finalizeRows(byTopicSkillRecords)
+    };
+};
+
 const buildMistakeTypeAnalytics = (attempts) => {
     const incorrectAttempts = attempts.filter((attempt) => !attempt.isCorrect);
-    const summariesById = new Map(MISTAKE_TYPES.map((type) => [type.id, { count: 0, elapsedCount: 0, elapsedTotalMs: 0, timeRatioCount: 0, timeRatioTotal: 0 }]));
+    const summariesById = createMistakeSummaryMap();
     let taggedIncorrectAttemptCount = 0;
     let totalSelections = 0;
     incorrectAttempts.forEach((attempt) => {
@@ -384,32 +560,27 @@ const buildMistakeTypeAnalytics = (attempts) => {
             if (!summary) return;
             summary.count += 1;
             totalSelections += 1;
-            if (Number.isFinite(attempt.elapsedMs)) { summary.elapsedCount += 1; summary.elapsedTotalMs += cb.stat.max([0, attempt.elapsedMs]); }
-            if (Number.isFinite(attempt.timeRatio)) { summary.timeRatioCount += 1; summary.timeRatioTotal += cb.stat.max([0, attempt.timeRatio]); }
+            if (Number.isFinite(attempt.elapsedMs)) {
+                summary.elapsedWeight += 1;
+                summary.elapsedTotalMs += cb.stat.max([0, attempt.elapsedMs]);
+            }
+            if (Number.isFinite(attempt.timeRatio)) {
+                summary.timeRatioWeight += 1;
+                summary.timeRatioTotal += cb.stat.max([0, attempt.timeRatio]);
+            }
         });
     });
     const incorrectAttemptCount = incorrectAttempts.length;
-    const rows = MISTAKE_TYPES.map((type, index) => {
-        const summary = summariesById.get(type.id) ?? {};
-        const count = summary.count ?? 0;
-        return {
-            id: type.id,
-            label: type.label,
-            count,
-            selectionRate: totalSelections ? count / totalSelections : 0,
-            incorrectQuestionRate: incorrectAttemptCount ? count / incorrectAttemptCount : 0,
-            averageElapsedMs: summary.elapsedCount ? summary.elapsedTotalMs / summary.elapsedCount : null,
-            averageTimeRatio: summary.timeRatioCount ? summary.timeRatioTotal / summary.timeRatioCount : null,
-            sortIndex: index
-        };
-    }).sort((a, b) => b.count - a.count || a.sortIndex - b.sortIndex).map(({ sortIndex, ...row }) => row);
+    const rows = sortMistakeRows(summariesById, { totalSelections, incorrectAttemptCount });
+    const breakdown = buildMistakeBreakdownAnalytics(incorrectAttempts);
     return {
         incorrectAttemptCount,
         taggedIncorrectAttemptCount,
         untaggedIncorrectAttemptCount: incorrectAttemptCount - taggedIncorrectAttemptCount,
         totalSelections,
         tagCoverageRate: incorrectAttemptCount ? taggedIncorrectAttemptCount / incorrectAttemptCount : 0,
-        rows
+        rows,
+        ...breakdown
     };
 };
 

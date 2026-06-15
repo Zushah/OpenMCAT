@@ -1,4 +1,4 @@
-import { MISTAKE_TYPES, getMistakeTypeLabel, normalizeMistakeTypeIds } from "../data/mistakes.js";
+import { MISTAKE_TYPES, getMistakeTypeLabel } from "../data/mistakes.js";
 import { getSkillsForSection, getTopicsBySection } from "../data/taxonomy.js";
 
 const cb = Chalkboard;
@@ -51,6 +51,7 @@ const clampQuestionCount = (value, min = 5, max = 20) => Math.round(cb.numb.cons
 
 const NON_DRILL_DRIVER_MISTAKE_IDS = new Set(["flawed_question", "other"]);
 const MIN_MISTAKE_FOCUS_TAGGED_ATTEMPTS = 2;
+const mistakeTypeSortOrder = Object.fromEntries(MISTAKE_TYPES.map((type, index) => [type.id, index]));
 
 const MISTAKE_DRILL_STRATEGIES = {
     content_gap: {
@@ -176,41 +177,25 @@ const calculateTargetedQuestionCount = ({ pair, metrics, timed = false }) => {
     return clampQuestionCount(count, 5, timed ? 15 : 20);
 };
 
-const getFilteredAttempts = (metrics) => metrics?.filteredAttempts ?? metrics?.attempts?.filtered ?? metrics?.normalizedAttempts ?? [];
+const normalizeMistakeProfileRows = ({ rows = [], totalSelections = 0, taggedIncorrectAttemptCount = 0 } = {}) => {
+    return (Array.isArray(rows) ? rows : []).filter((row) => safeNumber(row?.count, 0) > 0).map((row) => {
+        const count = safeNumber(row.count, 0);
+        return {
+            id: row.id,
+            label: row.label ?? getMistakeTypeLabel(row.id),
+            count,
+            selectionRate: Number.isFinite(row.selectionRate) ? row.selectionRate : totalSelections ? count / totalSelections : 0,
+            taggedQuestionRate: Number.isFinite(row.taggedQuestionRate) ? row.taggedQuestionRate : Number.isFinite(row.incorrectQuestionRate) ? row.incorrectQuestionRate : taggedIncorrectAttemptCount ? count / taggedIncorrectAttemptCount : 0,
+            taggedMissRate: Number.isFinite(row.taggedMissRate) ? row.taggedMissRate : Number.isFinite(row.incorrectQuestionRate) ? row.incorrectQuestionRate : taggedIncorrectAttemptCount ? count / taggedIncorrectAttemptCount : 0,
+            averageElapsedMs: Number.isFinite(row.averageElapsedMs) ? row.averageElapsedMs : null,
+            averageTimeRatio: Number.isFinite(row.averageTimeRatio) ? row.averageTimeRatio : null
+        };
+    }).sort((a, b) => b.count - a.count || (mistakeTypeSortOrder[a.id] ?? 99) - (mistakeTypeSortOrder[b.id] ?? 99));
+};
 
-const attemptHasTopic = (attempt, topicId) => !topicId || (attempt.topicIds ?? []).includes(topicId);
-
-const attemptHasSkill = (attempt, skillId) => !skillId || (attempt.skillIds ?? []).includes(skillId);
-
-const sortMistakeRows = (rows) => rows.slice().sort((a, b) => b.count - a.count || a.sortIndex - b.sortIndex).map(({ sortIndex, ...row }) => row);
-
-const buildMistakeProfile = ({ attempts = [], scope, scopeLabel }) => {
-    const summaries = new Map(MISTAKE_TYPES.map((type, index) => [type.id, { id: type.id, label: type.label, count: 0, sortIndex: index }]));
-    let taggedIncorrectAttemptCount = 0;
-    let totalSelections = 0;
-    attempts.forEach((attempt) => {
-        if (attempt?.isCorrect) return;
-        const mistakeTypeIds = normalizeMistakeTypeIds(attempt.mistakeTypeIds);
-        if (!mistakeTypeIds.length) return;
-        taggedIncorrectAttemptCount += 1;
-        mistakeTypeIds.forEach((mistakeTypeId) => {
-            const summary = summaries.get(mistakeTypeId);
-            if (!summary) return;
-            summary.count += 1;
-            totalSelections += 1;
-        });
-    });
-    if (!totalSelections) return null;
-    const rows = sortMistakeRows(Array.from(summaries.values()).map((summary) => ({
-        id: summary.id,
-        label: summary.label ?? getMistakeTypeLabel(summary.id),
-        count: summary.count,
-        selectionRate: totalSelections ? summary.count / totalSelections : 0,
-        taggedQuestionRate: taggedIncorrectAttemptCount ? summary.count / taggedIncorrectAttemptCount : 0,
-        taggedMissRate: taggedIncorrectAttemptCount ? summary.count / taggedIncorrectAttemptCount : 0,
-        sortIndex: summary.sortIndex
-    })));
-    const activeRows = rows.filter((row) => row.count > 0);
+const buildMistakeProfileFromRows = ({ scope, scopeLabel, taggedIncorrectAttemptCount = 0, totalSelections = 0, rows = [] } = {}) => {
+    const activeRows = normalizeMistakeProfileRows({ rows, totalSelections, taggedIncorrectAttemptCount });
+    if (!activeRows.length) return null;
     const dominantRow = activeRows[0] ?? null;
     const actionableRow = activeRows.find((row) => !NON_DRILL_DRIVER_MISTAKE_IDS.has(row.id)) ?? null;
     const strategy = actionableRow ? MISTAKE_DRILL_STRATEGIES[actionableRow.id] ?? null : null;
@@ -218,8 +203,8 @@ const buildMistakeProfile = ({ attempts = [], scope, scopeLabel }) => {
     return {
         scope,
         scopeLabel,
-        taggedIncorrectAttemptCount,
-        totalSelections,
+        taggedIncorrectAttemptCount: safeNumber(taggedIncorrectAttemptCount, 0),
+        totalSelections: safeNumber(totalSelections, 0),
         dominantMistakeTypeId: dominantRow?.id ?? null,
         dominantMistakeTypeLabel: dominantRow?.label ?? null,
         actionableMistakeTypeId: actionableRow?.id ?? null,
@@ -233,48 +218,57 @@ const buildMistakeProfile = ({ attempts = [], scope, scopeLabel }) => {
         configPatch: strategy?.configPatch ?? null,
         questionCountAdjustment: strategy?.questionCountAdjustment ?? 0,
         isDrillSteering: Boolean(strategy),
-        nonSteeringSelectionCount: activeRows.filter((row) => NON_DRILL_DRIVER_MISTAKE_IDS.has(row.id)).reduce((total, row) => total + row.count, 0),
+        nonSteeringSelectionCount: activeRows.filter((row) => NON_DRILL_DRIVER_MISTAKE_IDS.has(row.id)).reduce((total, row) => total + safeNumber(row.count, 0), 0),
         flawedQuestionSelections: activeRows.find((row) => row.id === "flawed_question")?.count ?? 0,
         topMistakeTypes: activeRows.slice(0, 4),
         rows: activeRows.slice(0, 4)
     };
 };
 
-const getMistakeFocus = ({ metrics, topPair, targetSectionId, topicLabel, skillLabel, sectionLabel }) => {
-    const attempts = getFilteredAttempts(metrics);
-    if (!attempts.length) return null;
+const buildMistakeProfileFromBreakdownRow = ({ row, scope, scopeLabel } = {}) => {
+    if (!row) return null;
+    return buildMistakeProfileFromRows({
+        scope,
+        scopeLabel,
+        taggedIncorrectAttemptCount: row.taggedIncorrectAttemptCount,
+        totalSelections: row.totalSelections,
+        rows: row.rows
+    });
+};
+
+const findMistakeBreakdownRow = (rows = [], predicate) => (Array.isArray(rows) ? rows : []).find(predicate) ?? null;
+
+const getMistakeFocus = ({ metrics, topPair, topicLabel, skillLabel }) => {
+    const mistakes = metrics?.mistakes ?? {};
     const candidates = [
-        {
+        buildMistakeProfileFromBreakdownRow({
             scope: "topic_skill_pair",
             scopeLabel: `${topicLabel} with ${skillLabel}`,
-            attempts: attempts.filter((attempt) => attemptHasTopic(attempt, topPair.topicId) && attemptHasSkill(attempt, topPair.skillId))
-        },
-        {
+            row: findMistakeBreakdownRow(mistakes.byTopicSkill, (row) => row.topicId === topPair.topicId && row.skillId === topPair.skillId)
+        }),
+        buildMistakeProfileFromBreakdownRow({
             scope: "topic",
             scopeLabel: topicLabel,
-            attempts: attempts.filter((attempt) => attemptHasTopic(attempt, topPair.topicId))
-        },
-        {
+            row: findMistakeBreakdownRow(mistakes.byTopic, (row) => row.topicId === topPair.topicId || row.id === topPair.topicId)
+        }),
+        buildMistakeProfileFromBreakdownRow({
             scope: "skill",
             scopeLabel: skillLabel,
-            attempts: attempts.filter((attempt) => attemptHasSkill(attempt, topPair.skillId))
-        },
-        {
-            scope: "section",
-            scopeLabel: sectionLabel,
-            attempts: attempts.filter((attempt) => attempt.sectionId === targetSectionId)
-        },
-        {
+            row: findMistakeBreakdownRow(mistakes.bySkill, (row) => row.skillId === topPair.skillId || row.id === topPair.skillId)
+        }),
+        buildMistakeProfileFromRows({
             scope: "filtered_view",
             scopeLabel: "the active dashboard filter",
-            attempts
-        }
-    ].map(buildMistakeProfile).filter(Boolean);
+            taggedIncorrectAttemptCount: mistakes.taggedIncorrectAttemptCount,
+            totalSelections: mistakes.totalSelections,
+            rows: mistakes.rows
+        })
+    ].filter(Boolean);
     return candidates.find((profile) => profile.taggedIncorrectAttemptCount >= MIN_MISTAKE_FOCUS_TAGGED_ATTEMPTS) ?? candidates[0] ?? null;
 };
 
-const applyMistakeFocusToConfig = (config, mistakeFocus) => {
-    const strategy = MISTAKE_DRILL_STRATEGIES[mistakeFocus?.actionableMistakeTypeId];
+export const applyMistakeTypeToDrillConfig = (config, mistakeTypeId) => {
+    const strategy = MISTAKE_DRILL_STRATEGIES[mistakeTypeId];
     if (!strategy?.applyConfig) return config;
     const next = strategy.applyConfig({ ...config });
     return {
@@ -283,6 +277,8 @@ const applyMistakeFocusToConfig = (config, mistakeFocus) => {
         secondsPerQuestion: next.timingMode === "timed" ? (safeNumber(next.secondsPerQuestion, 0) || getTargetSeconds(next.sectionId)) : null
     };
 };
+
+const applyMistakeFocusToConfig = (config, mistakeFocus) => applyMistakeTypeToDrillConfig(config, mistakeFocus?.actionableMistakeTypeId);
 
 const formatMistakeFocusEvidence = (mistakeFocus) => mistakeFocus?.actionableMistakeTypeLabel ?? mistakeFocus?.dominantMistakeTypeLabel ?? mistakeFocus?.label ?? null;
 
@@ -357,7 +353,7 @@ export const buildRecommendation = ({ topicsById, skillsById, sectionsById, metr
         questionFormat: getQuestionFormat(targetSectionId),
         reviewMode
     };
-    const mistakeFocus = getMistakeFocus({ metrics, topPair, targetSectionId, topicLabel, skillLabel, sectionLabel });
+    const mistakeFocus = getMistakeFocus({ metrics, topPair, topicLabel, skillLabel });
     const config = applyMistakeFocusToConfig(baseConfig, mistakeFocus);
     const avgSeconds = msToSeconds(topPair.averageElapsedMs);
     const targetSeconds = msToSeconds(topPair.targetTimeMs);

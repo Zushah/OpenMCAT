@@ -3,7 +3,7 @@ import { SCIENCE_SKILLS, SECTIONS, TOPICS } from "../data/taxonomy.js";
 
 const cb = Chalkboard;
 
-const LIMITS = { trendPoints: 30, weakestTopics: 10, weakestSkills: 10, weakestPairs: 20, heatmapRows: 10, heatmapCellsPerRow: 4, recentMisses: 15, recentSessions: 15, insights: 5, mistakeTypes: 12 };
+const LIMITS = { trendPoints: 30, weakestTopics: 10, weakestSkills: 10, weakestPairs: 20, heatmapRows: 10, heatmapCellsPerRow: 4, recentMisses: 15, recentSessions: 15, insights: 5, mistakeTypes: 12, mistakeBreakdownRows: 10 };
 
 const sectionsById = Object.fromEntries(SECTIONS.map((section) => [section.id, section]));
 const topicsById = Object.fromEntries(TOPICS.map((topic) => [topic.id, topic]));
@@ -192,7 +192,9 @@ const formatMistakeTypeRow = (row = {}) => compactObject({
     label: row.label ?? getMistakeTypeLabel(row.id),
     selections: nullableNumber(row.count),
     selectionRate: nullableRound(row.selectionRate, ROUND_RATIO),
-    incorrectQuestionRate: nullableRound(row.incorrectQuestionRate, ROUND_RATIO)
+    incorrectQuestionRate: nullableRound(row.incorrectQuestionRate, ROUND_RATIO),
+    averageElapsedMs: nullableRound(row.averageElapsedMs, ROUND_INTEGER),
+    averageTimeRatio: nullableRound(row.averageTimeRatio, ROUND_RATIO)
 });
 
 const formatMistakeFocusRow = (row = {}) => compactObject({
@@ -228,6 +230,37 @@ const formatMistakeFocus = (mistakeFocus = null) => {
         rows: (mistakeFocus.rows ?? mistakeFocus.topMistakeTypes ?? []).map(formatMistakeFocusRow)
     });
 };
+
+const formatMistakeBreakdownRow = (row = {}) => compactObject({
+    id: row.id,
+    sectionId: row.sectionId,
+    sectionLabel: sectionLabel(row.sectionId),
+    topicId: row.topicId,
+    topicLabel: row.topicId ? topicLabel(row.topicId) : undefined,
+    skillId: row.skillId,
+    skillLabel: row.skillId ? skillLabel(row.skillId) : undefined,
+    incorrectAttemptCount: nullableRound(row.incorrectAttemptCount, ROUND_SCORE),
+    taggedIncorrectAttemptCount: nullableRound(row.taggedIncorrectAttemptCount, ROUND_SCORE),
+    untaggedIncorrectAttemptCount: nullableRound(row.untaggedIncorrectAttemptCount, ROUND_SCORE),
+    rawIncorrectAttemptCount: nullableNumber(row.rawIncorrectAttemptCount),
+    rawTaggedIncorrectAttemptCount: nullableNumber(row.rawTaggedIncorrectAttemptCount),
+    totalSelections: nullableRound(row.totalSelections, ROUND_SCORE),
+    tagCoverageRate: nullableRound(row.tagCoverageRate, ROUND_RATIO),
+    dominantMistakeTypeId: row.dominantMistakeTypeId,
+    dominantMistakeTypeLabel: row.dominantMistakeTypeLabel,
+    dominantMistakeRate: nullableRound(row.dominantMistakeRate, ROUND_RATIO),
+    actionableMistakeTypeId: row.actionableMistakeTypeId,
+    actionableMistakeTypeLabel: row.actionableMistakeTypeLabel,
+    actionableMistakeRate: nullableRound(row.actionableMistakeRate, ROUND_RATIO),
+    averageElapsedMs: nullableRound(row.averageElapsedMs, ROUND_INTEGER),
+    averageTimeRatio: nullableRound(row.averageTimeRatio, ROUND_RATIO),
+    sectionBreakdown: (row.sectionBreakdown ?? []).map((sectionRow) => compactObject({
+        sectionId: sectionRow.sectionId,
+        sectionLabel: sectionLabel(sectionRow.sectionId),
+        selections: nullableRound(sectionRow.count, ROUND_SCORE)
+    })),
+    topMistakeTypes: (row.rows ?? []).slice(0, 4).map(formatMistakeTypeRow)
+});
 
 const formatRecommendationConfig = (config = {}) => compactObject({
     sectionId: config.sectionId,
@@ -375,7 +408,10 @@ const buildAnalyticsPayload = ({ metrics = {}, recommendation = null } = {}) => 
                 untaggedIncorrectAttemptCount: nullableNumber(mistakes.untaggedIncorrectAttemptCount),
                 totalSelections: nullableNumber(mistakes.totalSelections),
                 tagCoverageRate: nullableRound(mistakes.tagCoverageRate, ROUND_RATIO),
-                rows: limitList(mistakes.rows ?? [], LIMITS.mistakeTypes, formatMistakeTypeRow)
+                rows: limitList(mistakes.rows ?? [], LIMITS.mistakeTypes, formatMistakeTypeRow),
+                byTopic: limitList(mistakes.byTopic ?? [], LIMITS.mistakeBreakdownRows, formatMistakeBreakdownRow),
+                bySkill: limitList(mistakes.bySkill ?? [], LIMITS.mistakeBreakdownRows, formatMistakeBreakdownRow),
+                byTopicSkill: limitList(mistakes.byTopicSkill ?? [], LIMITS.mistakeBreakdownRows, formatMistakeBreakdownRow)
             },
             timingAndAccuracyByDifficulty: (rows.byDifficulty ?? timing.byDifficulty ?? []).map((row) => formatAggregateRow(row, "difficulty")),
             topicSkillHeatmap: formatHeatmap(weakness.topicSkillMatrix),
@@ -405,6 +441,7 @@ const FIELD_DESCRIPTIONS = {
     filteredOutAttempts: "Answered attempts stored locally but excluded by the active dashboard filters.",
     aiModelUsage: "Generated question counts grouped by recorded session AI model metadata when available.",
     mistakeTypes: "Optional self-reported labels for incorrect questions. Multiple mistake types can be selected for one incorrect question, so selections can exceed the number of incorrect questions.",
+    mistakeBreakdowns: "byTopic, bySkill, and byTopicSkill show where mistake-type selections concentrate. Counts can be fractional when one question tests multiple topics or skills; dominant/actionable mistake fields identify the most common and drill-steering tag for that row.",
     mistakeFocus: "Mistake-aware recommendation evidence. The exact topic-skill pair is preferred; if it has too few tagged misses, the focus may fall back to topic, skill, section, or the active dashboard filter. Flawed question and Other are context only and should not steer learner-weakness diagnosis."
 };
 
@@ -436,7 +473,7 @@ ${JSON.stringify(buildAnalyticsPayload({ metrics, recommendation }), null, 2)}
 
 Your task:
 1. Start with a concise executive summary of the student's most important study patterns.
-2. Analyze content gaps, skill vulnerabilities, mistake-type patterns, timing pressure, confidence calibration, topic coverage, and data reliability.
+2. Analyze content gaps, skill vulnerabilities, mistake-type patterns, where those mistake types cluster by topic and skill, timing pressure, confidence calibration, topic coverage, and data reliability.
 3. Explain what the recommended next drill is trying to accomplish, and whether you agree with it based on the evidence.
 4. Provide a prioritized study plan for the next three-to-five OpenMCAT sessions, including what to drill, whether to use timed or untimed mode, and what to focus the review on after each session.
 5. Call out any metrics that are too low-sample to trust yet.

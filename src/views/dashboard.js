@@ -2,6 +2,7 @@ import { DIFFICULTIES, SCIENCE_SKILLS, SECTIONS, TOPICS } from "../data/taxonomy
 import { createAccessibleDataTable, createChartShell, destroyDashboardCharts, getChartTheme, getDefaultChartOptions, hasChartRuntime, queueChartRender } from "../components/charts.js";
 import { createStatCard } from "../components/stats.js";
 import { formatDurationMs } from "../components/timer.js";
+import { applyMistakeTypeToDrillConfig } from "../analytics/recommendations.js";
 import { compileAnalyticsPrompt } from "../prompts/analytics.js";
 
 const cb = Chalkboard;
@@ -231,6 +232,30 @@ const createActionButton = (label, config, actions, className = "btn btn-seconda
     button.textContent = label;
     button.addEventListener("click", () => actions.applyDashboardDrill(config));
     return button;
+};
+
+const getMistakeBreakdownSectionId = (row, metrics) => {
+    if (row?.sectionId) return row.sectionId;
+    const filteredSectionId = metrics?.filters?.sectionId;
+    if (filteredSectionId && filteredSectionId !== "all") return filteredSectionId;
+    const sectionFromBreakdown = row?.sectionBreakdown?.[0]?.sectionId;
+    if (sectionFromBreakdown) return sectionFromBreakdown;
+    if (row?.topicId) return topicSectionId(row.topicId);
+    return "bb";
+};
+
+const createMistakeBreakdownDrillConfig = ({ row, type, metrics }) => {
+    const actionableMistakeTypeId = row?.actionableMistakeTypeId ?? row?.dominantMistakeTypeId ?? null;
+    const sectionId = getMistakeBreakdownSectionId(row, metrics);
+    const timed = actionableMistakeTypeId === "time_pressure" || safeNumber(row?.averageTimeRatio, 0) > 1.12;
+    const config = createDrillConfig({
+        sectionId,
+        topicId: type === "skill" ? null : row?.topicId ?? row?.id ?? null,
+        skillId: type === "topic" ? null : row?.skillId ?? row?.id ?? null,
+        timed,
+        count: timed ? 8 : 6
+    });
+    return applyMistakeTypeToDrillConfig(config, actionableMistakeTypeId);
 };
 
 const createSelectControl = ({ label, value, options, onChange }) => {
@@ -1258,6 +1283,96 @@ const renderRecentSessions = (metrics, actions, pages) => {
     return card;
 };
 
+
+const createMistakeMix = (rows = []) => {
+    const list = createElement("div", "mistake-breakdown-chip-list");
+    const activeRows = (Array.isArray(rows) ? rows : []).filter((row) => safeNumber(row.count, 0) > 0).slice(0, 3);
+    if (!activeRows.length) { appendText(list, "span", "tiny", "No tagged mix yet"); return list; }
+    activeRows.forEach((row) => { const chip = createElement("span", "evidence-chip mistake-breakdown-chip", `${row.label ?? row.id} ${attemptCount(row.count)}`); list.append(chip); });
+    return list;
+};
+
+const renderMistakeBreakdownTable = ({ rows, type, metrics, actions }) => {
+    const wrap = createElement("div", "table-wrap mistake-breakdown-table-wrap");
+    const table = document.createElement("table");
+    table.className = "mistake-breakdown-table";
+    const thead = document.createElement("thead");
+    const headerRow = document.createElement("tr");
+    [type === "topic" ? "Topic" : "Skill", "Tagged / missed", "Dominant mistake", "Top mistake mix", "Action"].forEach((label) => appendText(headerRow, "th", "", label));
+    thead.append(headerRow);
+    table.append(thead);
+    const tbody = document.createElement("tbody");
+    rows.forEach((row) => {
+        const tr = document.createElement("tr");
+        const label = type === "topic" ? topicLabelWithSection(row.topicId ?? row.id, row.sectionId) : rowNameFromId("skill", row.skillId ?? row.id);
+        appendText(tr, "th", "", label).scope = "row";
+        appendText(tr, "td", "", `${attemptCount(row.taggedIncorrectAttemptCount)} / ${attemptCount(row.incorrectAttemptCount)}`);
+        const dominant = row.dominantMistakeTypeLabel ? `${row.dominantMistakeTypeLabel} · ${pct(row.dominantMistakeRate)}` : "n/a";
+        appendText(tr, "td", "", dominant);
+        const mixCell = document.createElement("td");
+        mixCell.append(createMistakeMix(row.rows));
+        tr.append(mixCell);
+        const action = document.createElement("td");
+        action.append(createActionButton("Drill", createMistakeBreakdownDrillConfig({ row, type, metrics }), actions));
+        tr.append(action);
+        tbody.append(tr);
+    });
+    table.append(tbody);
+    wrap.append(table);
+    return wrap;
+};
+
+const renderMistakeBreakdownPanel = ({ title, rows, pageKey, type, metrics, actions, pages, emptyText }) => {
+    const panel = createElement("section", "mistake-breakdown-panel");
+    const header = createElement("div", "mistake-breakdown-panel-header");
+    appendText(header, "h3", "", title);
+    const pageInfo = getPaginatedRows(rows, pages, pageKey, COMPACT_PAGE_SIZE);
+    const pagination = createPaginationControls({ key: pageKey, pageInfo, actions });
+    if (pagination) header.append(pagination);
+    panel.append(header);
+    if (!rows.length) { appendText(panel, "p", "tiny mistake-breakdown-empty", emptyText); return panel; }
+    panel.append(renderMistakeBreakdownTable({ rows: pageInfo.rows, type, metrics, actions }));
+    return panel;
+};
+
+const renderMistakeBreakdown = (metrics, actions, pages) => {
+    const card = createElement("section", "card card-pad dashboard-mistake-breakdown-card");
+    const header = createElement("div", "dashboard-section-header");
+    const titleWrap = createElement("div");
+    appendText(titleWrap, "h2", "", "Mistake patterns by topic and skill");
+    appendText(titleWrap, "p", "tiny", "Shows where optional self-reported mistake tags concentrate inside the active dashboard filters. Counts can be fractional when one question tests multiple topics or skills.");
+    header.append(titleWrap);
+    card.append(header);
+    const topics = metrics.mistakes?.byTopic ?? [];
+    const skills = metrics.mistakes?.bySkill ?? [];
+    if (!topics.length && !skills.length) { appendText(card, "p", "tiny mistake-breakdown-empty", "Tag incorrect questions on the Review page to see topic and skill mistake patterns here."); return card; }
+    const grid = createElement("div", "mistake-breakdown-grid");
+    grid.append(
+        renderMistakeBreakdownPanel({
+            title: "By topic",
+            rows: topics,
+            pageKey: "mistakeTopics",
+            type: "topic",
+            metrics,
+            actions,
+            pages,
+            emptyText: "No tagged topic-level mistakes match this dashboard slice."
+        }),
+        renderMistakeBreakdownPanel({
+            title: "By skill",
+            rows: skills,
+            pageKey: "mistakeSkills",
+            type: "skill",
+            metrics,
+            actions,
+            pages,
+            emptyText: "No tagged skill-level mistakes match this dashboard slice."
+        })
+    );
+    card.append(grid);
+    return card;
+};
+
 const renderTables = (metrics, actions, pages) => {
     const grid = createElement("section", "dashboard-detail-grid");
     grid.append(renderWeakPairTable(metrics, actions, pages), renderRecentMisses(metrics, actions, pages), renderRecentSessions(metrics, actions, pages));
@@ -1284,6 +1399,7 @@ export const renderDashboardView = (state, actions) => {
         renderInsights(metrics),
         renderChartGrid(metrics, actions, pages),
         renderHeatmap(metrics, actions, pages),
+        renderMistakeBreakdown(metrics, actions, pages),
         renderTables(metrics, actions, pages),
         renderModelUsageChart(metrics, actions, pages)
     );
