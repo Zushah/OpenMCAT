@@ -75,6 +75,22 @@ const chartLabel = (label, maxLineLength = 18, maxLines = 3) => {
     return lines.length === 1 ? lines[0] : lines;
 };
 
+const chartColorWithAlpha = (color, alpha = 0.24) => {
+    const raw = String(color ?? "").trim();
+    const constrainedAlpha = cb.numb.constrain(safeNumber(alpha, 0.24), [0, 1]);
+    const hex = raw.match(/^#([\da-f]{3}|[\da-f]{6})$/i);
+    if (hex) {
+        const value = hex[1].length === 3 ? hex[1].split("").map((character) => `${character}${character}`).join("") : hex[1];
+        const red = parseInt(value.slice(0, 2), 16);
+        const green = parseInt(value.slice(2, 4), 16);
+        const blue = parseInt(value.slice(4, 6), 16);
+        return `rgba(${red}, ${green}, ${blue}, ${constrainedAlpha})`;
+    }
+    const rgb = raw.match(/^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/i);
+    if (rgb) return `rgba(${rgb[1]}, ${rgb[2]}, ${rgb[3]}, ${constrainedAlpha})`;
+    return raw;
+};
+
 const hasAttempts = (row) => safeNumber(row?.attempts, 0) > 0;
 
 const metricValue = (row, value) => hasAttempts(row) && Number.isFinite(value) ? value : null;
@@ -944,27 +960,30 @@ const renderTimingChart = (metrics) => {
     });
 };
 
-const getMistakeBubbleRadius = (count, maxCount) => {
-    const safeMax = Math.max(1, safeNumber(maxCount, 1));
-    return round(5 + (13 * Math.sqrt(cb.numb.constrain(safeNumber(count, 0) / safeMax, [0, 1]))), 0.1);
-};
-
-const renderMistakePressureChart = (metrics) => {
+const renderMistakeTypeTrendChart = (metrics) => {
     const theme = getChartTheme();
     const mistakes = metrics.mistakes ?? {};
-    const rows = (Array.isArray(mistakes.rows) ? mistakes.rows : []).filter((row) => safeNumber(row.count, 0) > 0 && Number.isFinite(row.averageTimeRatio));
+    const trend = mistakes.trend ?? {};
+    const rows = Array.isArray(trend.rows) ? trend.rows : [];
+    const activeMistakeTypes = (Array.isArray(trend.activeMistakeTypes) ? trend.activeMistakeTypes : []).filter((type) => safeNumber(type.count, 0) > 0);
     const incorrectCount = safeNumber(mistakes.incorrectAttemptCount, 0);
+    const totalSelections = safeNumber(trend.totalSelections, safeNumber(mistakes.totalSelections, 0));
     const table = createAccessibleDataTable(
-        ["Mistake type", "Selections", "% of incorrect", "Avg pace", "Avg time"],
-        rows.map((row) => [row.label, `${safeNumber(row.count, 0)}`, pct(row.incorrectQuestionRate), `${score(row.averageTimeRatio)}x`, Number.isFinite(row.averageElapsedMs) ? seconds(row.averageElapsedMs) : "n/a"])
+        ["Date", "Tagged misses", "Total selections", ...activeMistakeTypes.map((type) => type.label)],
+        rows.map((row) => [
+            row.label ?? row.date,
+            attemptCount(row.taggedIncorrectAttemptCount),
+            attemptCount(row.totalSelections),
+            ...activeMistakeTypes.map((type) => attemptCount(row.countsByType?.[type.id] ?? 0))
+        ])
     );
     const { card, canvas } = createChartShell({
-        title: "Mistake frequency vs pacing",
-        subtitle: "Frequency versus average pace for tagged incorrect questions. Larger bubbles mean more selected tags.",
-        canvasLabel: "Mistake frequency vs pacing bubble chart",
+        title: "Mistake types trend",
+        subtitle: "Selected mistake tags over time for incorrect questions in the active dashboard filter. Multiple tags on one question are stacked separately.",
+        canvasLabel: "Mistake types trend stacked area chart",
         table
     });
-    if (!rows.length) {
+    if (!rows.length || !activeMistakeTypes.length || !totalSelections) {
         const empty = createElement("p", "chart-empty-message tiny", incorrectCount ? "No mistake types have been tagged in the active dashboard slice yet." : "No incorrect questions match the active dashboard filters yet.");
         const wrap = canvas.closest(".chart-canvas-wrap");
         if (wrap) {
@@ -973,60 +992,54 @@ const renderMistakePressureChart = (metrics) => {
         } else canvas.replaceWith(empty);
         return card;
     }
-    const colors = [theme.danger, theme.warning, theme.accentTwo, theme.accent, theme.success, theme.textMuted, theme.border];
-    const maxCount = Math.max(...rows.map((row) => safeNumber(row.count, 0)), 1);
-    const maxFrequency = Math.max(...rows.map((row) => safeNumber(row.incorrectQuestionRate, 0) * 100), 0);
-    const maxPace = Math.max(...rows.map((row) => safeNumber(row.averageTimeRatio, 0) * 100), 0);
-    const xMax = Math.min(100, Math.max(20, Math.ceil(maxFrequency / 10) * 10 + 10));
-    const yMax = Math.max(125, Math.ceil(maxPace / 25) * 25 + 25);
-    const points = rows.map((row) => ({
-        x: round(row.incorrectQuestionRate * 100, 0.1),
-        y: round(row.averageTimeRatio * 100, 0.1),
-        r: getMistakeBubbleRadius(row.count, maxCount),
-        label: row.label,
-        count: row.count,
-        incorrectQuestionRate: row.incorrectQuestionRate,
-        averageTimeRatio: row.averageTimeRatio
-    }));
+    const colors = [theme.danger, theme.warning, theme.accentTwo, theme.accent, theme.success, "#c084fc", "#60a5fa", "#f97316", "#fb7185", theme.textMuted, theme.border];
+    const labels = rows.map((row) => row.label ?? row.date);
     queueChartRender(canvas, {
-        type: "bubble",
+        type: "line",
         data: {
-            datasets: [{
-                label: "Mistake types",
-                data: points,
-                backgroundColor: rows.map((_, index) => colors[index % colors.length]),
-                borderColor: theme.tooltipBackground,
-                borderWidth: 2,
-                hoverBorderWidth: 3
-            }]
+            labels,
+            datasets: activeMistakeTypes.map((type, index) => {
+                const color = colors[index % colors.length];
+                return {
+                    label: type.label,
+                    data: rows.map((row) => safeNumber(row.countsByType?.[type.id], 0)),
+                    borderColor: color,
+                    backgroundColor: chartColorWithAlpha(color, 0.22),
+                    fill: true,
+                    tension: 0.28,
+                    pointRadius: rows.length > 14 ? 2 : 3,
+                    pointHoverRadius: 5,
+                    borderWidth: 2,
+                    stack: "mistake-types"
+                };
+            })
         },
         options: getDefaultChartOptions({
-            interaction: { intersect: true, mode: "nearest" },
+            interaction: { intersect: false, mode: "index" },
             plugins: {
-                legend: { display: false },
+                legend: { position: "bottom" },
                 tooltip: {
                     callbacks: {
-                        title: () => "Mistake frequency vs pacing",
-                        label: (context) => {
-                            const raw = context.raw ?? {};
-                            return `${raw.label}: ${attemptCount(raw.count)} selections; ${pct(raw.incorrectQuestionRate)} of incorrect; ${score(raw.averageTimeRatio)}x pace`;
+                        label: (context) => `${context.dataset.label}: ${attemptCount(context.raw)} selection${safeNumber(context.raw, 0) === 1 ? "" : "s"}`,
+                        footer: (items) => {
+                            const index = items?.[0]?.dataIndex ?? -1;
+                            const row = rows[index];
+                            return row ? `Total: ${attemptCount(row.totalSelections)} selected tag${safeNumber(row.totalSelections, 0) === 1 ? "" : "s"}` : "";
                         }
                     }
                 }
             },
             scales: {
                 x: {
-                    min: 0,
-                    max: xMax,
-                    title: { display: true, text: "% of incorrect questions", color: theme.textSecondary },
-                    ticks: { color: theme.textMuted, callback: (value) => `${value}%` },
+                    stacked: true,
+                    ticks: { color: theme.textMuted, maxRotation: 0, minRotation: 0 },
                     grid: { color: theme.border }
                 },
                 y: {
+                    stacked: true,
                     min: 0,
-                    max: yMax,
-                    title: { display: true, text: "Average pace vs target", color: theme.textSecondary },
-                    ticks: { color: theme.textMuted, callback: (value) => `${round(value / 100, 0.1)}x` },
+                    title: { display: true, text: "Selected mistake tags", color: theme.textSecondary },
+                    ticks: { color: theme.textMuted, precision: 0 },
                     grid: { color: theme.border }
                 }
             }
@@ -1045,7 +1058,7 @@ const renderChartGrid = (metrics, actions, pages) => {
         renderConfidenceChart(metrics),
         renderTimingChart(metrics),
         renderMistakeTypeChart(metrics),
-        renderMistakePressureChart(metrics)
+        renderMistakeTypeTrendChart(metrics)
     );
     return grid;
 };

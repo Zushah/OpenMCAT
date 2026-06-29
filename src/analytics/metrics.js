@@ -547,6 +547,60 @@ const buildMistakeBreakdownAnalytics = (incorrectAttempts) => {
     };
 };
 
+const createMistakeTrendCounts = () => Object.fromEntries(MISTAKE_TYPES.map((type) => [type.id, 0]));
+
+const createMistakeTrendRecord = (date) => ({
+    date,
+    label: date === "unknown" ? "Unknown date" : date,
+    taggedIncorrectAttemptCount: 0,
+    totalSelections: 0,
+    countsByType: createMistakeTrendCounts()
+});
+
+const buildMistakeTrendRowMix = (countsByType, totalSelections) => MISTAKE_TYPES.map((type, index) => ({
+    id: type.id,
+    label: type.label,
+    count: countsByType[type.id] ?? 0,
+    selectionRate: totalSelections ? (countsByType[type.id] ?? 0) / totalSelections : 0,
+    sortIndex: index
+})).filter((row) => row.count > 0).sort((a, b) => b.count - a.count || a.sortIndex - b.sortIndex).map(({ sortIndex, ...row }) => row);
+
+const buildMistakeTypeTrend = (incorrectAttempts) => {
+    const recordsByDate = new Map();
+    incorrectAttempts.forEach((attempt) => {
+        const mistakeTypeIds = normalizeMistakeTypeIds(attempt.mistakeTypeIds);
+        if (!mistakeTypeIds.length) return;
+        const date = attempt.answeredDateKey && attempt.answeredDateKey !== "unknown" ? attempt.answeredDateKey : getDateKey(attempt.answeredAtMs);
+        if (!recordsByDate.has(date)) recordsByDate.set(date, createMistakeTrendRecord(date));
+        const record = recordsByDate.get(date);
+        record.taggedIncorrectAttemptCount += 1;
+        mistakeTypeIds.forEach((mistakeTypeId) => {
+            record.countsByType[mistakeTypeId] = (record.countsByType[mistakeTypeId] ?? 0) + 1;
+            record.totalSelections += 1;
+        });
+    });
+    const rows = Array.from(recordsByDate.values()).sort((a, b) => {
+        if (a.date === "unknown") return 1;
+        if (b.date === "unknown") return -1;
+        return a.date.localeCompare(b.date);
+    }).map((record) => ({
+        ...record,
+        countsByType: Object.fromEntries(MISTAKE_TYPES.map((type) => [type.id, record.countsByType[type.id] ?? 0])),
+        rows: buildMistakeTrendRowMix(record.countsByType, record.totalSelections)
+    }));
+    const activeMistakeTypes = MISTAKE_TYPES.map((type) => ({
+        id: type.id,
+        label: type.label,
+        count: sum(rows.map((row) => safeNumber(row.countsByType[type.id], 0)))
+    })).filter((type) => type.count > 0).sort((a, b) => b.count - a.count || MISTAKE_TYPES.findIndex((type) => type.id === a.id) - MISTAKE_TYPES.findIndex((type) => type.id === b.id));
+    return {
+        rows,
+        activeMistakeTypes,
+        totalSelections: sum(activeMistakeTypes.map((type) => type.count)),
+        taggedIncorrectAttemptCount: sum(rows.map((row) => row.taggedIncorrectAttemptCount))
+    };
+};
+
 const buildMistakeTypeAnalytics = (attempts) => {
     const incorrectAttempts = attempts.filter((attempt) => !attempt.isCorrect);
     const summariesById = createMistakeSummaryMap();
@@ -573,6 +627,7 @@ const buildMistakeTypeAnalytics = (attempts) => {
     const incorrectAttemptCount = incorrectAttempts.length;
     const rows = sortMistakeRows(summariesById, { totalSelections, incorrectAttemptCount });
     const breakdown = buildMistakeBreakdownAnalytics(incorrectAttempts);
+    const trend = buildMistakeTypeTrend(incorrectAttempts);
     return {
         incorrectAttemptCount,
         taggedIncorrectAttemptCount,
@@ -580,6 +635,7 @@ const buildMistakeTypeAnalytics = (attempts) => {
         totalSelections,
         tagCoverageRate: incorrectAttemptCount ? taggedIncorrectAttemptCount / incorrectAttemptCount : 0,
         rows,
+        trend,
         ...breakdown
     };
 };

@@ -262,6 +262,19 @@ const formatMistakeBreakdownRow = (row = {}) => compactObject({
     topMistakeTypes: (row.rows ?? []).slice(0, 4).map(formatMistakeTypeRow)
 });
 
+const formatMistakeTrendRow = (row = {}) => compactObject({
+    date: row.date,
+    label: row.label,
+    taggedIncorrectAttemptCount: nullableNumber(row.taggedIncorrectAttemptCount),
+    totalSelections: nullableNumber(row.totalSelections),
+    countsByType: compactObject(Object.fromEntries(Object.entries(row.countsByType ?? {}).filter(([, count]) => safeNumber(count, 0) > 0).map(([mistakeTypeId, count]) => [mistakeTypeId, compactObject({
+        id: mistakeTypeId,
+        label: getMistakeTypeLabel(mistakeTypeId),
+        selections: nullableNumber(count)
+    })]))),
+    topMistakeTypes: (row.rows ?? []).slice(0, 4).map(formatMistakeTypeRow)
+});
+
 const formatRecommendationConfig = (config = {}) => compactObject({
     sectionId: config.sectionId,
     sectionLabel: sectionLabel(config.sectionId),
@@ -409,6 +422,13 @@ const buildAnalyticsPayload = ({ metrics = {}, recommendation = null } = {}) => 
                 totalSelections: nullableNumber(mistakes.totalSelections),
                 tagCoverageRate: nullableRound(mistakes.tagCoverageRate, ROUND_RATIO),
                 rows: limitList(mistakes.rows ?? [], LIMITS.mistakeTypes, formatMistakeTypeRow),
+                trend: compactObject({
+                    totalRows: nullableNumber(mistakes.trend?.rows?.length),
+                    totalSelections: nullableNumber(mistakes.trend?.totalSelections),
+                    taggedIncorrectAttemptCount: nullableNumber(mistakes.trend?.taggedIncorrectAttemptCount),
+                    activeTypes: (mistakes.trend?.activeMistakeTypes ?? []).map((type) => compactObject({ id: type.id, label: type.label ?? getMistakeTypeLabel(type.id), selections: nullableNumber(type.count) })),
+                    rows: limitList(mistakes.trend?.rows ?? [], LIMITS.trendPoints, formatMistakeTrendRow)
+                }),
                 byTopic: limitList(mistakes.byTopic ?? [], LIMITS.mistakeBreakdownRows, formatMistakeBreakdownRow),
                 bySkill: limitList(mistakes.bySkill ?? [], LIMITS.mistakeBreakdownRows, formatMistakeBreakdownRow),
                 byTopicSkill: limitList(mistakes.byTopicSkill ?? [], LIMITS.mistakeBreakdownRows, formatMistakeBreakdownRow)
@@ -442,6 +462,7 @@ const FIELD_DESCRIPTIONS = {
     aiModelUsage: "Generated question counts grouped by recorded session AI model metadata when available.",
     mistakeTypes: "Optional self-reported labels for incorrect questions. Multiple mistake types can be selected for one incorrect question, so selections can exceed the number of incorrect questions.",
     mistakeBreakdowns: "byTopic, bySkill, and byTopicSkill show where mistake-type selections concentrate. Counts can be fractional when one question tests multiple topics or skills; dominant/actionable mistake fields identify the most common and drill-steering tag for that row.",
+    mistakeTrend: "Trend rows show selected mistake-type tags over time for incorrect questions in the active dashboard filters. Multiple tags on one question are counted as separate selections.",
     mistakeFocus: "Mistake-aware recommendation evidence. The exact topic-skill pair is preferred; if it has too few tagged misses, the focus may fall back to topic, skill, section, or the active dashboard filter. Flawed question and Other are context only and should not steer learner-weakness diagnosis."
 };
 
@@ -473,7 +494,7 @@ ${JSON.stringify(buildAnalyticsPayload({ metrics, recommendation }), null, 2)}
 
 Your task:
 1. Start with a concise executive summary of the student's most important study patterns.
-2. Analyze content gaps, skill vulnerabilities, mistake-type patterns, where those mistake types cluster by topic and skill, timing pressure, confidence calibration, topic coverage, and data reliability.
+2. Analyze content gaps, skill vulnerabilities, mistake-type patterns, mistake-type trends over time, where those mistake types cluster by topic and skill, timing pressure, confidence calibration, topic coverage, and data reliability.
 3. Explain what the recommended next drill is trying to accomplish, and whether you agree with it based on the evidence.
 4. Provide a prioritized study plan for the next three-to-five OpenMCAT sessions, including what to drill, whether to use timed or untimed mode, and what to focus the review on after each session.
 5. Call out any metrics that are too low-sample to trust yet.
