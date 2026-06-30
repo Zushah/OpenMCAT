@@ -977,6 +977,8 @@ const renderMistakeTypeTrendChart = (metrics) => {
             ...activeMistakeTypes.map((type) => attemptCount(row.countsByType?.[type.id] ?? 0))
         ])
     );
+    table.classList.add("mistake-trend-data-table");
+    table.querySelector("table")?.style.setProperty("min-width", `${Math.max(780, 340 + activeMistakeTypes.length * 132)}px`);
     const { card, canvas } = createChartShell({
         title: "Mistake types trend",
         subtitle: "Selected mistake tags over time for incorrect questions in the active dashboard filter. Multiple tags on one question are stacked separately.",

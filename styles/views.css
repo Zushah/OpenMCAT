@@ -1080,6 +1080,32 @@
     overflow: auto;
 }
 
+.mistake-trend-data-table {
+    max-width: 100%;
+    overflow: auto;
+}
+
+.mistake-trend-data-table table {
+    table-layout: auto;
+}
+
+.mistake-trend-data-table th, .mistake-trend-data-table td {
+    min-width: 7.5rem;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
+}
+
+.mistake-trend-data-table th:first-child, .mistake-trend-data-table td:first-child {
+    min-width: 8.75rem;
+}
+
+.mistake-trend-data-table th:nth-child(2), .mistake-trend-data-table td:nth-child(2), .mistake-trend-data-table th:nth-child(3), .mistake-trend-data-table td:nth-child(3) {
+    min-width: 7.25rem;
+}
+
+
 .dashboard-filter-field select {
     width: 100%;
     padding: 9px 2.45rem 9px 11px;
