@@ -5,20 +5,6 @@ import { formatDurationMs } from "../components/timer.js";
 
 const cb = Chalkboard;
 
-const safeNumber = (value, fallback = 0) => { const number = Number(value); return Number.isFinite(number) ? number : fallback; };
-
-const round = (num, places = 0.01) => {
-    const rounded = cb.numb.roundTo(safeNumber(num), safeNumber(places));
-    const str = Math.abs(safeNumber(places)).toString().toLowerCase();
-    let decimalPlaces = 0;
-    if (str.includes("e-")) {
-        const [coefficient, exponent] = str.split("e-");
-        const coefficientDecimals = coefficient.split(".")[1]?.length ?? 0;
-        decimalPlaces = Number(exponent) + coefficientDecimals;
-    } else if (!str.includes("e+")) decimalPlaces = str.split(".")[1]?.length ?? 0;
-    return Number(rounded.toFixed(decimalPlaces));
-};
-
 const isQuestionBankSession = (activeSession) => activeSession?.providerMeta?.source === "question_bank" || activeSession?.generatedSession?.bank?.source === "question_bank";
 
 const summarize = (activeSession) => {
@@ -230,7 +216,7 @@ export const renderReviewView = (state, actions) => {
     summaryGrid.className = "summary-grid";
     summaryGrid.append(
         makeSummaryCard("Score", `${summary.correct}/${summary.answered}`, summary.incomplete ? `${summary.incomplete} unsubmitted` : "All submitted"),
-        makeSummaryCard("Accuracy", `${round(summary.accuracy * 100, 0.1)}%`),
+        makeSummaryCard("Accuracy", `${cb.numb.roundTo(summary.accuracy * 100, 0.1)}%`),
         makeSummaryCard("Total Time", formatDurationMs(summary.elapsedMs)),
         makeSummaryCard("Avg / Question", formatDurationMs(summary.avgMs))
     );

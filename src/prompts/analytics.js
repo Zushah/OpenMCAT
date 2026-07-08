@@ -15,21 +15,9 @@ const ROUND_INTEGER = 1;
 
 const safeNumber = (value, fallback = 0) => { const number = Number(value); return Number.isFinite(number) ? number : fallback; };
 
-const round = (num, places = 0.01) => {
-    const rounded = cb.numb.roundTo(safeNumber(num), safeNumber(places));
-    const str = Math.abs(safeNumber(places)).toString().toLowerCase();
-    let decimalPlaces = 0;
-    if (str.includes("e-")) {
-        const [coefficient, exponent] = str.split("e-");
-        const coefficientDecimals = coefficient.split(".")[1]?.length ?? 0;
-        decimalPlaces = Number(exponent) + coefficientDecimals;
-    } else if (!str.includes("e+")) decimalPlaces = str.split(".")[1]?.length ?? 0;
-    return Number(rounded.toFixed(decimalPlaces));
-};
-
 const nullableNumber = (value, fallback = null) => { if (value === null || value === undefined || value === "") return fallback; return safeNumber(value, fallback); };
 
-const nullableRound = (value, places = ROUND_RATIO, fallback = null) => { const number = nullableNumber(value, fallback); return number === fallback ? fallback : round(number, places); };
+const nullableRound = (value, places = ROUND_RATIO, fallback = null) => { const number = nullableNumber(value, fallback); return number === fallback ? fallback : cb.numb.roundTo(number, places); };
 
 const compactObject = (object) => Object.fromEntries(Object.entries(object).filter(([, value]) => value !== undefined));
 

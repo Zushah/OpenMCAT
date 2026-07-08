@@ -10,21 +10,7 @@ const createElement = (tag, className = "", text = "") => { const element = docu
 
 const appendText = (parent, tag, className, text) => { const element = createElement(tag, className, text); parent.append(element); return element; };
 
-const safeNumber = (value, fallback = 0) => { const number = Number(value); return Number.isFinite(number) ? number : fallback; };
-
-const round = (num, places = 0.01) => {
-    const rounded = cb.numb.roundTo(safeNumber(num), safeNumber(places));
-    const str = Math.abs(safeNumber(places)).toString().toLowerCase();
-    let decimalPlaces = 0;
-    if (str.includes("e-")) {
-        const [coefficient, exponent] = str.split("e-");
-        const coefficientDecimals = coefficient.split(".")[1]?.length ?? 0;
-        decimalPlaces = Number(exponent) + coefficientDecimals;
-    } else if (!str.includes("e+")) decimalPlaces = str.split(".")[1]?.length ?? 0;
-    return Number(rounded.toFixed(decimalPlaces));
-};
-
-const pct = (value) => Number.isFinite(value) ? `${round(value * 100, 0.1)}%` : "n/a";
+const pct = (value) => Number.isFinite(value) ? `${cb.numb.roundTo(value * 100, 0.1)}%` : "n/a";
 
 const formatDate = (value) => value ? new Date(value).toLocaleDateString() : "Never";
 

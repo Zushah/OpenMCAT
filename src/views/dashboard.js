@@ -12,33 +12,21 @@ const MODEL_USAGE_LEGEND_PAGE_SIZE = 5;
 
 const safeNumber = (value, fallback = 0) => { const number = Number(value); return Number.isFinite(number) ? number : fallback; };
 
-const round = (num, places = 0.01) => {
-    const rounded = cb.numb.roundTo(safeNumber(num), safeNumber(places));
-    const str = Math.abs(safeNumber(places)).toString().toLowerCase();
-    let decimalPlaces = 0;
-    if (str.includes("e-")) {
-        const [coefficient, exponent] = str.split("e-");
-        const coefficientDecimals = coefficient.split(".")[1]?.length ?? 0;
-        decimalPlaces = Number(exponent) + coefficientDecimals;
-    } else if (!str.includes("e+")) decimalPlaces = str.split(".")[1]?.length ?? 0;
-    return Number(rounded.toFixed(decimalPlaces));
-};
-
 const sectionsById = Object.fromEntries(SECTIONS.map((section) => [section.id, section]));
 const topicsById = Object.fromEntries(TOPICS.map((topic) => [topic.id, topic]));
 const skillsById = Object.fromEntries(SCIENCE_SKILLS.map((skill) => [skill.id, skill]));
 const sectionOrder = Object.fromEntries(SECTIONS.map((section, index) => [section.id, index]));
 const skillOrder = Object.fromEntries(SCIENCE_SKILLS.map((skill, index) => [skill.id, index]));
 
-const pct = (value) => `${round((value || 0) * 100, 0.1)}%`;
+const pct = (value) => `${cb.numb.roundTo((value || 0) * 100, 0.1)}%`;
 
-const pctPoints = (value) => value === null || value === undefined ? "n/a" : `${value >= 0 ? "+" : ""}${round(value * 100, 0.1)} pts`;
+const pctPoints = (value) => value === null || value === undefined ? "n/a" : `${value >= 0 ? "+" : ""}${cb.numb.roundTo(value * 100, 0.1)} pts`;
 
-const score = (value) => Number.isFinite(value) ? `${round(value, 0.1)}` : "n/a";
+const score = (value) => Number.isFinite(value) ? `${cb.numb.roundTo(value, 0.1)}` : "n/a";
 
-const seconds = (ms) => Number.isFinite(ms) && ms > 0 ? `${round(ms / 1000, 0.1)}s` : "n/a";
+const seconds = (ms) => Number.isFinite(ms) && ms > 0 ? `${cb.numb.roundTo(ms / 1000, 0.1)}s` : "n/a";
 
-const attemptCount = (value) => Number.isInteger(value) ? `${value}` : `${round(value || 0, 0.01)}`;
+const attemptCount = (value) => Number.isInteger(value) ? `${value}` : `${cb.numb.roundTo(value || 0, 0.01)}`;
 
 const pluralText = (count, singular, pluralLabel = `${singular}s`) => `${count} ${count === 1 ? singular : pluralLabel}`;
 
@@ -587,7 +575,7 @@ const renderTrendChart = (metrics) => {
     const usingRolling = rollingRows.length >= 3;
     const rows = usingRolling ? rollingRows : dailyRows;
     const labels = rows.map((row) => usingRolling ? row.label : row.date);
-    const accuracyData = rows.map((row) => round(row.accuracy * 100, 0.1));
+    const accuracyData = rows.map((row) => cb.numb.roundTo(row.accuracy * 100, 0.1));
     const tableRows = rows.map((row) => [usingRolling ? `Attempt ${row.label}` : row.date, `${row.attempts}`, pct(row.accuracy)]);
     return renderChartPanel({
         title: "Accuracy trend",
@@ -803,7 +791,7 @@ const renderSkillPerformanceChart = (metrics) => {
             data: {
                 labels: rows.map((row) => chartLabel(rowNameFromId("skill", row.id), 18, 3)),
                 datasets: [
-                    { label: "Accuracy", data: rows.map((row) => metricValue(row, round(row.accuracy * 100, 0.1))), backgroundColor: theme.accent },
+                    { label: "Accuracy", data: rows.map((row) => metricValue(row, cb.numb.roundTo(row.accuracy * 100, 0.1))), backgroundColor: theme.accent },
                     { label: "Mastery", data: rows.map((row) => metricValue(row, row.mastery)), backgroundColor: theme.accentTwo }
                 ]
             },
@@ -831,8 +819,8 @@ const renderConfidenceChart = (metrics) => {
             data: {
                 labels: rows.map((row) => row.id),
                 datasets: [
-                    { label: "Actual accuracy", data: rows.map((row) => row.attempts ? round(row.accuracy * 100, 0.1) : null), borderColor: theme.accent, backgroundColor: theme.accent, tension: 0.2, pointRadius: 4 },
-                    { label: "Reference", data: rows.map((row) => round(row.expectedAccuracy * 100, 0.1)), borderColor: theme.textMuted, backgroundColor: theme.textMuted, borderDash: [5, 5], tension: 0.2, pointRadius: 2 }
+                    { label: "Actual accuracy", data: rows.map((row) => row.attempts ? cb.numb.roundTo(row.accuracy * 100, 0.1) : null), borderColor: theme.accent, backgroundColor: theme.accent, tension: 0.2, pointRadius: 4 },
+                    { label: "Reference", data: rows.map((row) => cb.numb.roundTo(row.expectedAccuracy * 100, 0.1)), borderColor: theme.textMuted, backgroundColor: theme.textMuted, borderDash: [5, 5], tension: 0.2, pointRadius: 2 }
                 ]
             },
             options: getDefaultChartOptions({
@@ -924,8 +912,8 @@ const renderTimingChart = (metrics) => {
             data: {
                 labels: rows.map((row) => rowNameFromId("difficulty", row.id)),
                 datasets: [
-                    { label: "Average seconds", data: rows.map((row) => metricValue(row, round(row.averageElapsedMs / 1000, 0.1))), backgroundColor: theme.accentTwo, yAxisID: "seconds" },
-                    { label: "Accuracy", data: rows.map((row) => metricValue(row, round(row.accuracy * 100, 0.1))), backgroundColor: theme.accent, yAxisID: "accuracy" }
+                    { label: "Average seconds", data: rows.map((row) => metricValue(row, cb.numb.roundTo(row.averageElapsedMs / 1000, 0.1))), backgroundColor: theme.accentTwo, yAxisID: "seconds" },
+                    { label: "Accuracy", data: rows.map((row) => metricValue(row, cb.numb.roundTo(row.accuracy * 100, 0.1))), backgroundColor: theme.accent, yAxisID: "accuracy" }
                 ]
             },
             options: getDefaultChartOptions({
@@ -1297,7 +1285,6 @@ const renderRecentSessions = (metrics, actions, pages) => {
     card.append(wrap);
     return card;
 };
-
 
 const createMistakeMix = (rows = []) => {
     const list = createElement("div", "mistake-breakdown-chip-list");

@@ -30,18 +30,6 @@ const sectionOptions = new Set(["all", ...SECTIONS.map((section) => section.id)]
 
 const safeNumber = (value, fallback = 0) => { const number = Number(value); return Number.isFinite(number) ? number : fallback; };
 
-const round = (num, places = 0.01) => {
-    const rounded = cb.numb.roundTo(safeNumber(num), safeNumber(places));
-    const str = Math.abs(safeNumber(places)).toString().toLowerCase();
-    let decimalPlaces = 0;
-    if (str.includes("e-")) {
-        const [coefficient, exponent] = str.split("e-");
-        const coefficientDecimals = coefficient.split(".")[1]?.length ?? 0;
-        decimalPlaces = Number(exponent) + coefficientDecimals;
-    } else if (!str.includes("e+")) decimalPlaces = str.split(".")[1]?.length ?? 0;
-    return Number(rounded.toFixed(decimalPlaces));
-};
-
 const constrain = (value, min, max) => cb.numb.constrain(safeNumber(value), [min, max]);
 
 const sum = (values) => values.length ? cb.stat.sum(values) : 0;
@@ -239,11 +227,11 @@ const finalizeAggregate = (record, minAttempts = DEFAULT_MIN_ATTEMPTS) => {
     return {
         id: record.id,
         sectionId: record.sectionId,
-        attempts: round(attempts, 0.01),
-        weightedAttempts: round(attempts, 0.01),
+        attempts: cb.numb.roundTo(attempts, 0.01),
+        weightedAttempts: cb.numb.roundTo(attempts, 0.01),
         questionAttempts: record.rawCount,
         rawCount: record.rawCount,
-        correct: round(correct, 0.01),
+        correct: cb.numb.roundTo(correct, 0.01),
         accuracy: attempts ? correct / attempts : 0,
         smoothedAccuracy,
         averageElapsedMs,
@@ -258,7 +246,7 @@ const finalizeAggregate = (record, minAttempts = DEFAULT_MIN_ATTEMPTS) => {
         lastSeenAt: record.lastSeenAtMs ? new Date(record.lastSeenAtMs).toISOString() : null,
         lastSeenAtMs: record.lastSeenAtMs ?? 0,
         trendDelta,
-        priorityScore: round(priorityScore, 0.01),
+        priorityScore: cb.numb.roundTo(priorityScore, 0.01),
         signalStrength: attempts >= minAttempts || record.rawCount >= minAttempts ? "stable" : attempts >= 1 ? "early" : "none"
     };
 };
@@ -309,11 +297,11 @@ const applyTopicCoverageToSectionRows = (rows, coverageBySection) => rows.map((r
     return {
         ...row,
         contentMastery: row.mastery,
-        topicCoverageMultiplier: round(coverageMultiplier, 0.01),
+        topicCoverageMultiplier: cb.numb.roundTo(coverageMultiplier, 0.01),
         topicCoverageRate: coverage.topicCoverageRate,
         coveredTopicCount: coverage.coveredTopicCount,
         totalTopicCount: coverage.totalTopicCount,
-        mastery: round(row.mastery * coverageMultiplier, 0.01)
+        mastery: cb.numb.roundTo(row.mastery * coverageMultiplier, 0.01)
     };
 });
 
@@ -366,8 +354,8 @@ const buildTopicSkillMatrix = (pairs) => {
         sectionIds: Array.from(sectionIds),
         rows: Array.from(rowsByTopic.values()).map((row) => ({
             ...row,
-            attempts: round(row.attempts, 0.01),
-            totalWeightedAttempts: round(row.totalWeightedAttempts, 0.01),
+            attempts: cb.numb.roundTo(row.attempts, 0.01),
+            totalWeightedAttempts: cb.numb.roundTo(row.totalWeightedAttempts, 0.01),
             cells: row.cells.sort((a, b) => b.priorityScore - a.priorityScore || b.attempts - a.attempts)
         })).sort((a, b) => b.maxPriorityScore - a.maxPriorityScore || b.attempts - a.attempts)
     };
@@ -375,7 +363,7 @@ const buildTopicSkillMatrix = (pairs) => {
 
 const NON_DRILL_DRIVER_MISTAKE_IDS = new Set(["flawed_question", "other"]);
 
-const roundWeightedCount = (value) => Math.abs(safeNumber(value) - Math.round(safeNumber(value))) < 0.000001 ? Math.round(safeNumber(value)) : round(value, 0.01);
+const roundWeightedCount = (value) => Math.abs(safeNumber(value) - Math.round(safeNumber(value))) < 0.000001 ? Math.round(safeNumber(value)) : cb.numb.roundTo(value, 0.01);
 
 const createMistakeSummaryMap = () => new Map(MISTAKE_TYPES.map((type, index) => [type.id, {
     id: type.id,
@@ -812,10 +800,10 @@ const buildInsights = ({ filteredAttempts, totals, weakness, confidence, minAtte
             skillId: strongestPair.skillId,
             priorityScore: strongestPair.priorityScore,
             attempts: strongestPair.attempts,
-            body: `The highest-priority topic-skill pair has a ${round(strongestPair.priorityScore, 0.1)} priority score across ${round(strongestPair.attempts, 0.1)} weighted attempts.`
+            body: `The highest-priority topic-skill pair has a ${cb.numb.roundTo(strongestPair.priorityScore, 0.1)} priority score across ${cb.numb.roundTo(strongestPair.attempts, 0.1)} weighted attempts.`
         });
     }
-    if (typeof totals.timedUntimedGap === "number" && totals.timedUntimedGap > 0.1) insights.push({ type: "timing_gap", severity: "warning", title: "Timing pressure is visible", body: `Untimed accuracy is ${round(totals.timedUntimedGap * 100, 0.1)} percentage points higher than timed accuracy.` });
+    if (typeof totals.timedUntimedGap === "number" && totals.timedUntimedGap > 0.1) insights.push({ type: "timing_gap", severity: "warning", title: "Timing pressure is visible", body: `Untimed accuracy is ${cb.numb.roundTo(totals.timedUntimedGap * 100, 0.1)} percentage points higher than timed accuracy.` });
     if (typeof confidence.overconfidence === "number" && confidence.overconfidence > 0.35) insights.push({ type: "confidence", severity: "warning", title: "High-confidence misses", body: "Questions marked confidence 4-5 are missing often enough to review explanations carefully before increasing speed." });
     if (filteredAttempts.length < 20) insights.push({ type: "data_health", severity: "info", title: "Early signal", body: "The dashboard is usable, but mastery estimates stabilize after more attempts across sections, topics, and skills." });
     return insights.slice(0, 4);
@@ -888,9 +876,9 @@ export const computeMetrics = ({ attempts = [], sessions = [], filters = {} }) =
         totalStoredGeneratedQuestions,
         overallAccuracy: totalQuestionsAnswered ? totalCorrect / totalQuestionsAnswered : 0,
         smoothedAccuracy,
-        mastery: round(overallMastery.mastery * masteryTopicCoverageMultiplier, 0.01),
+        mastery: cb.numb.roundTo(overallMastery.mastery * masteryTopicCoverageMultiplier, 0.01),
         contentMastery: overallMastery.mastery,
-        topicCoverageMultiplier: round(masteryTopicCoverageMultiplier, 0.01),
+        topicCoverageMultiplier: cb.numb.roundTo(masteryTopicCoverageMultiplier, 0.01),
         masteryCoveredTopicCount: masteryCoveredTopicIds.size,
         masteryTotalTopicCount: masteryTopicIds.size,
         masteryTopicCoverageRate,
