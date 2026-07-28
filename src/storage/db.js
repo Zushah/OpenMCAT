@@ -255,6 +255,42 @@ export const replaceData = async (data) => {
     notifyDataChanged();
 };
 
+export const mergeData = async (data) => {
+    const sessions = validateRecords(data?.sessions ?? [], "Sessions");
+    const attempts = validateRecords(data?.attempts ?? [], "Attempts");
+    const database = await initializeStorage();
+    const transaction = database.transaction([STORE_NAMES.sessions, STORE_NAMES.attempts], "readwrite");
+    const completed = transactionComplete(transaction);
+    const sessionStore = transaction.objectStore(STORE_NAMES.sessions);
+    const attemptStore = transaction.objectStore(STORE_NAMES.attempts);
+    let addedSessions = 0;
+    let addedAttempts = 0;
+    let existingSessions = 0;
+    let existingAttempts = 0;
+    const addIfMissing = (store, record, onAdded, onExisting) => {
+        const request = store.add(record);
+        request.onsuccess = onAdded;
+        request.onerror = (event) => {
+            if (request.error?.name !== "ConstraintError") return;
+            event.preventDefault();
+            event.stopPropagation();
+            onExisting();
+        };
+    };
+    try {
+        sessions.forEach((session) => addIfMissing(sessionStore, session, () => { addedSessions += 1; }, () => { existingSessions += 1; }));
+        attempts.forEach((attempt) => addIfMissing(attemptStore, attempt, () => { addedAttempts += 1; }, () => { existingAttempts += 1; }));
+        await completed;
+        if (addedSessions || addedAttempts) notifyDataChanged();
+        return {
+            addedSessions,
+            addedAttempts,
+            existingSessions,
+            existingAttempts
+        };
+    } catch (error) { abortTransaction(transaction); await completed.catch(() => { }); throw error; }
+};
+
 export const getAllData = async () => {
     const database = await initializeStorage();
     const transaction = database.transaction([STORE_NAMES.sessions, STORE_NAMES.attempts], "readonly");

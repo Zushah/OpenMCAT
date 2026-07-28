@@ -1737,6 +1737,21 @@
     width: 100%;
 }
 
+.settings-data-group {
+    display: grid;
+    gap: 0.65rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid color-mix(in srgb, var(--surface-tint), transparent 88%);
+}
+
+.settings-data-group h2 {
+    font-size: 1rem;
+}
+
+.settings-data-group .tiny {
+    margin: 0;
+}
+
 .settings-import-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;

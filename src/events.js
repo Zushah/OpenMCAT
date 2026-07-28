@@ -8,7 +8,7 @@ import { compilePracticePrompt } from "./prompts/compiler.js";
 import { extractJsonObject } from "./schema/repair.js";
 import { validatePracticeSession } from "./schema/validators.js";
 import { setHashForRoute } from "./router.js";
-import { buildExportPayload, downloadExport, importPayload, parseImportText } from "./storage/exportimport.js";
+import { buildExportPayload, combineBackupPayloads, downloadExport, importPayload, parseImportText, previewBackupCombination } from "./storage/exportimport.js";
 import { clearAllData, getAllData, initializeStorage, saveAttempt, saveSession, updateAttempt, updateSession } from "./storage/db.js";
 import { saveSettings as persistSettings } from "./storage/settings.js";
 import { isBackupReminderDue, remindAboutBackupNextWeek, remindAboutBackupTomorrow } from "./storage/backup.js";
@@ -722,6 +722,32 @@ export const createActions = ({ render, applyTheme }) => {
         showToast("Data imported.", "success");
     };
 
+    const combineDataFromTexts = async (sources) => {
+        const backups = sources.map((source, index) => ({
+            name: source.name || `Backup ${index + 1}`,
+            payload: parseImportText(source.text, source.name || `Backup ${index + 1}`)
+        }));
+        const preview = await previewBackupCombination(backups);
+        const newRecords = preview.addedSessions + preview.addedAttempts;
+        const duplicateRecords = preview.duplicateSessions + preview.duplicateAttempts;
+        if (!newRecords) { const message = duplicateRecords ? `No new data found. ${duplicateRecords} duplicate ${duplicateRecords === 1 ? "record was" : "records were"} skipped.` : "No data was found in the selected backups."; showToast(message); return null; }
+        const confirmationLines = [
+            `Combine ${preview.backupCount} OpenMCAT ${preview.backupCount === 1 ? "backup" : "backups"}?`,
+            "",
+            `${preview.addedSessions} new ${preview.addedSessions === 1 ? "session" : "sessions"} and ${preview.addedAttempts} new ${preview.addedAttempts === 1 ? "attempt" : "attempts"} will be added.`,
+        ];
+        if (duplicateRecords) confirmationLines.push(`${duplicateRecords} duplicate ${duplicateRecords === 1 ? "record" : "records"} will be skipped.`);
+        confirmationLines.push("", "Data and settings already in this browser will not be replaced.");
+        const confirmed = confirm(confirmationLines.join("\n"));
+        if (!confirmed) return null;
+        const result = await combineBackupPayloads(backups);
+        await refreshAnalytics();
+        render();
+        const addedRecords = result.addedSessions + result.addedAttempts;
+        showToast(`Combined ${result.backupCount} ${result.backupCount === 1 ? "backup" : "backups"} and added ${addedRecords} new ${addedRecords === 1 ? "record" : "records"}.`, "success");
+        return result;
+    };
+
     const deleteAllLocalData = async () => {
         await clearAllData();
         state.activeSession = null;
@@ -810,6 +836,7 @@ export const createActions = ({ render, applyTheme }) => {
         toggleMistakeTypeForQuestion,
         exportData,
         importDataFromText,
+        combineDataFromTexts,
         deleteAllLocalData,
         refreshAnalytics,
         updateDashboardFilters,
