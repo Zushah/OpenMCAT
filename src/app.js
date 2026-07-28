@@ -9,6 +9,7 @@ export const DEFAULT_QUESTION_BANK_COUNTS = Object.fromEntries(QUESTION_BANKS.ma
 export const state = {
     route: "landing",
     theme: "system",
+    storageError: null,
     settings: loadSettings(),
     currentConfig: structuredClone(DEFAULT_CONFIG),
     generation: {

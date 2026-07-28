@@ -9,7 +9,7 @@ import { extractJsonObject } from "./schema/repair.js";
 import { validatePracticeSession } from "./schema/validators.js";
 import { setHashForRoute } from "./router.js";
 import { buildExportPayload, downloadExport, importPayload, parseImportText } from "./storage/exportimport.js";
-import { clearAllData, getAllData, saveAttempt, saveSession, updateAttempt, updateSession } from "./storage/db.js";
+import { clearAllData, getAllData, initializeStorage, saveAttempt, saveSession, updateAttempt, updateSession } from "./storage/db.js";
 import { saveSettings as persistSettings } from "./storage/settings.js";
 import { isBackupReminderDue, remindAboutBackupNextWeek, remindAboutBackupTomorrow } from "./storage/backup.js";
 import { computeMetrics, normalizeDashboardFilters } from "./analytics/metrics.js";
@@ -754,13 +754,21 @@ export const createActions = ({ render, applyTheme }) => {
     }
 
     const initApp = async () => {
-        state.settings = persistSettings(state.settings);
-        state.currentConfig = normalizeConfig(state.currentConfig);
-        applyTheme(state.settings.theme);
-        await refreshAnalytics();
-        if (state.route === "dashboard") maybeOpenDashboardBackupReminder();
-        if (state.route === "bank") await refreshQuestionBank();
-        else render();
+        state.storageError = null;
+        try {
+            state.settings = persistSettings(state.settings);
+            state.currentConfig = normalizeConfig(state.currentConfig);
+            applyTheme(state.settings.theme);
+            await initializeStorage();
+            await refreshAnalytics();
+            if (state.route === "dashboard") maybeOpenDashboardBackupReminder();
+            if (state.route === "bank") await refreshQuestionBank();
+            else render();
+        } catch (error) {
+            console.error("OpenMCAT storage initialization failed.", error);
+            state.storageError = error?.name === "QuotaExceededError" ? "There is not enough browser storage available to finish preparing OpenMCAT data." : error?.message || "OpenMCAT could not open its private browser database.";
+            render();
+        }
     };
 
     const resetToNewSession = () => {

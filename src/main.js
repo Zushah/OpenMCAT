@@ -2,6 +2,7 @@ import { state } from "./app.js";
 import { createActions } from "./events.js";
 import { getRouteFromHash, isRouteHash } from "./router.js";
 import { destroyDashboardCharts } from "./components/charts.js";
+import { subscribeToDataChanges } from "./storage/db.js";
 import { renderAboutView } from "./views/about.js";
 import { renderDashboardView } from "./views/dashboard.js";
 import { renderGeneratorView } from "./views/generator.js";
@@ -10,6 +11,7 @@ import { renderPracticeView, updatePracticeTimerElement, updatePracticeTotalTime
 import { renderQuestionBankView } from "./views/bank.js";
 import { renderReviewView } from "./views/review.js";
 import { renderSettingsView } from "./views/settings.js";
+import { renderStorageErrorView } from "./views/dberror.js";
 
 const mainElement = document.getElementById("main-content");
 
@@ -18,9 +20,7 @@ const systemThemeQuery = window.matchMedia("(prefers-color-scheme: light)");
 
 const normalizeTheme = (theme) => THEME_OPTIONS.has(theme) ? theme : "system";
 
-const applyTheme = (theme = "system") => {
-    document.documentElement.setAttribute("data-theme", normalizeTheme(theme));
-};
+const applyTheme = (theme = "system") => { document.documentElement.setAttribute("data-theme", normalizeTheme(theme)); };
 
 const updateActiveNav = (route) => {
     const activeRoute = route === "practice" || route === "review" || route === "bank" ? "generator" : route;
@@ -36,7 +36,8 @@ const render = () => {
     updateActiveNav(state.route);
     mainElement.replaceChildren();
     let view;
-    if (state.route === "landing") view = renderLandingView(actions);
+    if (state.storageError) view = renderStorageErrorView(state.storageError, actions);
+    else if (state.route === "landing") view = renderLandingView(actions);
     else if (state.route === "generator") view = renderGeneratorView(state, actions);
     else if (state.route === "bank") view = renderQuestionBankView(state, actions);
     else if (state.route === "practice") view = renderPracticeView(state, actions, Date.now());
@@ -139,16 +140,14 @@ const setupNavHandlers = () => {
 window.addEventListener("popstate", handleBrowserRouteChange);
 window.addEventListener("hashchange", handleBrowserRouteChange);
 
-window.addEventListener("storage", () => { if (state.route === "dashboard") actions.refreshAnalytics().then(render); if (state.route === "bank") actions.refreshQuestionBank(); });
+const refreshExternalData = () => { if (state.route === "dashboard") actions.refreshAnalytics().then(render); if (state.route === "bank") actions.refreshQuestionBank(); };
+window.addEventListener("storage", refreshExternalData);
+subscribeToDataChanges(refreshExternalData);
 
 handleRouteFromLocation();
 setupNavHandlers();
 setupKeyboardShortcuts();
-const handleSystemThemeChange = () => {
-    if (state.settings.theme !== "system") return;
-    applyTheme(state.settings.theme);
-    render();
-};
+const handleSystemThemeChange = () => { if (state.settings.theme !== "system") return; applyTheme(state.settings.theme); render(); };
 if (typeof systemThemeQuery.addEventListener === "function") systemThemeQuery.addEventListener("change", handleSystemThemeChange);
 else systemThemeQuery.addListener(handleSystemThemeChange);
 actions.initApp();
