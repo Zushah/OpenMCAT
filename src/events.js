@@ -11,6 +11,7 @@ import { setHashForRoute } from "./router.js";
 import { buildExportPayload, downloadExport, importPayload, parseImportText } from "./storage/exportimport.js";
 import { clearAllData, getAllData, saveAttempt, saveSession, updateAttempt, updateSession } from "./storage/db.js";
 import { saveSettings as persistSettings } from "./storage/settings.js";
+import { isBackupReminderDue, remindAboutBackupNextWeek, remindAboutBackupTomorrow } from "./storage/backup.js";
 import { computeMetrics, normalizeDashboardFilters } from "./analytics/metrics.js";
 import { buildRecommendation } from "./analytics/recommendations.js";
 import { getSelectionHighlightRanges, toggleHighlightRange } from "./components/highlights.js";
@@ -134,8 +135,9 @@ export const createActions = ({ render, applyTheme }) => {
     };
 
     const navigate = (route) => {
-        if (route !== "dashboard") state.dashboard.aiAnalysisOpen = false;
+        if (route !== "dashboard") { state.dashboard.aiAnalysisOpen = false; state.dashboard.backupReminderOpen = false; }
         state.route = route;
+        if (route === "dashboard") maybeOpenDashboardBackupReminder();
         setHashForRoute(route);
         window.scrollTo({ top: 0, left: 0, behavior: "auto" });
         render();
@@ -189,6 +191,28 @@ export const createActions = ({ render, applyTheme }) => {
     const closeDashboardAiAnalysis = () => {
         state.dashboard.aiAnalysisOpen = false;
         render();
+    };
+
+    const maybeOpenDashboardBackupReminder = () => {
+        const hasStoredData = Boolean(state.analytics?.sessions?.length || state.analytics?.attempts?.length);
+        if (!hasStoredData || !isBackupReminderDue()) return false;
+        remindAboutBackupTomorrow();
+        state.dashboard.backupReminderOpen = true;
+        return true;
+    };
+
+    const closeDashboardBackupReminder = () => {
+        state.dashboard.backupReminderOpen = false;
+        render();
+    };
+
+    const backupDataFromReminder = async () => {
+        const payload = await buildExportPayload();
+        downloadExport(payload);
+        remindAboutBackupNextWeek();
+        state.dashboard.backupReminderOpen = false;
+        navigate("settings");
+        showToast("Exported OpenMCAT data.", "success");
     };
 
     const applySection = (sectionId) => {
@@ -702,6 +726,7 @@ export const createActions = ({ render, applyTheme }) => {
         await clearAllData();
         state.activeSession = null;
         state.dashboard.aiAnalysisOpen = false;
+        state.dashboard.backupReminderOpen = false;
         state.questionBank.entries = {};
         state.questionBank.selectedCounts = { ...DEFAULT_QUESTION_BANK_COUNTS };
         state.questionBank.error = null;
@@ -733,6 +758,7 @@ export const createActions = ({ render, applyTheme }) => {
         state.currentConfig = normalizeConfig(state.currentConfig);
         applyTheme(state.settings.theme);
         await refreshAnalytics();
+        if (state.route === "dashboard") maybeOpenDashboardBackupReminder();
         if (state.route === "bank") await refreshQuestionBank();
         else render();
     };
@@ -783,6 +809,9 @@ export const createActions = ({ render, applyTheme }) => {
         setDashboardPage,
         openDashboardAiAnalysis,
         closeDashboardAiAnalysis,
+        maybeOpenDashboardBackupReminder,
+        closeDashboardBackupReminder,
+        backupDataFromReminder,
         applyDashboardDrill,
         applyRecommendation,
         resetToNewSession

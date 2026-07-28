@@ -405,7 +405,58 @@ const renderAiAnalysisModal = (state, actions) => {
     return overlay;
 };
 
-const appendAiAnalysisModal = (root, state, actions) => { const modal = renderAiAnalysisModal(state, actions); if (modal) root.append(modal); };
+const formatDataSize = (state) => {
+    const content = JSON.stringify({ settings: state.settings, sessions: state.analytics?.sessions ?? [], attempts: state.analytics?.attempts ?? [] }, null, 2);
+    const bytes = new Blob([content]).size;
+    return `${cb.numb.roundTo((bytes / 1024) / 1024, 0.01)} MB`;
+};
+
+const renderBackupReminderModal = (state, actions) => {
+    if (!state.dashboard?.backupReminderOpen) return null;
+    if (!state.analytics?.sessions?.length && !state.analytics?.attempts?.length) return null;
+    const overlay = createElement("section", "generation-pipeline-overlay backup-reminder-overlay");
+    overlay.setAttribute("role", "presentation");
+    overlay.addEventListener("click", (event) => { if (event.target === overlay) actions.closeDashboardBackupReminder(); });
+    const panel = createElement("section", "card card-pad generation-pipeline-panel backup-reminder-panel");
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-labelledby", "backup-reminder-heading");
+    panel.addEventListener("click", (event) => event.stopPropagation());
+    const top = createElement("div", "generation-pipeline-top");
+    const heading = createElement("h2", "", "Data backup reminder");
+    heading.id = "backup-reminder-heading";
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "btn btn-ghost generation-pipeline-close";
+    close.setAttribute("aria-label", "Close data backup reminder");
+    close.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">close</span>';
+    close.addEventListener("click", () => actions.closeDashboardBackupReminder());
+    top.append(heading, close);
+    const size = createElement("p", "backup-reminder-size", `You have ${formatDataSize(state)} of OpenMCAT data.`);
+    const description = createElement("p", "generation-pipeline-instructions backup-reminder-description", "Your OpenMCAT data stays completely private in this web browser. Download a backup of it regularly on your device so that you can restore your study history if your browser data is ever haphazardly cleared or if you move to another device.");
+    const controls = createElement("div", "button-row backup-reminder-actions");
+    const backupButton = document.createElement("button");
+    backupButton.type = "button";
+    backupButton.className = "btn btn-primary";
+    backupButton.textContent = "Backup data";
+    backupButton.addEventListener("click", () => actions.backupDataFromReminder());
+    const laterButton = document.createElement("button");
+    laterButton.type = "button";
+    laterButton.className = "btn btn-secondary";
+    laterButton.textContent = "Remind me later";
+    laterButton.addEventListener("click", () => actions.closeDashboardBackupReminder());
+    controls.append(backupButton, laterButton);
+    panel.append(top, size, description, controls);
+    overlay.append(panel);
+    return overlay;
+};
+
+const appendDashboardModals = (root, state, actions) => {
+    const aiModal = renderAiAnalysisModal(state, actions);
+    const backupModal = renderBackupReminderModal(state, actions);
+    if (aiModal) root.append(aiModal);
+    if (backupModal) root.append(backupModal);
+};
 
 const renderEmptyState = (actions, filtersActive) => {
     const empty = createElement("section", "card card-pad empty-state dashboard-empty");
@@ -1392,9 +1443,9 @@ export const renderDashboardView = (state, actions) => {
     const filters = metrics?.filters ?? state.dashboard.filters;
     const pages = state.dashboard?.pages ?? {};
     root.append(renderDashboardHero(metrics, actions));
-    if (!metrics || !metrics.totals.totalAttemptsStored) { root.append(renderEmptyState(actions, false)); appendAiAnalysisModal(root, state, actions); return root; }
+    if (!metrics || !metrics.totals.totalAttemptsStored) { root.append(renderEmptyState(actions, false)); appendDashboardModals(root, state, actions); return root; }
     root.append(renderFilterBar(filters, actions));
-    if (!metrics.totals.totalQuestionsAnswered) { root.append(renderEmptyState(actions, filtersAreActive(filters))); appendAiAnalysisModal(root, state, actions); return root; }
+    if (!metrics.totals.totalQuestionsAnswered) { root.append(renderEmptyState(actions, filtersAreActive(filters))); appendDashboardModals(root, state, actions); return root; }
     root.append(
         renderSummaryGrid(metrics, analytics.recommendation),
         renderRecommendationCard(analytics.recommendation, actions),
@@ -1405,6 +1456,6 @@ export const renderDashboardView = (state, actions) => {
         renderTables(metrics, actions, pages),
         renderModelUsageChart(metrics, actions, pages)
     );
-    appendAiAnalysisModal(root, state, actions);
+    appendDashboardModals(root, state, actions);
     return root;
 };

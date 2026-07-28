@@ -30,7 +30,8 @@ export const state = {
     dashboard: {
         filters: { ...DEFAULT_DASHBOARD_FILTERS },
         pages: { ...DEFAULT_DASHBOARD_PAGES },
-        aiAnalysisOpen: false
+        aiAnalysisOpen: false,
+        backupReminderOpen: false
     },
     questionBank: {
         loading: false,

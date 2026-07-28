@@ -53,6 +53,7 @@ const handleRouteFromLocation = () => {
     if (!isRouteHash(location.hash)) return false;
     const nextRoute = getRouteFromHash(location.hash || "#/");
     if (state.route === nextRoute) return false;
+    if (nextRoute !== "dashboard") { state.dashboard.aiAnalysisOpen = false; state.dashboard.backupReminderOpen = false; }
     state.route = nextRoute;
     return true;
 };
@@ -60,6 +61,7 @@ const handleRouteFromLocation = () => {
 const handleBrowserRouteChange = () => {
     if (!handleRouteFromLocation()) return;
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    if (state.route === "dashboard") actions.maybeOpenDashboardBackupReminder();
     render();
     if (state.route === "bank") actions.refreshQuestionBank();
 };

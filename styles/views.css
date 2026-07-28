@@ -219,6 +219,27 @@
     text-align: center;
 }
 
+.backup-reminder-panel {
+    width: min(560px, 96vw);
+}
+
+.backup-reminder-size {
+    margin: 0.9rem 0 0;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.backup-reminder-description {
+    max-width: 55ch;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.backup-reminder-actions {
+    justify-content: center;
+    margin-top: 1rem;
+}
+
 .tiny {
     font-size: 0.74rem;
     color: var(--text-muted);

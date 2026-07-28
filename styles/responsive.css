@@ -204,7 +204,7 @@
 }
 
 @media (max-width: 640px) {
-    .analytics-prompt-row .btn {
+    .analytics-prompt-row .btn, .backup-reminder-actions .btn {
         width: 100%;
     }
 }
