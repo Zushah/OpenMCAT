@@ -76,7 +76,7 @@ export const renderSettingsView = (state, actions) => {
     const persistenceField = makeField("Persistent browser storage", persistenceSelect);
     const persistenceHelp = document.createElement("p");
     persistenceHelp.className = "tiny settings-preference-help";
-    if (persistence.persisted) persistenceHelp.textContent = "Your web browser protects the current OpenMCAT data from automated deletions. Websites cannot revoke this protection after it is granted. OpenMCAT data backups are still recommended.";
+    if (persistence.persisted) persistenceHelp.textContent = "Your web browser protects the current OpenMCAT data from automated deletions. Websites (including OpenMCAT) cannot revoke this protection after it is granted. OpenMCAT data backups are still recommended.";
     else if (persistence.canRequest) persistenceHelp.textContent = "When enabled, your web browser is asked to protect the current OpenMCAT data from automated deletions. Your web browser ultimately decides whether to grant the request. OpenMCAT data backups are still recommended.";
     else persistenceHelp.textContent = "Your web browser cannot protect the current OpenMCAT data from automated deletions. The current OpenMCAT data will continue to work normally. OpenMCAT data backups are still recommended.";
     persistenceField.append(persistenceHelp);
@@ -102,7 +102,7 @@ export const renderSettingsView = (state, actions) => {
     dataCard.className = "card card-pad settings-data-card";
     const dataHelp = document.createElement("p");
     dataHelp.className = "muted-note";
-    dataHelp.textContent = "OpenMCAT stores no data on any server. All of the current OpenMCAT data is privately located in your own web browser. Use the controls below to backup, restore, merge, or delete the current OpenMCAT data.";
+    dataHelp.textContent = "OpenMCAT stores no data on any server. All of the current OpenMCAT data is privately located in your own web browser. Use the controls below to backup, share, restore, merge, or delete the current OpenMCAT data.";
     const backupStatus = state.analytics?.backupStatus;
     const dataSize = document.createElement("p");
     dataSize.className = "settings-data-size";
@@ -117,12 +117,16 @@ export const renderSettingsView = (state, actions) => {
     exportButton.className = backupStatus?.hasChanges ? "btn btn-primary" : "btn btn-secondary";
     exportButton.textContent = "Backup data";
     exportButton.addEventListener("click", () => actions.exportData());
+    const shareButton = document.createElement("button");
+    shareButton.className = "btn btn-secondary";
+    shareButton.textContent = "Share data";
+    shareButton.addEventListener("click", () => actions.shareDataBackup());
     const restoreGroup = makeDataGroup("Restore data", "Replace the current OpenMCAT data with one backup from your device.");
     const importInput = document.createElement("input");
     importInput.id = "restore-file";
     importInput.className = "settings-file-input";
     importInput.type = "file";
-    importInput.accept = ".json,application/json";
+    importInput.accept = ".json,.txt,application/json,text/plain";
     const importPicker = document.createElement("label");
     importPicker.className = "btn btn-secondary settings-file-picker";
     importPicker.htmlFor = importInput.id;
@@ -153,7 +157,7 @@ export const renderSettingsView = (state, actions) => {
     combineInput.id = "combine-files";
     combineInput.className = "settings-file-input";
     combineInput.type = "file";
-    combineInput.accept = ".json,application/json";
+    combineInput.accept = ".json,.txt,application/json,text/plain";
     combineInput.multiple = true;
     const combinePicker = document.createElement("label");
     combinePicker.className = "btn btn-secondary settings-file-picker";
@@ -165,7 +169,7 @@ export const renderSettingsView = (state, actions) => {
     combineButton.disabled = true;
     combineInput.addEventListener("change", () => {
         const files = Array.from(combineInput.files ?? []);
-        combinePicker.textContent = files.length === 1 ? files[0].name : files.length ? `${files.length} files selected` : "Choose file";
+        combinePicker.textContent = files.length ? `${files.length} ${files.length === 1 ? "file" : "files"} selected` : "Choose file";
         combineButton.disabled = !files.length;
     });
     combineButton.addEventListener("click", () => {
@@ -187,7 +191,9 @@ export const renderSettingsView = (state, actions) => {
         if (confirmed) actions.deleteAllLocalData();
     });
     deleteGroup.append(deleteButton);
-    dataActions.append(exportButton, restoreGroup, combineGroup, deleteGroup);
+    dataActions.append(exportButton);
+    if (state.backupSharingSupported) dataActions.append(shareButton);
+    dataActions.append(restoreGroup, combineGroup, deleteGroup);
     dataCard.append(dataActions);
     layout.append(appearanceCard, dataCard);
     root.append(layout);

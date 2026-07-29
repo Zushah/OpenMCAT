@@ -10,6 +10,7 @@ export const state = {
     route: "landing",
     theme: "system",
     storageError: null,
+    backupSharingSupported: false,
     storagePersistence: {
         status: "checking",
         persisted: false,

@@ -8,11 +8,12 @@ import { compilePracticePrompt } from "./prompts/compiler.js";
 import { extractJsonObject } from "./schema/repair.js";
 import { validatePracticeSession } from "./schema/validators.js";
 import { setHashForRoute } from "./router.js";
-import { buildExportPayload, combineBackupPayloads, downloadExport, importPayload, parseImportText, previewBackupCombination } from "./storage/exportimport.js";
+import { buildExportPayload, combineBackupPayloads, createExportPayload, downloadExport, importPayload, parseImportText, previewBackupCombination } from "./storage/exportimport.js";
 import { clearAllData, getAllData, initializeStorage, saveAttempt, saveSession, updateAttempt, updateSession } from "./storage/db.js";
 import { saveSettings as persistSettings } from "./storage/settings.js";
 import { getBackupStatus, isBackupReminderDue, markBackupCompleted, scheduleBackupReminder } from "./storage/backup.js";
 import { checkPersistentStorage, requestPersistentStorage } from "./storage/persistence.js";
+import { canShareBackup, shareBackup } from "./storage/share.js";
 import { computeMetrics, normalizeDashboardFilters } from "./analytics/metrics.js";
 import { buildRecommendation } from "./analytics/recommendations.js";
 import { getSelectionHighlightRanges, toggleHighlightRange } from "./components/highlights.js";
@@ -744,6 +745,29 @@ export const createActions = ({ render, applyTheme }) => {
         showToast("Exported OpenMCAT data.", "success");
     };
 
+    const shareDataBackup = (options = {}) => {
+        const payload = createExportPayload({
+            settings: state.settings,
+            sessions: state.analytics?.sessions ?? [],
+            attempts: state.analytics?.attempts ?? []
+        });
+        const sharing = shareBackup(payload);
+        return sharing.then(async (result) => {
+            if (result.outcome === "canceled") return result;
+            if (result.outcome !== "shared") { showToast("Your web browser could not share the OpenMCAT data backup."); return result; }
+            await markBackupCompleted(payload, state.settings.backupReminderCompletedTiming);
+            if (options.closeReminder) state.dashboard.backupReminderOpen = false;
+            await refreshAnalytics();
+            render();
+            showToast("Shared OpenMCAT data backup.", "success");
+            return result;
+        }).catch((error) => {
+            console.warn("OpenMCAT: unexpected data backup sharing failure.", error);
+            showToast("Your web browser could not share the OpenMCAT data backup.");
+            return { outcome: "failed" };
+        });
+    };
+
     const importDataFromText = async (text) => {
         const parsed = parseImportText(text);
         await importPayload(parsed);
@@ -817,6 +841,7 @@ export const createActions = ({ render, applyTheme }) => {
             applyTheme(state.settings.theme);
             await initializeStorage();
             await refreshAnalytics();
+            state.backupSharingSupported = canShareBackup();
             await refreshStoragePersistence();
             if (state.route === "dashboard") maybeOpenDashboardBackupReminder();
             if (state.route === "bank") await refreshQuestionBank();
@@ -866,6 +891,7 @@ export const createActions = ({ render, applyTheme }) => {
         setReviewQuestionIndex,
         toggleMistakeTypeForQuestion,
         exportData,
+        shareDataBackup,
         importDataFromText,
         combineDataFromTexts,
         deleteAllLocalData,

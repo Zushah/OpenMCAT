@@ -74,13 +74,13 @@ const createDataSignature = async (source) => {
 const formatBackupDate = (value) => new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 
 const formatBackupStatus = ({ hasData, hasChanges, completedAt, addedSessions, addedAttempts }) => {
-    if (!hasData) return "Backup unneeded: No OpenMCAT data recorded.";
-    if (!completedAt) return "Backup recommended: No completed backup has been recorded yet for the current OpenMCAT data.";
-    if (!hasChanges) return `Backup completed: Last recorded OpenMCAT data backup was on ${formatBackupDate(completedAt)}.`;
+    if (!hasData) return "Backup unneeded: Zero current OpenMCAT data.";
+    if (!completedAt) return "Backup recommended: No OpenMCAT data backup saved yet.";
+    if (!hasChanges) return `Backup completed: ${formatBackupDate(completedAt)}.`;
     const additions = [];
     if (addedSessions > 0) additions.push(`${addedSessions} new ${addedSessions === 1 ? "session" : "sessions"}`);
     if (addedAttempts > 0) additions.push(`${addedAttempts} new ${addedAttempts === 1 ? "attempt" : "attempts"}`);
-    const changeDescription = additions.length ? additions.join(" and ") : "your OpenMCAT data has changed";
+    const changeDescription = additions.length ? additions.join(" and ") : "The current OpenMCAT data has changed";
     return `Backup recommended: ${changeDescription} since ${formatBackupDate(completedAt)}.`;
 };
 

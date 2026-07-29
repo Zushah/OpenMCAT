@@ -3,11 +3,9 @@ import { loadSettings, saveSettings } from "./settings.js";
 
 const SUPPORTED_EXPORT_VERSIONS = new Set(["1.0"]);
 
-const validateRecords = (records, label) => {
-    records.forEach((record, index) => {
-        if (!record || typeof record !== "object" || Array.isArray(record) || typeof record.id !== "string" || !record.id) throw new Error(`${label} record ${index + 1} must be an object with a non-empty string id.`);
-    });
-};
+const validateRecords = (records, label) => records.forEach((record, index) => {
+    if (!record || typeof record !== "object" || Array.isArray(record) || typeof record.id !== "string" || !record.id) throw new Error(`${label} record ${index + 1} must be an object with a non-empty string id.`);
+});
 
 const validateImportPayload = (payload, sourceName = "Imported file") => {
     if (!payload || typeof payload !== "object" || Array.isArray(payload)) throw new Error(`${sourceName} must contain a JSON object.`);
@@ -28,17 +26,19 @@ const validateUniqueIds = (records, label) => {
     });
 };
 
+export const createExportPayload = ({ settings = {}, sessions = [], attempts = [] }, now = new Date()) => ({
+    exportVersion: "1.0",
+    exportedAt: now.toISOString(),
+    app: "OpenMCAT",
+    settings: structuredClone(settings),
+    sessions: structuredClone(sessions),
+    attempts: structuredClone(attempts)
+});
+
 export const buildExportPayload = async () => {
     const settings = loadSettings();
     const data = await getAllData();
-    return {
-        exportVersion: "1.0",
-        exportedAt: new Date().toISOString(),
-        app: "OpenMCAT",
-        settings: structuredClone(settings),
-        sessions: data.sessions,
-        attempts: data.attempts
-    };
+    return createExportPayload({ settings, ...data });
 };
 
 export const downloadExport = (payload) => {
