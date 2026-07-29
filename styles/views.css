@@ -1775,6 +1775,11 @@
     margin: 0;
 }
 
+.settings-preference-help {
+    margin: 0;
+    color: var(--text-muted);
+}
+
 .settings-import-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;

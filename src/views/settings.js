@@ -67,17 +67,35 @@ export const renderSettingsView = (state, actions) => {
     appearanceCard.append(makeField("Theme", themeSelect));
     const snoozedTimingSelect = createSelect("settings-backup-snoozed-timing", BACKUP_REMINDER_TIMING_OPTIONS, state.settings.backupReminderSnoozedTiming);
     const completedTimingSelect = createSelect("settings-backup-completed-timing", BACKUP_REMINDER_TIMING_OPTIONS, state.settings.backupReminderCompletedTiming);
-    appearanceCard.append(makeField("Data backup reminder when snoozed", snoozedTimingSelect), makeField("Data backup reminder when completed", completedTimingSelect));
+    const persistence = state.storagePersistence ?? {};
+    const persistenceSelect = createSelect("settings-persistent-storage", [
+        { value: "enabled", label: "Enabled" },
+        { value: "disabled", label: "Disabled" }
+    ], persistence.persisted ? "enabled" : "disabled");
+    persistenceSelect.disabled = persistence.persisted || !persistence.canRequest;
+    const persistenceField = makeField("Persistent browser storage", persistenceSelect);
+    const persistenceHelp = document.createElement("p");
+    persistenceHelp.className = "tiny settings-preference-help";
+    if (persistence.persisted) persistenceHelp.textContent = "Your web browser protects the current OpenMCAT data from automated deletions. Websites cannot revoke this protection after it is granted. OpenMCAT data backups are still recommended.";
+    else if (persistence.canRequest) persistenceHelp.textContent = "When enabled, your web browser is asked to protect the current OpenMCAT data from automated deletions. Your web browser ultimately decides whether to grant the request. OpenMCAT data backups are still recommended.";
+    else persistenceHelp.textContent = "Your web browser cannot protect the current OpenMCAT data from automated deletions. The current OpenMCAT data will continue to work normally. OpenMCAT data backups are still recommended.";
+    persistenceField.append(persistenceHelp);
+    appearanceCard.append(makeField("Data backup reminder when snoozed", snoozedTimingSelect), makeField("Data backup reminder when completed", completedTimingSelect), persistenceField);
     const saveButton = document.createElement("button");
     saveButton.className = "btn btn-primary";
     saveButton.textContent = "Save settings";
     saveButton.addEventListener("click", () => {
-        actions.saveAppSettings({
-            ...state.settings,
-            theme: themeSelect.value,
-            backupReminderSnoozedTiming: snoozedTimingSelect.value,
-            backupReminderCompletedTiming: completedTimingSelect.value
-        });
+        actions.saveAppSettings(
+            {
+                ...state.settings,
+                theme: themeSelect.value,
+                backupReminderSnoozedTiming: snoozedTimingSelect.value,
+                backupReminderCompletedTiming: completedTimingSelect.value
+            },
+            {
+                enablePersistentStorage: persistenceSelect.value === "enabled"
+            }
+        );
     });
     appearanceCard.append(saveButton);
     const dataCard = document.createElement("section");
@@ -160,7 +178,7 @@ export const renderSettingsView = (state, actions) => {
     combineRow.className = "settings-import-row";
     combineRow.append(combineInput, combinePicker, combineButton);
     combineGroup.append(combineRow);
-    const deleteGroup = makeDataGroup("Delete data", "Delete the current OpenMCAT data. This cannot be undone.");
+    const deleteGroup = makeDataGroup("Delete data", "Delete the current OpenMCAT data. This action cannot be undone, unless you have a backup on your device.");
     const deleteButton = document.createElement("button");
     deleteButton.className = "btn btn-ghost settings-delete-button";
     deleteButton.textContent = "Delete data";

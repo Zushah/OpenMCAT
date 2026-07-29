@@ -12,6 +12,7 @@ import { buildExportPayload, combineBackupPayloads, downloadExport, importPayloa
 import { clearAllData, getAllData, initializeStorage, saveAttempt, saveSession, updateAttempt, updateSession } from "./storage/db.js";
 import { saveSettings as persistSettings } from "./storage/settings.js";
 import { getBackupStatus, isBackupReminderDue, markBackupCompleted, scheduleBackupReminder } from "./storage/backup.js";
+import { checkPersistentStorage, requestPersistentStorage } from "./storage/persistence.js";
 import { computeMetrics, normalizeDashboardFilters } from "./analytics/metrics.js";
 import { buildRecommendation } from "./analytics/recommendations.js";
 import { getSelectionHighlightRanges, toggleHighlightRange } from "./components/highlights.js";
@@ -123,6 +124,16 @@ export const createActions = ({ render, applyTheme }) => {
         const backupStatus = await getBackupStatus({ ...data, settings: state.settings });
         state.analytics = { metrics, recommendation, backupStatus, ...data };
         return state.analytics;
+    };
+
+    const refreshStoragePersistence = async () => {
+        try {
+            state.storagePersistence = { ...await checkPersistentStorage(), requesting: false };
+        } catch (error) {
+            console.warn("OpenMCAT: unexpected persistent browser storage check failure.", error);
+            state.storagePersistence = { status: "error", persisted: false, canRequest: false, requesting: false };
+        }
+        return state.storagePersistence;
     };
 
     const refreshQuestionBank = async (options = {}) => {
@@ -251,12 +262,25 @@ export const createActions = ({ render, applyTheme }) => {
         catch (error) { showToast(error.message || "Question bank session could not start.", "error"); if (state.route === "bank") await refreshQuestionBank(); }
     };
 
-    const saveAppSettings = async (nextSettings) => {
+    const saveAppSettings = async (nextSettings, options = {}) => {
+        const persistenceRequest = options.enablePersistentStorage && !state.storagePersistence?.persisted ? requestPersistentStorage() : null;
         state.settings = persistSettings(nextSettings);
         applyTheme(state.settings.theme);
+        let persistenceResult = null;
+        try {
+            persistenceResult = persistenceRequest ? await persistenceRequest : null;
+        } catch (error) {
+            console.warn("OpenMCAT: unexpected persistent browser storage request failure.", error);
+            persistenceResult = { status: "error", persisted: false, canRequest: false, outcome: "error" };
+        }
+        if (persistenceResult) state.storagePersistence = { ...persistenceResult, requesting: false };
         await refreshAnalytics();
         render();
-        showToast("Settings saved.", "success");
+        if (persistenceResult?.outcome === "granted") showToast("Settings saved. Persistent storage enabled in this browser.", "success");
+        else if (persistenceResult?.outcome === "denied") showToast("Settings saved. Persistent storage was not granted in this browser.");
+        else if (persistenceResult?.outcome === "unsupported") showToast("Settings saved. Persistent storage is not available in this browser.");
+        else if (persistenceResult?.outcome === "error") showToast("Settings saved. Persistent storage encountered an error in this browser.", "error");
+        else showToast("Settings saved.", "success");
     };
 
     const resetManualGeneration = () => {
@@ -793,6 +817,7 @@ export const createActions = ({ render, applyTheme }) => {
             applyTheme(state.settings.theme);
             await initializeStorage();
             await refreshAnalytics();
+            await refreshStoragePersistence();
             if (state.route === "dashboard") maybeOpenDashboardBackupReminder();
             if (state.route === "bank") await refreshQuestionBank();
             else render();

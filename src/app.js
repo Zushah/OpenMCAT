@@ -10,6 +10,12 @@ export const state = {
     route: "landing",
     theme: "system",
     storageError: null,
+    storagePersistence: {
+        status: "checking",
+        persisted: false,
+        canRequest: false,
+        requesting: false
+    },
     settings: loadSettings(),
     currentConfig: structuredClone(DEFAULT_CONFIG),
     generation: {
