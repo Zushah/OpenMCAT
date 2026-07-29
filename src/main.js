@@ -140,7 +140,10 @@ const setupNavHandlers = () => {
 window.addEventListener("popstate", handleBrowserRouteChange);
 window.addEventListener("hashchange", handleBrowserRouteChange);
 
-const refreshExternalData = () => { if (state.route === "dashboard") actions.refreshAnalytics().then(render); if (state.route === "bank") actions.refreshQuestionBank(); };
+const refreshExternalData = () => {
+    if (state.route === "dashboard" || state.route === "settings") actions.refreshAnalytics().then(render);
+    if (state.route === "bank") actions.refreshQuestionBank();
+};
 window.addEventListener("storage", refreshExternalData);
 subscribeToDataChanges(refreshExternalData);
 

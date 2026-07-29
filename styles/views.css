@@ -229,6 +229,12 @@
     text-align: center;
 }
 
+.backup-status-note {
+    max-width: 58ch;
+    margin: 0.7rem auto 0;
+    text-align: center;
+}
+
 .backup-reminder-description {
     max-width: 55ch;
     margin-left: auto;
@@ -1726,6 +1732,23 @@
 
 .settings-data-card h2, .settings-data-card .muted-note {
     margin-bottom: 0;
+}
+
+.settings-preference-heading {
+    margin: 0.35rem 0 var(--space-sm);
+    font-size: 1rem;
+}
+
+.settings-data-size {
+    margin: 0;
+    color: var(--text-primary);
+    font-weight: 650;
+}
+
+.settings-backup-status {
+    max-width: none;
+    margin: 0;
+    text-align: left;
 }
 
 .settings-data-actions {

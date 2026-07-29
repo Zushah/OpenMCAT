@@ -16,7 +16,9 @@ export const QUESTION_COUNT_LIMITS = {
 };
 
 export const DEFAULT_SETTINGS = {
-    theme: "system"
+    theme: "system",
+    backupReminderSnoozedTiming: "daily",
+    backupReminderCompletedTiming: "weekly"
 };
 
 export const REVIEW_MODES = [

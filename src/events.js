@@ -11,7 +11,7 @@ import { setHashForRoute } from "./router.js";
 import { buildExportPayload, combineBackupPayloads, downloadExport, importPayload, parseImportText, previewBackupCombination } from "./storage/exportimport.js";
 import { clearAllData, getAllData, initializeStorage, saveAttempt, saveSession, updateAttempt, updateSession } from "./storage/db.js";
 import { saveSettings as persistSettings } from "./storage/settings.js";
-import { isBackupReminderDue, remindAboutBackupNextWeek, remindAboutBackupTomorrow } from "./storage/backup.js";
+import { getBackupStatus, isBackupReminderDue, markBackupCompleted, scheduleBackupReminder } from "./storage/backup.js";
 import { computeMetrics, normalizeDashboardFilters } from "./analytics/metrics.js";
 import { buildRecommendation } from "./analytics/recommendations.js";
 import { getSelectionHighlightRanges, toggleHighlightRange } from "./components/highlights.js";
@@ -120,7 +120,8 @@ export const createActions = ({ render, applyTheme }) => {
             sectionsById: maps.sectionsById,
             metrics
         });
-        state.analytics = { metrics, recommendation, ...data };
+        const backupStatus = await getBackupStatus({ ...data, settings: state.settings });
+        state.analytics = { metrics, recommendation, backupStatus, ...data };
         return state.analytics;
     };
 
@@ -194,9 +195,9 @@ export const createActions = ({ render, applyTheme }) => {
     };
 
     const maybeOpenDashboardBackupReminder = () => {
-        const hasStoredData = Boolean(state.analytics?.sessions?.length || state.analytics?.attempts?.length);
-        if (!hasStoredData || !isBackupReminderDue()) return false;
-        remindAboutBackupTomorrow();
+        const backupStatus = state.analytics?.backupStatus;
+        if (!backupStatus?.hasData || !backupStatus.hasChanges || !isBackupReminderDue()) return false;
+        scheduleBackupReminder(state.settings.backupReminderSnoozedTiming);
         state.dashboard.backupReminderOpen = true;
         return true;
     };
@@ -209,8 +210,9 @@ export const createActions = ({ render, applyTheme }) => {
     const backupDataFromReminder = async () => {
         const payload = await buildExportPayload();
         downloadExport(payload);
-        remindAboutBackupNextWeek();
+        await markBackupCompleted(payload, state.settings.backupReminderCompletedTiming);
         state.dashboard.backupReminderOpen = false;
+        await refreshAnalytics();
         navigate("settings");
         showToast("Exported OpenMCAT data.", "success");
     };
@@ -252,6 +254,7 @@ export const createActions = ({ render, applyTheme }) => {
     const saveAppSettings = async (nextSettings) => {
         state.settings = persistSettings(nextSettings);
         applyTheme(state.settings.theme);
+        await refreshAnalytics();
         render();
         showToast("Settings saved.", "success");
     };
@@ -711,6 +714,9 @@ export const createActions = ({ render, applyTheme }) => {
     const exportData = async () => {
         const payload = await buildExportPayload();
         downloadExport(payload);
+        await markBackupCompleted(payload, state.settings.backupReminderCompletedTiming);
+        await refreshAnalytics();
+        render();
         showToast("Exported OpenMCAT data.", "success");
     };
 

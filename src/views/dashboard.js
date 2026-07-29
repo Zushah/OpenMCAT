@@ -405,12 +405,6 @@ const renderAiAnalysisModal = (state, actions) => {
     return overlay;
 };
 
-const formatDataSize = (state) => {
-    const content = JSON.stringify({ settings: state.settings, sessions: state.analytics?.sessions ?? [], attempts: state.analytics?.attempts ?? [] }, null, 2);
-    const bytes = new Blob([content]).size;
-    return `${cb.numb.roundTo((bytes / 1024) / 1024, 0.01)} MB`;
-};
-
 const renderBackupReminderModal = (state, actions) => {
     if (!state.dashboard?.backupReminderOpen) return null;
     if (!state.analytics?.sessions?.length && !state.analytics?.attempts?.length) return null;
@@ -432,8 +426,10 @@ const renderBackupReminderModal = (state, actions) => {
     close.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">close</span>';
     close.addEventListener("click", () => actions.closeDashboardBackupReminder());
     top.append(heading, close);
-    const size = createElement("p", "backup-reminder-size", `You have ${formatDataSize(state)} of OpenMCAT data.`);
-    const description = createElement("p", "generation-pipeline-instructions backup-reminder-description", "Your OpenMCAT data stays completely private in this web browser. Download a backup of it regularly on your device so that you can restore your study history if your browser data is ever haphazardly cleared or if you move to another device.");
+    const backupStatus = state.analytics?.backupStatus;
+    const size = createElement("p", "backup-reminder-size", `You have ${backupStatus?.dataSizeLabel ?? "0.00 MB"} of current OpenMCAT data.`);
+    const status = createElement("p", `backup-status-note ${backupStatus?.hasChanges ? "warning-note" : "muted-note"}`, backupStatus?.message ?? "Backup status unavailable.");
+    const description = createElement("p", "generation-pipeline-instructions backup-reminder-description", "Your current OpenMCAT data stays completely private in this web browser. Download a backup of it regularly on your device so that you can restore your study history if your browser data is ever haphazardly cleared or if you move to another device.");
     const controls = createElement("div", "button-row backup-reminder-actions");
     const backupButton = document.createElement("button");
     backupButton.type = "button";
@@ -446,7 +442,7 @@ const renderBackupReminderModal = (state, actions) => {
     laterButton.textContent = "Remind me later";
     laterButton.addEventListener("click", () => actions.closeDashboardBackupReminder());
     controls.append(backupButton, laterButton);
-    panel.append(top, size, description, controls);
+    panel.append(top, size, status, description, controls);
     overlay.append(panel);
     return overlay;
 };
