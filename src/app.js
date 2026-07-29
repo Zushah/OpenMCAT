@@ -35,6 +35,7 @@ export const state = {
     activeSession: null,
     activeAttempt: null,
     analytics: null,
+    settingsDataConfirmation: null,
     dashboard: {
         filters: { ...DEFAULT_DASHBOARD_FILTERS },
         pages: { ...DEFAULT_DASHBOARD_PAGES },

@@ -24,6 +24,18 @@ const selectShareableFile = (shareNavigator, payload, now) => {
     return null;
 };
 
+const getBackupDate = (payload, fallback = new Date()) => {
+    if (typeof payload?.exportedAt === "string" && Number.isFinite(Date.parse(payload.exportedAt))) return new Date(payload.exportedAt);
+    return fallback;
+};
+
+export const getShareableBackupDetails = (payload) => {
+    const shareNavigator = getShareNavigator();
+    if (!shareNavigator) return null;
+    const file = selectShareableFile(shareNavigator, payload, getBackupDate(payload));
+    return file ? { fileName: file.name, fileSize: file.size } : null;
+};
+
 export const canShareBackup = () => {
     const shareNavigator = getShareNavigator();
     if (!shareNavigator) return false;
@@ -34,7 +46,7 @@ export const canShareBackup = () => {
 export const shareBackup = (payload, now = new Date()) => {
     const shareNavigator = getShareNavigator();
     if (!shareNavigator) return Promise.resolve({ outcome: "unsupported" });
-    const file = selectShareableFile(shareNavigator, payload, now);
+    const file = selectShareableFile(shareNavigator, payload, getBackupDate(payload, now));
     if (!file) return Promise.resolve({ outcome: "unsupported" });
     let shareResult;
     try {

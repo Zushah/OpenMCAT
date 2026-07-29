@@ -55,6 +55,7 @@ const handleRouteFromLocation = () => {
     const nextRoute = getRouteFromHash(location.hash || "#/");
     if (state.route === nextRoute) return false;
     if (nextRoute !== "dashboard") { state.dashboard.aiAnalysisOpen = false; state.dashboard.backupReminderOpen = false; }
+    if (nextRoute !== "settings") state.settingsDataConfirmation = null;
     state.route = nextRoute;
     return true;
 };
@@ -145,7 +146,7 @@ const refreshExternalData = () => {
     if (state.route === "bank") actions.refreshQuestionBank();
 };
 window.addEventListener("storage", refreshExternalData);
-subscribeToDataChanges(refreshExternalData);
+subscribeToDataChanges(() => { if (state.route === "settings") state.settingsDataConfirmation = null; refreshExternalData(); });
 
 handleRouteFromLocation();
 setupNavHandlers();

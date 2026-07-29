@@ -86,12 +86,16 @@ const formatBackupStatus = ({ hasData, hasChanges, completedAt, addedSessions, a
 
 export const formatBackupDataSize = (bytes) => {
     const megabytes = (bytes / 1024) / 1024;
-    return `${megabytes > 0 && megabytes < 0.01 ? "<0.01" : cb.numb.roundTo(megabytes, 0.01)} MB`;
+    if (megabytes === 0) return "0 MB";
+    if (megabytes < 0.01) return "<0.01 MB";
+    return `${cb.numb.roundTo(megabytes, 0.01)} MB`;
 };
 
 export const getBackupStatus = async (source) => {
     const data = getStudyData(source);
     const completedBackup = loadCompletedBackup();
+    const completedSessionCount = Number(completedBackup?.sessionCount);
+    const completedAttemptCount = Number(completedBackup?.attemptCount);
     const signature = await createDataSignature(data);
     const hasData = Boolean(data.sessions.length || data.attempts.length);
     const hasChanges = hasData && completedBackup?.signature !== signature;
@@ -101,6 +105,8 @@ export const getBackupStatus = async (source) => {
         hasData,
         hasChanges,
         completedAt: completedBackup?.completedAt ?? null,
+        completedSessionCount: Number.isFinite(completedSessionCount) && completedSessionCount >= 0 ? completedSessionCount : null,
+        completedAttemptCount: Number.isFinite(completedAttemptCount) && completedAttemptCount >= 0 ? completedAttemptCount : null,
         addedSessions,
         addedAttempts,
         dataSizeBytes: new Blob([getBackupContent(source)]).size

@@ -1751,6 +1751,118 @@
     text-align: left;
 }
 
+.settings-data-confirmation-panel {
+    width: min(720px, 96vw);
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+}
+
+.settings-data-confirmation-panel .generation-pipeline-top {
+    padding-inline: 2.75rem;
+}
+
+.settings-data-confirmation-description {
+    max-width: 68ch;
+    margin: 0.75rem auto 0;
+    text-align: center;
+}
+
+.settings-data-confirmation-metadata {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    margin: var(--space-md) 0 0;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--surface-tint), transparent 89%);
+    border: 1px solid color-mix(in srgb, var(--surface-tint), transparent 86%);
+    border-radius: var(--radius-md);
+}
+
+.settings-data-confirmation-metadata > div {
+    min-width: 0;
+    padding: 0.62rem 0.72rem;
+    background: var(--surface);
+}
+
+.settings-data-confirmation-metadata dt {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 650;
+}
+
+.settings-data-confirmation-metadata dd {
+    min-width: 0;
+    margin: 0.2rem 0 0;
+    overflow-wrap: anywhere;
+    color: var(--text-primary);
+    font-size: 0.8rem;
+}
+
+.settings-data-confirmation-comparison {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: 0.55rem;
+    margin: var(--space-md) 0 0;
+}
+
+.settings-data-confirmation-stat {
+    min-width: 0;
+    padding: 0.65rem 0.72rem;
+    border: 1px solid color-mix(in srgb, var(--surface-tint), transparent 86%);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--surface-elevated), transparent 22%);
+}
+
+.settings-data-confirmation-stat.is-change {
+    border-style: dashed;
+}
+
+.settings-data-confirmation-stat h3 {
+    margin: 0 0 0.42rem;
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+}
+
+.settings-data-confirmation-stat > div {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.settings-data-confirmation-metric {
+    display: flex;
+    min-width: 0;
+    align-items: baseline;
+    gap: 0.25rem;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+}
+
+.settings-data-confirmation-metric strong {
+    color: var(--text-primary);
+    font-size: 0.94rem;
+}
+
+.settings-data-confirmation-metric strong.is-addition {
+    color: var(--success);
+}
+
+.settings-data-confirmation-metric strong.is-deletion {
+    color: var(--danger);
+}
+
+.settings-data-confirmation-metric strong.is-unchanged, .settings-data-confirmation-empty {
+    color: var(--text-secondary);
+}
+
+.settings-data-confirmation-empty {
+    font-size: 0.8rem;
+}
+
+.settings-data-confirmation-actions {
+    justify-content: center;
+    margin-top: var(--space-md);
+}
+
 .settings-data-actions {
     display: grid;
     gap: 0.72rem;

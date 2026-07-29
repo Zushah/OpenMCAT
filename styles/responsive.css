@@ -32,6 +32,18 @@
         padding: 12px 12px 24px;
     }
 
+    .settings-data-confirmation-metadata {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-data-confirmation-comparison {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-data-confirmation-actions .btn {
+        width: 100%;
+    }
+
     .summary-grid, .dashboard-grid {
         grid-template-columns: 1fr;
     }

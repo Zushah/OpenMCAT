@@ -49,6 +49,106 @@ const makeDataGroup = (title, description) => {
     return group;
 };
 
+const DATA_ACTION_TITLES = { backup: "Backup data", share: "Share data", restore: "Restore data", merge: "Merge data", delete: "Delete data" };
+
+const formatConfirmationCount = (value, change) => change && value > 0 ? `+${value}` : String(value);
+
+const makeConfirmationMetric = (label, value, change) => {
+    const metric = document.createElement("span");
+    metric.className = "settings-data-confirmation-metric";
+    const count = document.createElement("strong");
+    count.textContent = formatConfirmationCount(value, change);
+    if (change) count.classList.add(value > 0 ? "is-addition" : value < 0 ? "is-deletion" : "is-unchanged");
+    const name = document.createElement("span");
+    name.textContent = label;
+    metric.append(count, name);
+    return metric;
+};
+
+const renderDataConfirmationModal = (state, actions) => {
+    const confirmation = state.settingsDataConfirmation;
+    if (!confirmation) return null;
+    const overlay = document.createElement("section");
+    overlay.className = "generation-pipeline-overlay settings-data-confirmation-overlay";
+    overlay.setAttribute("role", "presentation");
+    overlay.addEventListener("click", (event) => { if (event.target === overlay) actions.closeSettingsDataConfirmation(); });
+    const panel = document.createElement("section");
+    panel.className = "card card-pad generation-pipeline-panel settings-data-confirmation-panel";
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-labelledby", "settings-data-confirmation-heading");
+    panel.setAttribute("aria-describedby", "settings-data-confirmation-description");
+    panel.addEventListener("click", (event) => event.stopPropagation());
+    const top = document.createElement("div");
+    top.className = "generation-pipeline-top";
+    const heading = document.createElement("h2");
+    heading.id = "settings-data-confirmation-heading";
+    heading.textContent = DATA_ACTION_TITLES[confirmation.action] ?? "Change data";
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "btn btn-ghost generation-pipeline-close";
+    close.setAttribute("aria-label", "Deny data action and close confirmation");
+    close.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">close</span>';
+    close.addEventListener("click", () => actions.closeSettingsDataConfirmation());
+    top.append(heading, close);
+    const description = document.createElement("p");
+    description.id = "settings-data-confirmation-description";
+    description.className = "muted-note settings-data-confirmation-description";
+    description.textContent = confirmation.description;
+    const metadata = document.createElement("dl");
+    metadata.className = "settings-data-confirmation-metadata";
+    confirmation.metadata.forEach((entry) => {
+        const item = document.createElement("div");
+        const term = document.createElement("dt");
+        term.textContent = entry.label;
+        const value = document.createElement("dd");
+        value.textContent = entry.value;
+        item.append(term, value);
+        metadata.append(item);
+    });
+    const comparison = document.createElement("div");
+    comparison.className = "settings-data-confirmation-comparison";
+    confirmation.stats.forEach((stat) => {
+        const item = document.createElement("section");
+        item.className = `settings-data-confirmation-stat${stat.change ? " is-change" : ""}`;
+        const label = document.createElement("h3");
+        label.textContent = stat.label;
+        item.append(label);
+        if (stat.empty) {
+            const empty = document.createElement("span");
+            empty.className = "settings-data-confirmation-empty";
+            empty.textContent = stat.empty;
+            item.append(empty);
+        } else {
+            const metrics = document.createElement("div");
+            metrics.append(
+                makeConfirmationMetric(stat.sessions === 1 || stat.sessions === -1 ? "session" : "sessions", stat.sessions, stat.change),
+                makeConfirmationMetric(stat.attempts === 1 || stat.attempts === -1 ? "attempt" : "attempts", stat.attempts, stat.change)
+            );
+            item.append(metrics);
+        }
+        comparison.append(item);
+    });
+    const controls = document.createElement("div");
+    controls.className = "button-row settings-data-confirmation-actions";
+    const confirmButton = document.createElement("button");
+    confirmButton.type = "button";
+    confirmButton.className = "btn btn-secondary";
+    confirmButton.textContent = "Confirm";
+    confirmButton.addEventListener("click", () => actions.confirmSettingsDataAction());
+    const denyButton = document.createElement("button");
+    denyButton.type = "button";
+    denyButton.className = "btn btn-secondary";
+    denyButton.textContent = "Deny";
+    denyButton.addEventListener("click", () => actions.closeSettingsDataConfirmation());
+    controls.append(confirmButton, denyButton);
+    panel.append(top, description);
+    if (confirmation.metadata.length) panel.append(metadata);
+    panel.append(comparison, controls);
+    overlay.append(panel);
+    return overlay;
+};
+
 export const renderSettingsView = (state, actions) => {
     const root = document.createElement("section");
     const header = document.createElement("section");
@@ -116,11 +216,11 @@ export const renderSettingsView = (state, actions) => {
     const exportButton = document.createElement("button");
     exportButton.className = backupStatus?.hasChanges ? "btn btn-primary" : "btn btn-secondary";
     exportButton.textContent = "Backup data";
-    exportButton.addEventListener("click", () => actions.exportData());
+    exportButton.addEventListener("click", () => actions.openSettingsDataConfirmation("backup"));
     const shareButton = document.createElement("button");
     shareButton.className = "btn btn-secondary";
     shareButton.textContent = "Share data";
-    shareButton.addEventListener("click", () => actions.shareDataBackup());
+    shareButton.addEventListener("click", () => actions.openSettingsDataConfirmation("share"));
     const restoreGroup = makeDataGroup("Restore data", "Replace the current OpenMCAT data with one backup from your device.");
     const importInput = document.createElement("input");
     importInput.id = "restore-file";
@@ -143,10 +243,8 @@ export const renderSettingsView = (state, actions) => {
     importButton.addEventListener("click", () => {
         const file = importInput.files?.[0];
         if (!file) return;
-        const confirmed = confirm("Restore this OpenMCAT data backup? It will replace the current OpenMCAT data in this browser.");
-        if (!confirmed) return;
         importButton.disabled = true;
-        readFileText(file).then((text) => actions.importDataFromText(text)).catch((error) => { alert(`Import failed: ${error.message}`); }).finally(() => { importButton.disabled = false; });
+        readFileText(file).then((text) => actions.prepareDataRestore({ name: file.name, size: file.size, text })).catch((error) => { alert(`Import failed: ${error.message}`); }).finally(() => { importButton.disabled = false; });
     });
     const importRow = document.createElement("div");
     importRow.className = "settings-import-row";
@@ -176,7 +274,7 @@ export const renderSettingsView = (state, actions) => {
         const files = Array.from(combineInput.files ?? []);
         if (!files.length) return;
         combineButton.disabled = true;
-        Promise.all(files.map(async (file) => ({ name: file.name, text: await readFileText(file) }))).then((sources) => actions.combineDataFromTexts(sources)).catch((error) => { alert(`Merge failed: ${error.message}`); }).finally(() => { combineButton.disabled = false; });
+        Promise.all(files.map(async (file) => ({ name: file.name, size: file.size, text: await readFileText(file) }))).then((sources) => actions.prepareDataMerge(sources)).catch((error) => { alert(`Merge failed: ${error.message}`); }).finally(() => { combineButton.disabled = false; });
     });
     const combineRow = document.createElement("div");
     combineRow.className = "settings-import-row";
@@ -186,10 +284,7 @@ export const renderSettingsView = (state, actions) => {
     const deleteButton = document.createElement("button");
     deleteButton.className = "btn btn-ghost settings-delete-button";
     deleteButton.textContent = "Delete data";
-    deleteButton.addEventListener("click", () => {
-        const confirmed = confirm("Are you sure you want to delete all of the current OpenMCAT data? It will be lost forever! (A long time!)");
-        if (confirmed) actions.deleteAllLocalData();
-    });
+    deleteButton.addEventListener("click", () => actions.openSettingsDataConfirmation("delete"));
     deleteGroup.append(deleteButton);
     dataActions.append(exportButton);
     if (state.backupSharingSupported) dataActions.append(shareButton);
@@ -197,5 +292,7 @@ export const renderSettingsView = (state, actions) => {
     dataCard.append(dataActions);
     layout.append(appearanceCard, dataCard);
     root.append(layout);
+    const confirmationModal = renderDataConfirmationModal(state, actions);
+    if (confirmationModal) root.append(confirmationModal);
     return root;
 };

@@ -8,12 +8,12 @@ import { compilePracticePrompt } from "./prompts/compiler.js";
 import { extractJsonObject } from "./schema/repair.js";
 import { validatePracticeSession } from "./schema/validators.js";
 import { setHashForRoute } from "./router.js";
-import { buildExportPayload, combineBackupPayloads, createExportPayload, downloadExport, importPayload, parseImportText, previewBackupCombination } from "./storage/exportimport.js";
+import { buildExportPayload, combineBackupPayloads, createExportPayload, downloadExport, getExportFileName, importPayload, parseImportText, previewBackupCombination } from "./storage/exportimport.js";
 import { clearAllData, getAllData, initializeStorage, saveAttempt, saveSession, updateAttempt, updateSession } from "./storage/db.js";
 import { saveSettings as persistSettings } from "./storage/settings.js";
 import { getBackupStatus, isBackupReminderDue, markBackupCompleted, scheduleBackupReminder } from "./storage/backup.js";
 import { checkPersistentStorage, requestPersistentStorage } from "./storage/persistence.js";
-import { canShareBackup, shareBackup } from "./storage/share.js";
+import { canShareBackup, getShareableBackupDetails, shareBackup } from "./storage/share.js";
 import { computeMetrics, normalizeDashboardFilters } from "./analytics/metrics.js";
 import { buildRecommendation } from "./analytics/recommendations.js";
 import { getSelectionHighlightRanges, toggleHighlightRange } from "./components/highlights.js";
@@ -149,6 +149,7 @@ export const createActions = ({ render, applyTheme }) => {
 
     const navigate = (route) => {
         if (route !== "dashboard") { state.dashboard.aiAnalysisOpen = false; state.dashboard.backupReminderOpen = false; }
+        if (route !== "settings") state.settingsDataConfirmation = null;
         state.route = route;
         if (route === "dashboard") maybeOpenDashboardBackupReminder();
         setHashForRoute(route);
@@ -736,8 +737,8 @@ export const createActions = ({ render, applyTheme }) => {
         render();
     };
 
-    const exportData = async () => {
-        const payload = await buildExportPayload();
+    const exportData = async (preparedPayload = null) => {
+        const payload = preparedPayload ?? await buildExportPayload();
         downloadExport(payload);
         await markBackupCompleted(payload, state.settings.backupReminderCompletedTiming);
         await refreshAnalytics();
@@ -745,8 +746,8 @@ export const createActions = ({ render, applyTheme }) => {
         showToast("Exported OpenMCAT data.", "success");
     };
 
-    const shareDataBackup = (options = {}) => {
-        const payload = createExportPayload({
+    const shareDataBackup = (options = {}, preparedPayload = null) => {
+        const payload = preparedPayload ?? createExportPayload({
             settings: state.settings,
             sessions: state.analytics?.sessions ?? [],
             attempts: state.analytics?.attempts ?? []
@@ -768,6 +769,135 @@ export const createActions = ({ render, applyTheme }) => {
         });
     };
 
+    const formatInspectionDate = (value) => {
+        if (!value) return "Not recorded";
+        return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+    };
+
+    const formatInspectionSize = (bytes) => {
+        const value = Number(bytes);
+        if (!Number.isFinite(value) || value < 0) return "Unknown";
+        if (value < 1024) return `${value} ${value === 1 ? "byte" : "bytes"}`;
+        if (value < 1024 * 1024) return `${cb.numb.roundTo(value / 1024, 0.1)} KB`;
+        return `${cb.numb.roundTo((value / 1024) / 1024, 0.01)} MB`;
+    };
+
+    const currentDataInspection = () => {
+        const sessions = state.analytics?.sessions ?? [];
+        const attempts = state.analytics?.attempts ?? [];
+        return { sessions, attempts };
+    };
+
+    const dataCounts = (label, sessions, attempts, change = false) => ({ label, sessions, attempts, change });
+
+    const openSettingsDataConfirmation = (action) => {
+        const current = currentDataInspection();
+        if (action !== "backup" && action !== "share" && action !== "delete") return;
+        const payload = action === "delete" ? null : createExportPayload({
+            settings: state.settings,
+            sessions: current.sessions,
+            attempts: current.attempts
+        });
+        const descriptions = {
+            backup: "Save a backup of the current OpenMCAT data on this device. The current OpenMCAT data will not be changed.",
+            share: "Send a backup of the current OpenMCAT data to the destination that you select. The current OpenMCAT data will not be changed.",
+            delete: "Delete all of the current OpenMCAT data on this web browser. The current OpenMCAT data will only be able to be restored if you have previously saved a backup of it."
+        };
+        const backupStatus = action === "delete" ? null : state.analytics?.backupStatus;
+        const contentSize = payload ? new Blob([JSON.stringify(payload, null, 2)]).size : 0;
+        const shareDetails = action === "share" ? getShareableBackupDetails(payload) : null;
+        const previousSessions = backupStatus?.completedSessionCount;
+        const previousAttempts = backupStatus?.completedAttemptCount;
+        const hasPreviousCounts = Number.isFinite(previousSessions) && Number.isFinite(previousAttempts);
+        state.settingsDataConfirmation = {
+            action,
+            description: descriptions[action],
+            metadata: action === "delete" ? [] : [
+                { label: action === "share" ? "Shared backup name" : "New backup name", value: shareDetails?.fileName ?? getExportFileName(payload) },
+                { label: action === "share" ? "Shared backup size" : "New backup size", value: formatInspectionSize(shareDetails?.fileSize ?? contentSize) },
+                { label: action === "share" ? "Shared backup date" : "New backup date", value: formatInspectionDate(payload.exportedAt) }
+            ],
+            stats: action === "delete" ? [
+                dataCounts("Current data", current.sessions.length, current.attempts.length),
+                dataCounts("Difference", -current.sessions.length, -current.attempts.length, true)
+            ] : [
+                dataCounts(action === "share" ? "Shared backup data" : "New backup data", current.sessions.length, current.attempts.length),
+                !hasPreviousCounts ? { label: "Previous backup data", empty: "None" } : dataCounts("Previous backup data", previousSessions, previousAttempts),
+                dataCounts("Difference", current.sessions.length - (hasPreviousCounts ? previousSessions : 0), current.attempts.length - (hasPreviousCounts ? previousAttempts : 0), true)
+            ],
+            payload
+        };
+        render();
+    };
+
+    const prepareDataRestore = (source) => {
+        const payload = parseImportText(source.text, source.name || "Backup");
+        const current = currentDataInspection();
+        state.settingsDataConfirmation = {
+            action: "restore",
+            description: payload.settings && typeof payload.settings === "object"
+                ? "Restore the current OpenMCAT data with the selected backup data. The current OpenMCAT data will be replaced. The current settings will be merged with the backup settings."
+                : "Restore the current OpenMCAT data with the selected backup data. The current OpenMCAT data will be replaced.",
+            metadata: [
+                { label: "Selected backup name", value: source.name || "Backup" },
+                { label: "Selected backup size", value: formatInspectionSize(source.size) },
+                { label: "Selected backup date", value: formatInspectionDate(payload.exportedAt) }
+            ],
+            stats: [
+                dataCounts("Current data", current.sessions.length, current.attempts.length),
+                dataCounts("Selected backup data", payload.sessions.length, payload.attempts.length),
+                dataCounts("Difference", payload.sessions.length - current.sessions.length, payload.attempts.length - current.attempts.length, true)
+            ],
+            source: { ...source, payload }
+        };
+        render();
+    };
+
+    const parseBackupSources = (sources) => sources.map((source, index) => ({
+        name: source.name || `Backup ${index + 1}`,
+        payload: parseImportText(source.text, source.name || `Backup ${index + 1}`)
+    }));
+
+    const prepareDataMerge = async (sources) => {
+        const backups = parseBackupSources(sources);
+        const preview = await previewBackupCombination(backups);
+        const current = currentDataInspection();
+        state.settingsDataConfirmation = {
+            action: "merge",
+            description: "Merge the current OpenMCAT data with up to several selected backups data. The current OpenMCAT data will not be replaced.",
+            metadata: [
+                { label: "Selected backups names", value: sources.map((source) => source.name).join(", ") },
+                { label: "Selected backups size", value: formatInspectionSize(sources.reduce((total, source) => total + Number(source.size || 0), 0)) },
+                { label: "Selected backups dates", value: backups.map((backup) => `${formatInspectionDate(backup.payload.exportedAt)}`).join("; ") }
+            ],
+            stats: [
+                dataCounts("Current data", current.sessions.length, current.attempts.length),
+                dataCounts("Selected backups data", preview.selectedSessions, preview.selectedAttempts),
+                dataCounts("Difference", preview.addedSessions, preview.addedAttempts, true)
+            ],
+            sources
+        };
+        render();
+    };
+
+    const closeSettingsDataConfirmation = () => {
+        state.settingsDataConfirmation = null;
+        render();
+    };
+
+    const confirmSettingsDataAction = () => {
+        const confirmation = state.settingsDataConfirmation;
+        if (!confirmation) return null;
+        state.settingsDataConfirmation = null;
+        render();
+        if (confirmation.action === "backup") return exportData(confirmation.payload);
+        if (confirmation.action === "share") return shareDataBackup({}, confirmation.payload);
+        if (confirmation.action === "restore") return confirm("Restore this OpenMCAT data backup? It will replace the current OpenMCAT data in this browser.") ? importDataFromText(confirmation.source.text) : null;
+        if (confirmation.action === "merge") return combineDataFromTexts(confirmation.sources);
+        if (confirmation.action === "delete") return confirm("Are you sure you want to delete all of the current OpenMCAT data? It will be lost forever! (A long time!)") ? deleteAllLocalData() : null;
+        return null;
+    };
+
     const importDataFromText = async (text) => {
         const parsed = parseImportText(text);
         await importPayload(parsed);
@@ -777,23 +907,20 @@ export const createActions = ({ render, applyTheme }) => {
     };
 
     const combineDataFromTexts = async (sources) => {
-        const backups = sources.map((source, index) => ({
-            name: source.name || `Backup ${index + 1}`,
-            payload: parseImportText(source.text, source.name || `Backup ${index + 1}`)
-        }));
+        const backups = parseBackupSources(sources);
         const preview = await previewBackupCombination(backups);
         const newRecords = preview.addedSessions + preview.addedAttempts;
         const duplicateRecords = preview.duplicateSessions + preview.duplicateAttempts;
-        if (!newRecords) { const message = duplicateRecords ? `No new data found. ${duplicateRecords} duplicate ${duplicateRecords === 1 ? "record was" : "records were"} skipped.` : "No data was found in the selected backups."; showToast(message); return null; }
         const confirmationLines = [
             `Combine ${preview.backupCount} OpenMCAT ${preview.backupCount === 1 ? "backup" : "backups"}?`,
             "",
             `${preview.addedSessions} new ${preview.addedSessions === 1 ? "session" : "sessions"} and ${preview.addedAttempts} new ${preview.addedAttempts === 1 ? "attempt" : "attempts"} will be added.`,
         ];
         if (duplicateRecords) confirmationLines.push(`${duplicateRecords} duplicate ${duplicateRecords === 1 ? "record" : "records"} will be skipped.`);
-        confirmationLines.push("", "Data and settings already in this browser will not be replaced.");
+        confirmationLines.push("", "The current OpenMCAT data will not be replaced.");
         const confirmed = confirm(confirmationLines.join("\n"));
         if (!confirmed) return null;
+        if (!newRecords) { const message = duplicateRecords ? `No new data found. ${duplicateRecords} duplicate ${duplicateRecords === 1 ? "record was" : "records were"} skipped.` : "No data was found in the selected backups."; showToast(message); return null; }
         const result = await combineBackupPayloads(backups);
         await refreshAnalytics();
         render();
@@ -812,7 +939,7 @@ export const createActions = ({ render, applyTheme }) => {
         state.questionBank.error = null;
         await refreshAnalytics();
         render();
-        showToast("All local study data deleted.");
+        showToast("All current data deleted.");
     };
 
     const applyDashboardDrill = (config = {}) => {
@@ -892,6 +1019,11 @@ export const createActions = ({ render, applyTheme }) => {
         toggleMistakeTypeForQuestion,
         exportData,
         shareDataBackup,
+        openSettingsDataConfirmation,
+        prepareDataRestore,
+        prepareDataMerge,
+        closeSettingsDataConfirmation,
+        confirmSettingsDataAction,
         importDataFromText,
         combineDataFromTexts,
         deleteAllLocalData,

@@ -41,13 +41,17 @@ export const buildExportPayload = async () => {
     return createExportPayload({ settings, ...data });
 };
 
+export const getExportFileName = (payload) => {
+    const exportedAt = typeof payload?.exportedAt === "string" && Number.isFinite(Date.parse(payload.exportedAt)) ? payload.exportedAt : new Date().toISOString();
+    return `openmcat-export-${exportedAt.slice(0, 10)}.json`;
+};
+
 export const downloadExport = (payload) => {
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
-    const stamp = new Date().toISOString().slice(0, 10);
     anchor.href = url;
-    anchor.download = `openmcat-export-${stamp}.json`;
+    anchor.download = getExportFileName(payload);
     document.body.append(anchor);
     anchor.click();
     anchor.remove();
@@ -116,6 +120,8 @@ export const previewBackupCombination = async (backups) => {
         backupCount: prepared.backupCount,
         sourceSessions: prepared.sourceSessions,
         sourceAttempts: prepared.sourceAttempts,
+        selectedSessions: prepared.data.sessions.length,
+        selectedAttempts: prepared.data.attempts.length,
         addedSessions,
         addedAttempts,
         duplicateSessions: prepared.sourceSessions - addedSessions,
