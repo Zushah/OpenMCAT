@@ -1,3 +1,5 @@
+import { getExportFileName } from "./exportimport.js";
+
 const getShareNavigator = () => {
     if (typeof navigator === "undefined" || typeof navigator.share !== "function" || typeof navigator.canShare !== "function") return null;
     if (typeof File !== "function") return null;
@@ -6,10 +8,9 @@ const getShareNavigator = () => {
 
 const createBackupFiles = (payload, now = new Date()) => {
     const content = JSON.stringify(payload, null, 2);
-    const stamp = now.toISOString().slice(0, 10);
     return [
-        new File([content], `openmcat-export-${stamp}.json`, { type: "application/json" }),
-        new File([content], `openmcat-export-${stamp}.txt`, { type: "text/plain" })
+        new File([content], getExportFileName(payload, "json", now), { type: "application/json" }),
+        new File([content], getExportFileName(payload, "txt", now), { type: "text/plain" })
     ];
 };
 
@@ -24,15 +25,10 @@ const selectShareableFile = (shareNavigator, payload, now) => {
     return null;
 };
 
-const getBackupDate = (payload, fallback = new Date()) => {
-    if (typeof payload?.exportedAt === "string" && Number.isFinite(Date.parse(payload.exportedAt))) return new Date(payload.exportedAt);
-    return fallback;
-};
-
 export const getShareableBackupDetails = (payload) => {
     const shareNavigator = getShareNavigator();
     if (!shareNavigator) return null;
-    const file = selectShareableFile(shareNavigator, payload, getBackupDate(payload));
+    const file = selectShareableFile(shareNavigator, payload, new Date());
     return file ? { fileName: file.name, fileSize: file.size } : null;
 };
 
@@ -46,7 +42,7 @@ export const canShareBackup = () => {
 export const shareBackup = (payload, now = new Date()) => {
     const shareNavigator = getShareNavigator();
     if (!shareNavigator) return Promise.resolve({ outcome: "unsupported" });
-    const file = selectShareableFile(shareNavigator, payload, getBackupDate(payload, now));
+    const file = selectShareableFile(shareNavigator, payload, now);
     if (!file) return Promise.resolve({ outcome: "unsupported" });
     let shareResult;
     try {

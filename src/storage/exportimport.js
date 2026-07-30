@@ -41,9 +41,13 @@ export const buildExportPayload = async () => {
     return createExportPayload({ settings, ...data });
 };
 
-export const getExportFileName = (payload) => {
-    const exportedAt = typeof payload?.exportedAt === "string" && Number.isFinite(Date.parse(payload.exportedAt)) ? payload.exportedAt : new Date().toISOString();
-    return `openmcat-export-${exportedAt.slice(0, 10)}.json`;
+export const getExportFileName = (payload, extension = "json", now = new Date()) => {
+    const payloadDate = typeof payload?.exportedAt === "string" ? new Date(payload.exportedAt) : null;
+    const exportedAt = Number.isFinite(payloadDate?.getTime()) ? payloadDate : Number.isFinite(now?.getTime()) ? now : new Date();
+    const pad = (value) => String(value).padStart(2, "0");
+    const date = `${String(exportedAt.getFullYear()).padStart(4, "0")}-${pad(exportedAt.getMonth() + 1)}-${pad(exportedAt.getDate())}`;
+    const time = `${pad(exportedAt.getHours())}-${pad(exportedAt.getMinutes())}-${pad(exportedAt.getSeconds())}`;
+    return `openmcat-data_${date}_${time}.${extension === "txt" ? "txt" : "json"}`;
 };
 
 export const downloadExport = (payload) => {
