@@ -7,6 +7,15 @@ const cache = new Map();
 const validSkillIds = SCIENCE_SKILLS.map((skill) => skill.id);
 const topicsById = Object.fromEntries(TOPICS.map((topic) => [topic.id, topic]));
 
+const getVersionedBankUrl = (catalog) => {
+    if (!catalog.version) throw new Error(`${catalog.title} is missing a cache version.`);
+    const url = new URL(catalog.url);
+    url.searchParams.set("bankVersion", catalog.version);
+    return url.href;
+};
+
+const getBankCacheKey = (catalog) => `${catalog.id}:${catalog.version}:${catalog.url}`;
+
 const safeDateMs = (value) => {
     const ms = new Date(value ?? "").getTime();
     return Number.isFinite(ms) ? ms : 0;
@@ -78,12 +87,13 @@ const validateQuestionBank = (candidate, catalog) => {
     };
 };
 
-const fetchBankJson = async (catalog) => {
-    if (cache.has(catalog.id)) return structuredClone(cache.get(catalog.id));
-    const response = await fetch(catalog.url, { cache: "no-cache" });
+const fetchBankJson = async (catalog, { forceReload = false } = {}) => {
+    const cacheKey = getBankCacheKey(catalog);
+    if (!forceReload && cache.has(cacheKey)) return structuredClone(cache.get(cacheKey));
+    const response = await fetch(getVersionedBankUrl(catalog), { cache: forceReload ? "reload" : "force-cache" });
     if (!response.ok) throw new Error(`Could not load ${catalog.title} (${response.status}).`);
     const parsed = await response.json();
-    cache.set(catalog.id, parsed);
+    cache.set(cacheKey, parsed);
     return structuredClone(parsed);
 };
 
@@ -113,10 +123,10 @@ export const getQuestionBankProgress = ({ bank, catalog, attempts = [] }) => {
     };
 };
 
-export const loadQuestionBank = async (sectionId, attempts = []) => {
+export const loadQuestionBank = async (sectionId, attempts = [], options = {}) => {
     const catalog = getQuestionBankCatalogEntry(sectionId);
     if (!catalog) throw new Error("Unknown question bank section.");
-    const rawBank = await fetchBankJson(catalog);
+    const rawBank = await fetchBankJson(catalog, options);
     const validation = validateQuestionBank(rawBank, catalog);
     const bank = validation.normalized;
     const progress = bank ? getQuestionBankProgress({ bank, catalog, attempts }) : null;
@@ -142,8 +152,8 @@ export const loadQuestionBank = async (sectionId, attempts = []) => {
     };
 };
 
-export const loadQuestionBankOverviews = async (attempts = []) => {
-    const entries = await Promise.all(QUESTION_BANKS.map((catalog) => loadQuestionBank(catalog.sectionId, attempts).catch((error) => ({
+export const loadQuestionBankOverviews = async (attempts = [], options = {}) => {
+    const entries = await Promise.all(QUESTION_BANKS.map((catalog) => loadQuestionBank(catalog.sectionId, attempts, options).catch((error) => ({
         status: "error",
         catalog,
         bank: null,

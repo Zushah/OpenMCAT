@@ -138,11 +138,12 @@ export const createActions = ({ render, applyTheme }) => {
     };
 
     const refreshQuestionBank = async (options = {}) => {
-        if (options.clearCache) clearQuestionBankCache();
+        const forceReload = options.clearCache === true;
+        if (forceReload) clearQuestionBankCache();
         state.questionBank.loading = true;
         state.questionBank.error = null;
         render();
-        try { const data = await getAllData(); state.questionBank.entries = await loadQuestionBankOverviews(data.attempts); }
+        try { const data = await getAllData(); state.questionBank.entries = await loadQuestionBankOverviews(data.attempts, { forceReload }); }
         catch (error) { state.questionBank.error = error.message || "Could not load question bank."; }
         finally { state.questionBank.loading = false; render(); }
     };
