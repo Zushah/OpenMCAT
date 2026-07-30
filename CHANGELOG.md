@@ -3,7 +3,8 @@
 All committed changes to the [`Zushah/OpenMCAT`](https://www.github.com/Zushah/OpenMCAT) code repository are recorded here.
 
 ## 29. [`v1.7.1`](https://www.github.com/Zushah/OpenMCAT/commits/main/?since=2026-07-30&until=2026-07-30) 2026-07-30
-- [`-------`](https://www.github.com/Zushah/OpenMCAT/commit/HEAD) Add changelog
+- [`5269fb2`](https://www.github.com/Zushah/OpenMCAT/commit/5269fb2) Add changelog
+- [`-------`](https://www.github.com/Zushah/OpenMCAT/commit/HEAD) Add version
 
 ## 28. [`v1.7.0`](https://www.github.com/Zushah/OpenMCAT/commits/main/?since=2026-07-29&until=2026-07-29) 2026-07-29
 - [`6812510`](https://www.github.com/Zushah/OpenMCAT/commit/6812510) Change data backups filename format
