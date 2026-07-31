@@ -63,7 +63,7 @@ const makeSectionSelect = (config, actions) => {
     return wrap;
 };
 
-const makeChipSelector = ({ title, subtitle, selectedIds, options, onToggle }) => {
+const makeChipSelector = ({ title, subtitle, selectedIds, options, onToggle, uniform = false }) => {
     const wrap = document.createElement("fieldset");
     wrap.className = "field";
     const legend = document.createElement("legend");
@@ -73,6 +73,7 @@ const makeChipSelector = ({ title, subtitle, selectedIds, options, onToggle }) =
     help.textContent = subtitle;
     const list = document.createElement("div");
     list.className = "chip-list";
+    if (uniform) list.classList.add("chip-list-uniform");
     options.forEach((option) => {
         const button = document.createElement("button");
         button.type = "button";
@@ -300,6 +301,7 @@ export const renderGeneratorView = (state, actions) => {
         subtitle: "Select one or more skills for this session.",
         selectedIds: state.currentConfig.skillIds,
         options: sectionSkills,
+        uniform: true,
         onToggle: (skillId) => actions.toggleMultiValue("skillIds", skillId)
     }));
     leftColumn.append(makeSegmentControl({

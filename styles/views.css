@@ -83,13 +83,15 @@
     z-index: 51;
     display: grid;
     place-items: center;
-    padding: 1rem;
+    padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right)) max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
     background: var(--overlay-background);
 }
 
 .generation-pipeline-panel {
-    width: min(760px, 96vw);
+    width: min(760px, 100%);
+    max-width: 100%;
     max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - max(0.75rem, env(safe-area-inset-top)) - max(0.75rem, env(safe-area-inset-bottom)));
     overflow-y: auto;
     background: var(--popup-panel-background);
     backdrop-filter: blur(22px) saturate(128%);
@@ -103,6 +105,8 @@
     justify-content: center;
     gap: 0.75rem;
     margin-bottom: 0.5rem;
+    min-height: 40px;
+    padding-inline: 48px;
 }
 
 .generation-pipeline-top h2 {
@@ -118,6 +122,9 @@
     height: 40px;
     border-radius: 12px;
     padding: 0;
+    width: 40px;
+    max-width: 40px;
+    flex: 0 0 40px;
 }
 
 .generation-pipeline-instructions {
@@ -129,15 +136,17 @@
 
 .generation-pipeline-shortcuts {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.65rem;
-    width: min(360px, 100%);
+    grid-template-columns: repeat(3, auto);
+    justify-content: center;
+    gap: 0.5rem;
+    width: fit-content;
+    max-width: 100%;
     margin: 0.7rem auto 0.8rem;
 }
 
 .generation-pipeline-shortcut {
     min-width: 0;
-    padding: 4px 1px;
+    padding: 5px 8px;
     white-space: nowrap;
     font-size: 0.8rem;
     font-weight: 300;
@@ -441,8 +450,10 @@
 
 .practice-panel {
     max-height: min(760px, calc(100vh - 2rem));
+    max-height: min(760px, calc(100dvh - max(0.75rem, env(safe-area-inset-top)) - max(0.75rem, env(safe-area-inset-bottom))));
     overflow: hidden;
     display: grid;
+    grid-template-rows: repeat(4, max-content) minmax(0, 1fr);
     gap: var(--space-md);
 }
 
@@ -492,6 +503,9 @@
     gap: 0.65rem;
     max-height: min(430px, 48vh);
     overflow-y: auto;
+    min-height: 0;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     padding-right: 0.2rem;
     scrollbar-width: thin;
     scrollbar-color: color-mix(in srgb, var(--accent), transparent 45%) color-mix(in srgb, var(--surface-tint), transparent 94%);
@@ -1039,6 +1053,24 @@
     overflow: auto;
 }
 
+.chart-data-table table {
+    width: max-content;
+    min-width: 100%;
+    table-layout: auto;
+}
+
+.chart-data-table th, .chart-data-table td {
+    min-width: 6.75rem;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
+}
+
+.chart-data-table th:first-child, .chart-data-table td:first-child {
+    min-width: 10rem;
+}
+
 .dashboard-summary-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -1314,6 +1346,19 @@
 .mistake-breakdown-table th:nth-child(2), .mistake-breakdown-table td:nth-child(2) {
     width: 13%;
     text-align: center;
+}
+
+.mistake-breakdown-table td:nth-child(2) {
+    white-space: nowrap;
+}
+
+.mistake-breakdown-table th:nth-child(2) {
+    white-space: normal;
+    line-height: 1.25;
+}
+
+.mistake-breakdown-count-header span {
+    display: block;
     white-space: nowrap;
 }
 
@@ -1485,10 +1530,17 @@
 
 .model-usage-data-details {
     margin-top: 0;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.model-usage-data-details .chart-data-table {
+    width: 100%;
+    max-width: 100%;
 }
 
 .heatmap-table {
-    min-width: 680px;
+    min-width: 1100px;
     table-layout: fixed;
 }
 
@@ -1500,6 +1552,10 @@
     text-align: center;
     vertical-align: bottom;
     white-space: normal;
+}
+
+.heatmap-table .heatmap-skill-header, .heatmap-table .heatmap-skill-header span {
+    text-align: center;
 }
 
 .heatmap-table td {
@@ -1533,7 +1589,7 @@
 }
 
 .recent-misses-wrap {
-    overflow-x: hidden;
+    overflow-x: auto;
 }
 
 .recent-misses-table {
@@ -1550,6 +1606,10 @@
 
 .weak-pairs-table, .recent-misses-table, .recent-sessions-table {
     table-layout: fixed;
+}
+
+.weak-pairs-table {
+    min-width: 980px;
 }
 
 .weak-pairs-table th, .weak-pairs-table td, .recent-misses-table th, .recent-misses-table td, .recent-sessions-table th, .recent-sessions-table td {
@@ -1622,12 +1682,22 @@
 }
 
 .recent-misses-wrap, .recent-sessions-wrap {
-    overflow-x: visible;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
 }
 
 .recent-misses-table, .recent-sessions-table {
     width: 100%;
     table-layout: fixed;
+}
+
+.recent-misses-table {
+    min-width: 900px;
+}
+
+.recent-sessions-table {
+    min-width: 760px;
 }
 
 .recent-misses-table th, .recent-misses-table td, .recent-sessions-table th, .recent-sessions-table td {

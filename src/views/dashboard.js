@@ -9,6 +9,9 @@ const cb = Chalkboard;
 const DEFAULT_PAGE_SIZE = 10;
 const COMPACT_PAGE_SIZE = 5;
 const MODEL_USAGE_LEGEND_PAGE_SIZE = 5;
+const PHONE_VIEWPORT_QUERY = "(max-width: 640px)";
+
+const isPhoneViewport = () => typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia(PHONE_VIEWPORT_QUERY).matches;
 
 const safeNumber = (value, fallback = 0) => { const number = Number(value); return Number.isFinite(number) ? number : fallback; };
 
@@ -391,7 +394,7 @@ const renderAiAnalysisModal = (state, actions) => {
     const controls = createElement("div", "generation-pipeline-row analytics-prompt-row");
     const copyButton = document.createElement("button");
     copyButton.type = "button";
-    copyButton.className = "btn btn-secondary";
+    copyButton.className = "btn btn-primary";
     copyButton.textContent = "Copy prompt";
     copyButton.addEventListener("click", async () => {
         copyButton.disabled = true;
@@ -805,7 +808,7 @@ const renderModelUsageChart = (metrics, actions, pages) => {
 const renderTopicWeaknessChart = (metrics, actions, pages) => {
     const theme = getChartTheme();
     const allRows = metrics.weakness.weakestTopics;
-    const pageInfo = getPaginatedRows(allRows, pages, "topicWeakness", COMPACT_PAGE_SIZE);
+    const pageInfo = getPaginatedRows(allRows, pages, "topicWeakness", isPhoneViewport() ? 3 : COMPACT_PAGE_SIZE);
     const rows = pageInfo.rows;
     const pagination = createPaginationControls({ key: "topicWeakness", pageInfo, actions });
     return renderChartPanel({
@@ -831,15 +834,19 @@ const renderTopicWeaknessChart = (metrics, actions, pages) => {
     });
 };
 
-const renderSkillPerformanceChart = (metrics) => {
+const renderSkillPerformanceChart = (metrics, actions, pages) => {
     const theme = getChartTheme();
-    const rows = makeCompleteRows(getSkillChartCategories(metrics), metrics.rows.bySkill, makeEmptySkillRow).sort((a, b) => (skillOrder[a.id] ?? 99) - (skillOrder[b.id] ?? 99));
+    const allRows = makeCompleteRows(getSkillChartCategories(metrics), metrics.rows.bySkill, makeEmptySkillRow).sort((a, b) => (skillOrder[a.id] ?? 99) - (skillOrder[b.id] ?? 99));
+    const pageInfo = isPhoneViewport() ? getPaginatedRows(allRows, pages, "skillPerformance", 2) : null;
+    const rows = pageInfo?.rows ?? allRows;
+    const pagination = createPaginationControls({ key: "skillPerformance", pageInfo, actions });
     return renderChartPanel({
         title: "Skill performance",
         subtitle: "Compare raw accuracy with the mastery estimate for each reasoning skill.",
         canvasLabel: "Skill performance bar chart",
         tableColumns: ["Skill", "Attempts", "Accuracy", "Mastery"],
         tableRows: rows.map((row) => [rowNameFromId("skill", row.id), attemptCount(row.attempts), accuracyLabel(row), masteryLabel(row)]),
+        headerAction: pagination,
         config: {
             type: "bar",
             data: {
@@ -1098,7 +1105,7 @@ const renderChartGrid = (metrics, actions, pages) => {
         renderTrendChart(metrics),
         renderSectionMasteryChart(metrics),
         renderTopicWeaknessChart(metrics, actions, pages),
-        renderSkillPerformanceChart(metrics),
+        renderSkillPerformanceChart(metrics, actions, pages),
         renderConfidenceChart(metrics),
         renderTimingChart(metrics),
         renderMistakeTypeChart(metrics),
@@ -1354,7 +1361,13 @@ const renderMistakeBreakdownTable = ({ rows, type, metrics, actions }) => {
     table.className = "mistake-breakdown-table";
     const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
-    [type === "topic" ? "Topic" : "Skill", "Tagged / missed", "Dominant mistake", "Top mistake mix", "Action"].forEach((label) => appendText(headerRow, "th", "", label));
+    [type === "topic" ? "Topic" : "Skill", "Tagged / missed", "Dominant mistake", "Top mistake mix", "Action"].forEach((label, index) => {
+        if (index !== 1) { appendText(headerRow, "th", "", label); return; }
+        const countHeader = createElement("th", "mistake-breakdown-count-header");
+        appendText(countHeader, "span", "", "Tagged /");
+        appendText(countHeader, "span", "", "Missed");
+        headerRow.append(countHeader);
+    });
     thead.append(headerRow);
     table.append(thead);
     const tbody = document.createElement("tbody");

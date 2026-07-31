@@ -17,6 +17,7 @@ const mainElement = document.getElementById("main-content");
 
 const THEME_OPTIONS = new Set(["system", "dark", "light"]);
 const systemThemeQuery = window.matchMedia("(prefers-color-scheme: light)");
+const dashboardPhoneQuery = window.matchMedia("(max-width: 640px)");
 
 const normalizeTheme = (theme) => THEME_OPTIONS.has(theme) ? theme : "system";
 
@@ -154,6 +155,9 @@ setupKeyboardShortcuts();
 const handleSystemThemeChange = () => { if (state.settings.theme !== "system") return; applyTheme(state.settings.theme); render(); };
 if (typeof systemThemeQuery.addEventListener === "function") systemThemeQuery.addEventListener("change", handleSystemThemeChange);
 else systemThemeQuery.addListener(handleSystemThemeChange);
+const handleDashboardPhoneBreakpointChange = () => { if (state.route === "dashboard") render(); };
+if (typeof dashboardPhoneQuery.addEventListener === "function") dashboardPhoneQuery.addEventListener("change", handleDashboardPhoneBreakpointChange);
+else dashboardPhoneQuery.addListener(handleDashboardPhoneBreakpointChange);
 actions.initApp();
 
 setInterval(() => {

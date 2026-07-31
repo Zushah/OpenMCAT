@@ -17,6 +17,13 @@ test("the generated-session workflow reaches review, analytics, and a data backu
     }
 
     await page.goto("/#/generate");
+    const desktopViewport = page.viewportSize();
+    await page.setViewportSize({ width: 360, height: 640 });
+    const skillButtons = page.getByRole("group", { name: "Skills" }).getByRole("button");
+    const skillBoxes = await skillButtons.evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().toJSON()));
+    expect(skillBoxes).toHaveLength(4);
+    expect(Math.max(...skillBoxes.map((box) => box.width)) - Math.min(...skillBoxes.map((box) => box.width))).toBeLessThan(1);
+    await page.setViewportSize(desktopViewport);
     await page.getByRole("button", { name: "Generate practice session" }).click();
 
     const pipeline = page.getByRole("dialog", { name: "Generation pipeline" });
@@ -43,11 +50,19 @@ test("the generated-session workflow reaches review, analytics, and a data backu
     const instructionsBox = await pipeline.getByText("Copy prompt → Paste into an AI chat → Copy its output → Paste here:").boundingBox();
     expect(headingBox.y).toBeLessThan(shortcutsBox.y);
     expect(shortcutsBox.y).toBeLessThan(instructionsBox.y);
-    const desktopViewport = page.viewportSize();
     await page.setViewportSize({ width: 360, height: 800 });
+    const pipelineBox = await pipeline.boundingBox();
+    const closeBox = await pipeline.getByRole("button", { name: "Close generation pipeline" }).boundingBox();
+    const mobileHeadingBox = await pipeline.getByRole("heading", { name: "Generation pipeline" }).boundingBox();
+    expect(Math.abs(pipelineBox.x - (360 - pipelineBox.x - pipelineBox.width))).toBeLessThan(1);
+    expect(closeBox.width).toBeCloseTo(40, 0);
+    expect(closeBox.height).toBeCloseTo(40, 0);
+    expect(closeBox.x).toBeGreaterThanOrEqual(mobileHeadingBox.x + mobileHeadingBox.width);
     const mobileShortcutBoxes = await Promise.all(expectedShortcuts.map(([name]) => shortcuts.getByRole("link", { name }).boundingBox()));
     expect(Math.max(...mobileShortcutBoxes.map((box) => box.y)) - Math.min(...mobileShortcutBoxes.map((box) => box.y))).toBeLessThan(1);
     expect(await shortcuts.getByRole("link").evaluateAll((links) => links.every((link) => link.scrollWidth <= link.clientWidth))).toBe(true);
+    const copyPromptBox = await pipeline.getByRole("button", { name: "Copy prompt" }).boundingBox();
+    expect(mobileShortcutBoxes.every((box) => box.width < copyPromptBox.width)).toBe(true);
     await page.setViewportSize(desktopViewport);
     await pipeline.getByRole("button", { name: "Copy prompt" }).click();
     await expect(pipeline.getByRole("button", { name: "Copied" })).toBeVisible();
@@ -80,11 +95,27 @@ test("the generated-session workflow reaches review, analytics, and a data backu
     expect(repairPrompt).toContain("one single-line JSON object");
     expect(repairPrompt.length).toBeLessThan(600);
 
-    await pipeline.getByPlaceholder("Paste output").fill(JSON.stringify(SAMPLE_SESSION));
+    const responsiveSession = structuredClone(SAMPLE_SESSION);
+    responsiveSession.session.topicIds.push("bb_metabolism_principles");
+    responsiveSession.questions[3].testedTopicIds.push("bb_metabolism_principles");
+    await pipeline.getByPlaceholder("Paste output").fill(JSON.stringify(responsiveSession));
     await pipeline.getByRole("button", { name: "Start session" }).click();
 
     await expect(page).toHaveURL(/#\/session$/);
     await expect(page.getByRole("heading", { level: 2, name: SAMPLE_SESSION.session.title })).toBeVisible();
+
+    await page.setViewportSize({ width: 360, height: 640 });
+    await page.getByRole("button", { name: "Navigation", exact: true }).click();
+    const navigationPanel = page.getByRole("dialog", { name: "Navigation" });
+    const navigationBox = await navigationPanel.boundingBox();
+    expect(navigationBox.x).toBeGreaterThanOrEqual(0);
+    expect(navigationBox.y).toBeGreaterThanOrEqual(0);
+    expect(navigationBox.x + navigationBox.width).toBeLessThanOrEqual(360);
+    expect(navigationBox.y + navigationBox.height).toBeLessThanOrEqual(640);
+    const lastNavigationItem = navigationPanel.getByRole("button", { name: /Question 5/ });
+    await lastNavigationItem.scrollIntoViewIfNeeded();
+    await expect(lastNavigationItem).toBeInViewport();
+    await navigationPanel.getByRole("button", { name: "Close navigation" }).click();
 
     for (let index = 0; index < SAMPLE_SESSION.questions.length; index += 1) {
         const question = SAMPLE_SESSION.questions[index];
@@ -100,7 +131,14 @@ test("the generated-session workflow reaches review, analytics, and a data backu
     await expect(finalReview).toBeVisible();
     const submittedStat = finalReview.locator(".practice-panel-stat").filter({ hasText: "Submitted" });
     await expect(submittedStat.locator("strong")).toHaveText("5");
-    await finalReview.getByRole("button", { name: "End session" }).click();
+    const lastReviewItem = finalReview.getByRole("button", { name: /Question 5/ });
+    await lastReviewItem.scrollIntoViewIfNeeded();
+    await expect(lastReviewItem).toBeInViewport();
+    const continuePractice = finalReview.getByRole("button", { name: "Continue practice" });
+    const endSession = finalReview.getByRole("button", { name: "End session" });
+    await expect(continuePractice).toBeInViewport();
+    await expect(endSession).toBeInViewport();
+    await endSession.click();
 
     await expect(page).toHaveURL(/#\/review$/);
     await expect(page.getByRole("heading", { level: 2, name: "Session review" })).toBeVisible();
@@ -113,9 +151,85 @@ test("the generated-session workflow reaches review, analytics, and a data backu
     await expect(page.locator(".stat-card").filter({ hasText: "Questions answered" })).toContainText("5");
     await expect(page.locator(".stat-card").filter({ hasText: "Overall accuracy" })).toContainText("100%");
 
+    const summaryCards = page.locator(".dashboard-summary-grid .stat-card");
+    await expect(summaryCards).toHaveCount(12);
+    const phoneSummaryBoxes = await summaryCards.evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().toJSON()));
+    expect(new Set(phoneSummaryBoxes.map((box) => Math.round(box.x))).size).toBe(2);
+    expect(Math.max(...phoneSummaryBoxes.map((box) => box.width)) - Math.min(...phoneSummaryBoxes.map((box) => box.width))).toBeLessThan(1);
+    expect(Math.max(...phoneSummaryBoxes.map((box) => box.height)) - Math.min(...phoneSummaryBoxes.map((box) => box.height))).toBeLessThan(1);
+
+    const filterFields = page.locator(".dashboard-filter-field");
+    await expect(filterFields).toHaveCount(5);
+    const phoneFilterBoxes = await filterFields.evaluateAll((fields) => fields.map((field) => field.getBoundingClientRect().toJSON()));
+    expect(new Set(phoneFilterBoxes.map((box) => Math.round(box.x))).size).toBe(2);
+    expect(Math.max(...phoneFilterBoxes.map((box) => box.width)) - Math.min(...phoneFilterBoxes.map((box) => box.width))).toBeLessThan(1);
+    expect(await page.locator(".dashboard-filters").evaluate((panel) => panel.scrollWidth <= panel.clientWidth)).toBe(true);
+
+    const topicWeaknessCard = page.locator(".chart-card").filter({ has: page.getByRole("heading", { name: "Topic weakness priority" }) });
+    await expect(topicWeaknessCard.locator(".dashboard-page-range")).toHaveText("1-3 of 4");
+    await expect(topicWeaknessCard.locator("tbody tr")).toHaveCount(3);
+    const skillPerformanceCard = page.locator(".chart-card").filter({ has: page.getByRole("heading", { name: "Skill performance" }) });
+    await expect(skillPerformanceCard.locator(".dashboard-page-range")).toHaveText("1-2 of 4");
+    await expect(skillPerformanceCard.locator("tbody tr")).toHaveCount(2);
+
+    const chartDataDetails = page.locator(".chart-data-details");
+    for (let index = 0; index < await chartDataDetails.count(); index += 1) {
+        const details = chartDataDetails.nth(index);
+        await details.locator("summary").click();
+        const tableWrap = details.locator(".chart-data-table");
+        await expect(tableWrap).toBeVisible();
+        expect(await tableWrap.evaluate((element) => getComputedStyle(element).overflowX)).toMatch(/auto|scroll/);
+        expect(await tableWrap.locator("th, td").evaluateAll((cells) => cells.every((cell) => getComputedStyle(cell).whiteSpace === "nowrap"))).toBe(true);
+    }
+
+    const weakPairsWrap = page.locator(".weak-pairs-table").locator("..");
+    await expect(weakPairsWrap).toBeVisible();
+    expect(await weakPairsWrap.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+    expect(await weakPairsWrap.evaluate((element) => getComputedStyle(element).overflowX)).toMatch(/auto|scroll/);
+
+    const heatmapHeaders = page.locator(".heatmap-skill-header");
+    expect(await heatmapHeaders.count()).toBeGreaterThan(0);
+    expect(await heatmapHeaders.evaluateAll((headers) => headers.every((header) => {
+        const headerBox = header.getBoundingClientRect();
+        const lines = Array.from(header.querySelectorAll("span"));
+        return lines.length === 2 && lines.every((line) => {
+            const lineBox = line.getBoundingClientRect();
+            return lineBox.left >= headerBox.left && lineBox.right <= headerBox.right;
+        });
+    }))).toBe(true);
+    expect(await heatmapHeaders.evaluateAll((headers) => headers.every((header) => getComputedStyle(header).textAlign === "center"))).toBe(true);
+
+    await page.setViewportSize({ width: 800, height: 900 });
+    await expect(skillPerformanceCard.locator(".dashboard-card-pagination")).toHaveCount(0);
+    await expect(skillPerformanceCard.locator("tbody tr")).toHaveCount(4);
+    const tabletSummaryBoxes = await summaryCards.evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().toJSON()));
+    expect(new Set(tabletSummaryBoxes.map((box) => Math.round(box.x))).size).toBe(3);
+    const tabletFilterBoxes = await filterFields.evaluateAll((fields) => fields.map((field) => field.getBoundingClientRect().toJSON()));
+    expect(new Set(tabletFilterBoxes.map((box) => Math.round(box.x))).size).toBe(3);
+    expect(await page.locator(".dashboard-filters").evaluate((panel) => panel.scrollWidth <= panel.clientWidth)).toBe(true);
+    await page.setViewportSize({ width: 1200, height: 900 });
+    const desktopSummaryBoxes = await summaryCards.evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().toJSON()));
+    expect(new Set(desktopSummaryBoxes.map((box) => Math.round(box.x))).size).toBe(4);
+    await expect(topicWeaknessCard.locator(".dashboard-card-pagination")).toHaveCount(0);
+    await expect(topicWeaknessCard.locator("tbody tr")).toHaveCount(4);
+    await page.setViewportSize({ width: 360, height: 640 });
+    await expect(skillPerformanceCard.locator(".dashboard-page-range")).toHaveText("1-2 of 4");
+
+    const modelUsageDetails = page.locator(".model-usage-data-details");
+    await modelUsageDetails.locator("summary").click();
+    const modelTableWrap = modelUsageDetails.locator(".chart-data-table");
+    await expect(modelTableWrap).toBeVisible();
+    expect(await modelTableWrap.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+
     await page.getByRole("button", { name: "Evaluate dashboard stats with AI" }).click();
     const analyticsPipeline = page.getByRole("dialog", { name: "Evaluate with AI" });
     await expect(analyticsPipeline).toBeVisible();
+    const analyticsPipelineBox = await analyticsPipeline.boundingBox();
+    const analyticsCloseBox = await analyticsPipeline.getByRole("button", { name: "Close" }).boundingBox();
+    const analyticsHeadingBox = await analyticsPipeline.getByRole("heading", { name: "Evaluate with AI" }).boundingBox();
+    expect(Math.abs(analyticsPipelineBox.x - (360 - analyticsPipelineBox.x - analyticsPipelineBox.width))).toBeLessThan(1);
+    expect(analyticsCloseBox.width).toBeCloseTo(40, 0);
+    expect(analyticsCloseBox.x).toBeGreaterThanOrEqual(analyticsHeadingBox.x + analyticsHeadingBox.width);
     await analyticsPipeline.getByRole("button", { name: "Copy prompt" }).click();
     await expect(analyticsPipeline.getByRole("button", { name: "Copied" })).toBeVisible();
     expect(await page.evaluate(() => navigator.clipboard.readText())).toContain("OpenMCAT analytics");
@@ -125,6 +239,13 @@ test("the generated-session workflow reaches review, analytics, and a data backu
     await page.getByRole("button", { name: "Backup data" }).click();
     const backupDialog = page.getByRole("dialog", { name: "Backup data" });
     await expect(backupDialog).toBeVisible();
+    const backupDialogBox = await backupDialog.boundingBox();
+    expect(backupDialogBox.y + backupDialogBox.height).toBeLessThanOrEqual(640);
+    const metadataBoxes = await backupDialog.locator(".settings-data-confirmation-metadata > div").evaluateAll((items) => items.map((item) => item.getBoundingClientRect().toJSON()));
+    expect(metadataBoxes.length).toBeGreaterThan(1);
+    expect(Math.max(...metadataBoxes.map((box) => box.y)) - Math.min(...metadataBoxes.map((box) => box.y))).toBeLessThan(1);
+    const confirmationActionBoxes = await Promise.all(["Confirm", "Deny"].map((name) => backupDialog.getByRole("button", { name, exact: true }).boundingBox()));
+    expect(Math.abs(confirmationActionBoxes[0].y - confirmationActionBoxes[1].y)).toBeLessThan(1);
     const downloadPromise = page.waitForEvent("download");
     await backupDialog.getByRole("button", { name: "Confirm", exact: true }).click();
     const download = await downloadPromise;
