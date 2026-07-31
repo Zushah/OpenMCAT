@@ -1,5 +1,5 @@
 import { DEFAULT_DASHBOARD_PAGES, DEFAULT_QUESTION_BANK_COUNTS, state, patchGeneration, resetGenerationState } from "./app.js";
-import { DEFAULT_CONFIG, QUESTION_COUNT_LIMITS } from "./data/defaults.js";
+import { DEFAULT_CONFIG } from "./data/defaults.js";
 import { QUESTION_BANK_PROVIDER_ID } from "./data/bank/catalog.js";
 import { buildQuestionBankSession, clearQuestionBankCache, loadQuestionBankOverviews } from "./data/bank/loader.js";
 import { SCIENCE_SKILLS, SECTIONS, TOPICS, getSkillsForSection, getTopicsBySection } from "./data/taxonomy.js";
@@ -11,6 +11,7 @@ import { validatePracticeSession } from "./schema/validators.js";
 import { setHashForRoute } from "./router.js";
 import { buildExportPayload, combineBackupPayloads, createExportPayload, downloadExport, getExportFileName, importPayload, parseImportText, previewBackupCombination } from "./storage/exportimport.js";
 import { clearAllData, getAllData, initializeStorage, saveAttempt, saveSession, updateAttempt, updateSession } from "./storage/db.js";
+import { normalizeGeneratorConfig, saveGeneratorOptions } from "./storage/generator.js";
 import { saveSettings as persistSettings } from "./storage/settings.js";
 import { getBackupStatus, isBackupReminderDue, markBackupCompleted, scheduleBackupReminder } from "./storage/backup.js";
 import { checkPersistentStorage, requestPersistentStorage } from "./storage/persistence.js";
@@ -35,24 +36,6 @@ const isQuestionBankSession = (activeSession) => activeSession?.providerMeta?.so
 const hasReachedSessionReviewPoint = (activeSession) => { const questionCount = activeSession?.generatedSession?.questions?.length ?? 0; return activeSession?.hasReachedFinalQuestion === true || (questionCount > 0 && activeSession.currentQuestionIndex >= questionCount - 1); };
 
 const markFinalQuestionReached = (activeSession, questionIndex = activeSession?.currentQuestionIndex ?? 0) => { const questionCount = activeSession?.generatedSession?.questions?.length ?? 0; if (questionCount > 0 && questionIndex >= questionCount - 1) activeSession.hasReachedFinalQuestion = true; return hasReachedSessionReviewPoint(activeSession); };
-
-const normalizeConfig = (config) => {
-    const source = { ...structuredClone(DEFAULT_CONFIG), ...(config ?? {}) };
-    const normalized = structuredClone(DEFAULT_CONFIG);
-    normalized.questionCount = clamp(Number(source.questionCount) || DEFAULT_CONFIG.questionCount, QUESTION_COUNT_LIMITS.min, QUESTION_COUNT_LIMITS.max);
-    normalized.timingMode = source.timingMode === "timed" ? "timed" : "untimed";
-    normalized.secondsPerQuestion = normalized.timingMode === "timed" ? clamp(Number(source.secondsPerQuestion) || 95, 30, 240) : null;
-    normalized.reviewMode = source.reviewMode === "later" ? "later" : "immediate";
-    normalized.difficulty = ["easy", "medium", "hard"].includes(source.difficulty) ? source.difficulty : DEFAULT_CONFIG.difficulty;
-    normalized.questionFormat = ["discrete", "passage", "mixed"].includes(source.questionFormat) ? source.questionFormat : DEFAULT_CONFIG.questionFormat;
-    normalized.sectionId = SECTIONS.some((section) => section.id === source.sectionId) ? source.sectionId : DEFAULT_CONFIG.sectionId;
-    const sectionTopics = getTopicsBySection(normalized.sectionId).map((topic) => topic.id);
-    normalized.topicIds = (source.topicIds ?? []).filter((topicId) => sectionTopics.includes(topicId));
-    const sectionSkills = getSkillsForSection(normalized.sectionId).map((skill) => skill.id);
-    normalized.skillIds = (source.skillIds ?? []).filter((skillId) => sectionSkills.includes(skillId));
-    if (normalized.skillIds.length === 0) normalized.skillIds = sectionSkills;
-    return normalized;
-};
 
 const getValidationContext = (config) => {
     const validTopicIds = TOPICS.filter((topic) => topic.sectionId === config.sectionId).map((topic) => topic.id);
@@ -106,6 +89,13 @@ const buildMaps = () => {
 };
 
 export const createActions = ({ render, applyTheme }) => {
+    const commitGeneratorConfig = (config, { replaceTopicHistory = false } = {}) => {
+        const stored = saveGeneratorOptions(config, replaceTopicHistory ? {} : state.generatorTopicIdsBySection);
+        state.currentConfig = stored.config;
+        state.generatorTopicIdsBySection = stored.topicIdsBySection;
+        return state.currentConfig;
+    };
+
     const refreshAnalytics = async () => {
         const data = await getAllData();
         state.dashboard.filters = normalizeDashboardFilters(state.dashboard.filters);
@@ -161,8 +151,7 @@ export const createActions = ({ render, applyTheme }) => {
     };
 
     const updateConfig = (patch) => {
-        const next = normalizeConfig({ ...state.currentConfig, ...patch });
-        state.currentConfig = next;
+        commitGeneratorConfig({ ...state.currentConfig, ...patch });
         render();
     };
 
@@ -233,16 +222,22 @@ export const createActions = ({ render, applyTheme }) => {
     };
 
     const applySection = (sectionId) => {
-        const next = normalizeConfig({
+        const topicIdsBySection = { ...state.generatorTopicIdsBySection, [state.currentConfig.sectionId]: state.currentConfig.topicIds.slice() };
+        state.generatorTopicIdsBySection = topicIdsBySection;
+        const hasRememberedTopics = Object.prototype.hasOwnProperty.call(topicIdsBySection, sectionId);
+        commitGeneratorConfig({
             ...state.currentConfig,
             sectionId,
-            topicIds: getDefaultTopicsForSection(sectionId).slice(0, 1),
-            skillIds: getDefaultSkillsForSection(sectionId).slice(0, 2),
-            questionFormat: "mixed",
-            secondsPerQuestion: 95
+            topicIds: hasRememberedTopics ? topicIdsBySection[sectionId] : getDefaultTopicsForSection(sectionId).slice(0, 1)
         });
-        state.currentConfig = next;
         render();
+    };
+
+    const restoreDefaultGeneratorOptions = () => {
+        commitGeneratorConfig(DEFAULT_CONFIG, { replaceTopicHistory: true });
+        resetGenerationState();
+        render();
+        showToast("Generator options restored to defaults.", "success");
     };
 
     const toggleMultiValue = (field, value) => {
@@ -367,7 +362,7 @@ export const createActions = ({ render, applyTheme }) => {
     };
 
     const validateAndStartSession = async (parsedSession, providerMeta = {}, options = {}) => {
-        const runtimeConfig = normalizeConfig(options.configOverride ?? state.currentConfig);
+        const runtimeConfig = normalizeGeneratorConfig(options.configOverride ?? state.currentConfig);
         patchGeneration({ status: "validating", error: null, repairPrompt: null, warnings: [] });
         render();
         const validation = validatePracticeSession(parsedSession, getValidationContext(runtimeConfig));
@@ -406,8 +401,7 @@ export const createActions = ({ render, applyTheme }) => {
     }
 
     const generateSession = async () => {
-        const config = normalizeConfig(state.currentConfig);
-        state.currentConfig = config;
+        const config = commitGeneratorConfig(state.currentConfig);
         patchGeneration({
             status: "compiling",
             error: null,
@@ -954,11 +948,7 @@ export const createActions = ({ render, applyTheme }) => {
 
     const applyDashboardDrill = (config = {}) => {
         if (!config || typeof config !== "object") { showToast("No drill configuration is available yet."); return; }
-        const next = normalizeConfig({
-            ...state.currentConfig,
-            ...config
-        });
-        state.currentConfig = next;
+        commitGeneratorConfig(config, { replaceTopicHistory: true });
         resetGenerationState();
         navigate("generator");
         showToast("Generator prefilled from dashboard analytics.", "success");
@@ -974,7 +964,7 @@ export const createActions = ({ render, applyTheme }) => {
         state.storageError = null;
         try {
             state.settings = persistSettings(state.settings);
-            state.currentConfig = normalizeConfig(state.currentConfig);
+            commitGeneratorConfig(state.currentConfig);
             applyTheme(state.settings.theme);
             await initializeStorage();
             await refreshAnalytics();
@@ -1001,6 +991,7 @@ export const createActions = ({ render, applyTheme }) => {
         navigate,
         updateConfig,
         applySection,
+        restoreDefaultGeneratorOptions,
         toggleMultiValue,
         updateQuestionBankCount,
         startQuestionBankSession,

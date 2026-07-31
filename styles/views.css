@@ -42,6 +42,23 @@
     min-width: 0;
 }
 
+.generator-options-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    margin-bottom: 0.75rem;
+}
+
+.generator-options-header h2 {
+    margin: 0;
+}
+
+.generator-options-restore {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
 .generator-session-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

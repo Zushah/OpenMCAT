@@ -3,7 +3,8 @@
 All committed changes to the [`Zushah/OpenMCAT`](https://github.com/Zushah/OpenMCAT) code repository are recorded here.
 
 ## 30. [`v1.7.2`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-07-31&until=2026-07-31) 2026-07-31
-- [`-------`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Fix visual bugs on smartphone screens
+- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Fix generator options not being remembered
+- [`cf8719e`](https://github.com/Zushah/OpenMCAT/commit/cf8719e) Fix visual bugs on smartphone screens
 - [`e37cf11`](https://github.com/Zushah/OpenMCAT/commit/e37cf11) Add repair prompts for invalid generated sessions
 - [`6722f39`](https://github.com/Zushah/OpenMCAT/commit/6722f39) Add tests for Firefox and WebKit
 

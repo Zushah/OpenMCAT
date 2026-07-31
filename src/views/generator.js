@@ -7,11 +7,18 @@ const AI_CHAT_SHORTCUTS = [
     { name: "DeepSeek", href: "https://chat.deepseek.com/", icon: "./assets/images/deepseek.svg" }
 ];
 
-const makeCardTitle = (text) => {
+const makeGeneratorHeader = (actions) => {
+    const header = document.createElement("div");
+    header.className = "generator-options-header";
     const title = document.createElement("h2");
-    title.textContent = text;
-    title.style.marginBottom = "0.75rem";
-    return title;
+    title.textContent = "Session generator";
+    const restore = document.createElement("button");
+    restore.type = "button";
+    restore.className = "btn btn-ghost generator-options-restore";
+    restore.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">sync</span> Restore default options';
+    restore.addEventListener("click", () => actions.restoreDefaultGeneratorOptions());
+    header.append(title, restore);
+    return header;
 };
 
 const makeHero = () => {
@@ -273,7 +280,7 @@ export const renderGeneratorView = (state, actions) => {
     layout.className = "generator-layout";
     const primary = document.createElement("section");
     primary.className = "card card-pad";
-    primary.append(makeCardTitle("Session generator"));
+    primary.append(makeGeneratorHeader(actions));
     const sectionTopics = getTopicsBySection(state.currentConfig.sectionId);
     const sectionSkills = getSkillsForSection(state.currentConfig.sectionId);
     primary.append(makeSectionSelect(state.currentConfig, actions));

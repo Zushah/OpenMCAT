@@ -98,6 +98,17 @@
         flex-basis: 14px;
     }
 
+    .generator-options-header h2 {
+        font-size: 1rem;
+    }
+
+    .generator-options-header .generator-options-restore {
+        width: auto;
+        gap: 0.25rem;
+        padding: 7px 5px;
+        font-size: 0.7rem;
+    }
+
     .chip-list-uniform {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));

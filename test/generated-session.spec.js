@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { SAMPLE_SESSION } from "../src/data/samples.js";
+import { GENERATOR_OPTIONS_KEY } from "../src/storage/generator.js";
 import { closeBackupReminderIfVisible, expect, test } from "./fixtures.js";
 
 test("the generated-session workflow reaches review, analytics, and a data backup", async ({ browserName, page }) => {
@@ -220,6 +221,29 @@ test("the generated-session workflow reaches review, analytics, and a data backu
     const modelTableWrap = modelUsageDetails.locator(".chart-data-table");
     await expect(modelTableWrap).toBeVisible();
     expect(await modelTableWrap.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+
+    await page.evaluate((key) => {
+        const stored = JSON.parse(localStorage.getItem(key));
+        stored.topicIdsBySection = {
+            bb: stored.config.sectionId === "bb" ? stored.config.topicIds : ["bb_amino_acids"],
+            cp: ["cp_force"],
+            ps: ["ps_vision"]
+        };
+        localStorage.setItem(key, JSON.stringify(stored));
+    }, GENERATOR_OPTIONS_KEY);
+    await page.locator(".dashboard-recommendation").getByRole("button", { name: "Load this drill" }).click();
+    await expect(page).toHaveURL(/#\/generate$/);
+    const recommendationOptions = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), GENERATOR_OPTIONS_KEY);
+    expect(Object.keys(recommendationOptions.topicIdsBySection)).toEqual([recommendationOptions.config.sectionId]);
+    await expect(page.getByLabel("Section")).toHaveValue(recommendationOptions.config.sectionId);
+    await expect(page.getByLabel("Question format")).toHaveValue(recommendationOptions.config.questionFormat);
+    await expect(page.getByLabel("Question count (1-59)")).toHaveValue(String(recommendationOptions.config.questionCount));
+    await page.reload();
+    await expect(page.getByLabel("Section")).toHaveValue(recommendationOptions.config.sectionId);
+    await expect(page.getByLabel("Question count (1-59)")).toHaveValue(String(recommendationOptions.config.questionCount));
+    await page.getByRole("link", { name: "Dashboard" }).click();
+    await closeBackupReminderIfVisible(page);
+    await expect(page).toHaveURL(/#\/dashboard$/);
 
     await page.getByRole("button", { name: "Evaluate dashboard stats with AI" }).click();
     const analyticsPipeline = page.getByRole("dialog", { name: "Evaluate with AI" });
