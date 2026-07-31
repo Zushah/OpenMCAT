@@ -2,8 +2,11 @@
 
 All committed changes to the [`Zushah/OpenMCAT`](https://github.com/Zushah/OpenMCAT) code repository are recorded here.
 
+## 30. [`v1.7.2`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-07-31&until=2026-07-31) 2026-07-31
+- [`-------`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Add tests for Firefox and WebKit
+
 ## 29. [`v1.7.1`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-07-30&until=2026-07-30) 2026-07-30
-- [`-------`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Add automated testing suite with Playwright
+- [`8066529`](https://github.com/Zushah/OpenMCAT/commit/8066529) Add automated testing suite with Playwright
 - [`46cf80f`](https://github.com/Zushah/OpenMCAT/commit/46cf80f) Optimize loading for Material Symbols
 - [`14e8f36`](https://github.com/Zushah/OpenMCAT/commit/14e8f36) Add caching for question banks
 - [`46ba6d9`](https://github.com/Zushah/OpenMCAT/commit/46ba6d9) Add version

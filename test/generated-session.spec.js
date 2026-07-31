@@ -2,7 +2,20 @@ import { readFile } from "node:fs/promises";
 import { SAMPLE_SESSION } from "../src/data/samples.js";
 import { closeBackupReminderIfVisible, expect, test } from "./fixtures.js";
 
-test("the generated-session workflow reaches review, analytics, and a data backup", async ({ page }) => {
+test("the generated-session workflow reaches review, analytics, and a data backup", async ({ browserName, page }) => {
+    if (browserName !== "chromium") {
+        await page.addInitScript(() => {
+            let clipboardText = "";
+            Object.defineProperty(navigator, "clipboard", {
+                configurable: true,
+                value: {
+                    readText: async () => clipboardText,
+                    writeText: async (text) => { clipboardText = String(text); }
+                }
+            });
+        });
+    }
+
     await page.goto("/#/generate");
     await page.getByRole("button", { name: "Generate practice session" }).click();
 

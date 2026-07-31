@@ -1,15 +1,43 @@
 {
-  "name": "openmcat",
-  "version": "1.7.1",
+  "name": "@zushah/openmcat",
+  "version": "1.7.2",
+  "author": "Zushah",
+  "license": "AGPL-3.0",
+  "description": "Free precise practice and actionable analytics for the MCAT powered by your AI chat.",
   "private": true,
   "type": "module",
   "scripts": {
     "start": "node test/server.js",
     "test": "playwright test",
+    "test:chromium": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:webkit": "playwright test --project=webkit",
     "test:headed": "playwright test --headed",
-    "test:ui": "playwright test --ui"
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Zushah/OpenMCAT.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Zushah/OpenMCAT/issues"
+  },
+  "homepage": "https://zushah.github.io/OpenMCAT",
+  "keywords": [
+    "ai",
+    "analytics",
+    "education",
+    "javascript",
+    "llm",
+    "mcat",
+    "practice-problems",
+    "premed",
+    "question-bank",
+    "study-tool",
+    "test-prep"
+  ]
 }
