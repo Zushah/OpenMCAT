@@ -1,6 +1,12 @@
 import { DIFFICULTIES, QUESTION_FORMATS, SECTIONS, getSkillsForSection, getTopicsBySection } from "../data/taxonomy.js";
 import { REVIEW_MODES, TIMING_MODES } from "../data/defaults.js";
 
+const AI_CHAT_SHORTCUTS = [
+    { name: "ChatGPT", href: "https://chatgpt.com/", icon: "./assets/images/chatgpt.svg" },
+    { name: "Claude", href: "https://claude.ai/new", icon: "./assets/images/claude.svg" },
+    { name: "DeepSeek", href: "https://chat.deepseek.com/", icon: "./assets/images/deepseek.svg" }
+];
+
 const makeCardTitle = (text) => {
     const title = document.createElement("h2");
     title.textContent = text;
@@ -172,9 +178,30 @@ const makeGenerationPipelineModal = (state, actions) => {
     close.addEventListener("click", () => actions.closeGenerationPipeline());
     top.append(heading, close);
     panel.append(top);
+    const shortcuts = document.createElement("nav");
+    shortcuts.className = "generation-pipeline-shortcuts";
+    shortcuts.setAttribute("aria-label", "Open an AI chat");
+    AI_CHAT_SHORTCUTS.forEach((shortcut) => {
+        const link = document.createElement("a");
+        link.className = "btn btn-secondary generation-pipeline-shortcut";
+        link.href = shortcut.href;
+        link.target = "_blank";
+        link.rel = "noopener";
+        link.setAttribute("aria-label", `Open ${shortcut.name} in a new tab`);
+        const icon = document.createElement("img");
+        icon.className = "generation-pipeline-shortcut-icon";
+        icon.src = shortcut.icon;
+        icon.alt = "";
+        icon.setAttribute("aria-hidden", "true");
+        const label = document.createElement("span");
+        label.textContent = shortcut.name;
+        link.append(icon, label);
+        shortcuts.append(link);
+    });
+    panel.append(shortcuts);
     const instructions = document.createElement("p");
     instructions.className = "generation-pipeline-instructions";
-    instructions.textContent = "Copy prompt → Paste into your AI's chat → Copy its output → Paste here:";
+    instructions.textContent = "Copy prompt → Paste into an AI chat → Copy its output → Paste here:";
     panel.append(instructions);
     const controls = document.createElement("div");
     controls.className = "generation-pipeline-row";
@@ -187,8 +214,10 @@ const makeGenerationPipelineModal = (state, actions) => {
         try {
             await navigator.clipboard.writeText(text);
             copyButton.textContent = "Copied";
-            setTimeout(() => { copyButton.textContent = "Copy prompt"; }, 1200);
-        } catch { };
+        } catch { 
+            copyButton.textContent = "Copy failed";
+        }
+        setTimeout(() => { copyButton.textContent = "Copy prompt"; }, 1200);
     });
     const outputInput = document.createElement("textarea");
     outputInput.className = "generation-pipeline-output";
@@ -201,7 +230,7 @@ const makeGenerationPipelineModal = (state, actions) => {
     startRow.className = "generation-pipeline-start-row";
     const start = document.createElement("button");
     start.type = "button";
-    start.className = "btn btn-primary";
+    start.className = `btn ${state.generation.repairPrompt ? "btn-secondary" : "btn-primary"}`;
     start.textContent = "Start session";
     start.disabled = state.generation.status === "validating";
     start.addEventListener("click", () => actions.submitManualJson(outputInput.value));
@@ -212,6 +241,25 @@ const makeGenerationPipelineModal = (state, actions) => {
         error.className = "danger-note generation-pipeline-error";
         error.textContent = state.generation.error;
         panel.append(error);
+    }
+    if (state.generation.repairPrompt) {
+        const repairRow = document.createElement("div");
+        repairRow.className = "generation-pipeline-repair-row";
+        const repairButton = document.createElement("button");
+        repairButton.type = "button";
+        repairButton.className = "btn btn-primary";
+        repairButton.textContent = "Copy repair prompt";
+        repairButton.addEventListener("click", async () => {
+            try {
+                await navigator.clipboard.writeText(state.generation.repairPrompt);
+                repairButton.textContent = "Copied";
+            } catch {
+                repairButton.textContent = "Copy failed";
+            }
+            setTimeout(() => { repairButton.textContent = "Copy repair prompt"; }, 1200);
+        });
+        repairRow.append(repairButton);
+        panel.append(repairRow);
     }
     overlay.append(panel);
     return overlay;

@@ -64,6 +64,22 @@
         justify-content: center;
     }
 
+    .generation-pipeline-shortcuts {
+        gap: 0.35rem;
+    }
+
+    .generation-pipeline-shortcut {
+        gap: 0.2rem;
+        padding: 8px 2px;
+        font-size: 0.6rem;
+    }
+
+    .generation-pipeline-shortcut-icon {
+        width: 10px;
+        height: 10px;
+        flex-basis: 10px;
+    }
+
     .generator-compact-row {
         grid-template-columns: 1fr;
     }

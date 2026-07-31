@@ -3,7 +3,8 @@
 All committed changes to the [`Zushah/OpenMCAT`](https://github.com/Zushah/OpenMCAT) code repository are recorded here.
 
 ## 30. [`v1.7.2`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-07-31&until=2026-07-31) 2026-07-31
-- [`-------`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Add tests for Firefox and WebKit
+- [`-------`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Add repair prompts for invalid generated sessions
+- [`6722f39`](https://github.com/Zushah/OpenMCAT/commit/6722f39) Add tests for Firefox and WebKit
 
 ## 29. [`v1.7.1`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-07-30&until=2026-07-30) 2026-07-30
 - [`8066529`](https://github.com/Zushah/OpenMCAT/commit/8066529) Add automated testing suite with Playwright

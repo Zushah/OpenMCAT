@@ -5,6 +5,7 @@ import { buildQuestionBankSession, clearQuestionBankCache, loadQuestionBankOverv
 import { SCIENCE_SKILLS, SECTIONS, TOPICS, getSkillsForSection, getTopicsBySection } from "./data/taxonomy.js";
 import { isValidMistakeTypeId, normalizeMistakeTypeIds } from "./data/mistakes.js";
 import { compilePracticePrompt } from "./prompts/compiler.js";
+import { buildRepairPrompt } from "./prompts/repair.js";
 import { extractJsonObject } from "./schema/repair.js";
 import { validatePracticeSession } from "./schema/validators.js";
 import { setHashForRoute } from "./router.js";
@@ -295,6 +296,7 @@ export const createActions = ({ render, applyTheme }) => {
         patchGeneration({
             pipelineOpen: false,
             error: null,
+            repairPrompt: null,
             manualInput: ""
         });
         render();
@@ -366,13 +368,14 @@ export const createActions = ({ render, applyTheme }) => {
 
     const validateAndStartSession = async (parsedSession, providerMeta = {}, options = {}) => {
         const runtimeConfig = normalizeConfig(options.configOverride ?? state.currentConfig);
-        patchGeneration({ status: "validating", error: null, warnings: [] });
+        patchGeneration({ status: "validating", error: null, repairPrompt: null, warnings: [] });
         render();
         const validation = validatePracticeSession(parsedSession, getValidationContext(runtimeConfig));
         if (!validation.valid) {
             patchGeneration({
                 status: options.manualMode ? "manual" : "error",
                 error: validation.errors.join(" "),
+                repairPrompt: options.manualMode ? buildRepairPrompt(validation.errors) : null,
                 warnings: validation.warnings,
                 parsedSession: null,
                 pipelineOpen: options.manualMode ? true : state.generation.pipelineOpen,
@@ -386,6 +389,7 @@ export const createActions = ({ render, applyTheme }) => {
             status: "ready",
             parsedSession: prepared,
             error: null,
+            repairPrompt: null,
             warnings: validation.warnings,
             configSnapshot: structuredClone(runtimeConfig),
             providerMeta: structuredClone(providerMeta),
@@ -407,6 +411,7 @@ export const createActions = ({ render, applyTheme }) => {
         patchGeneration({
             status: "compiling",
             error: null,
+            repairPrompt: null,
             warnings: [],
             rawText: "",
             parsedSession: null,
@@ -428,6 +433,7 @@ export const createActions = ({ render, applyTheme }) => {
             status: "manual",
             compiledPrompt: fullPrompt,
             error: null,
+            repairPrompt: null,
             warnings: [],
             configSnapshot: structuredClone(effectiveConfig),
             providerMeta: null,
@@ -442,6 +448,7 @@ export const createActions = ({ render, applyTheme }) => {
             patchGeneration({
                 status: "manual",
                 error: "Invalid output. Paste a valid JSON session object.",
+                repairPrompt: null,
                 manualInput: "",
                 pipelineOpen: true
             });
@@ -454,6 +461,7 @@ export const createActions = ({ render, applyTheme }) => {
                 status: "manual",
                 rawText: extraction.cleaned || rawText,
                 error: extraction.error || "Invalid output. Paste a valid JSON session object.",
+                repairPrompt: buildRepairPrompt([extraction.error || "Invalid output. Paste a valid JSON session object."]),
                 manualInput: "",
                 pipelineOpen: true,
                 showRawResponse: false
@@ -464,6 +472,7 @@ export const createActions = ({ render, applyTheme }) => {
         patchGeneration({
             rawText: extraction.cleaned || rawText,
             error: null,
+            repairPrompt: null,
             status: "validating",
             showRawResponse: false
         });
