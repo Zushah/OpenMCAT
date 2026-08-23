@@ -1516,7 +1516,7 @@
 
 .model-usage-legend-item {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 0.55rem;
     align-items: start;
     padding: 0.68rem 0.75rem;
@@ -1543,6 +1543,133 @@
     color: var(--text-primary);
     font-size: 0.92rem;
     overflow-wrap: anywhere;
+}
+
+.model-usage-correct {
+    align-self: center;
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 11px;
+}
+
+.model-usage-correct .material-symbols-outlined {
+    font-size: 19px;
+}
+
+.model-correction-panel {
+    width: min(600px, 96vw);
+}
+
+.model-correction-description {
+    max-width: 54ch;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.model-correction-form {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.model-correction-model-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.model-correction-field {
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.model-correction-field input[readonly] {
+    color: var(--text-secondary);
+    cursor: default;
+}
+
+.model-correction-custom-field[hidden] {
+    display: none;
+}
+
+.model-correction-sessions {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.model-correction-sessions legend {
+    width: 100%;
+    margin-bottom: 0.35rem;
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+.model-correction-select-all, .model-correction-session {
+    cursor: pointer;
+}
+
+.model-correction-select-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.45rem;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 650;
+}
+
+.model-correction-session-list {
+    display: grid;
+    gap: 0.4rem;
+    max-height: 230px;
+    overflow-y: auto;
+    padding-right: 0.2rem;
+}
+
+.model-correction-session {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    gap: 0.55rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--surface-tint), transparent 96%);
+}
+
+.model-correction-session input, .model-correction-select-all input {
+    margin-top: 0.16rem;
+    accent-color: var(--accent);
+}
+
+.model-correction-session-copy {
+    display: grid;
+    gap: 0.05rem;
+    min-width: 0;
+}
+
+.model-correction-session-copy strong, .model-correction-session-copy span {
+    overflow-wrap: anywhere;
+}
+
+.model-correction-session-copy strong {
+    color: var(--text-primary);
+    font-size: 0.84rem;
+}
+
+.model-correction-recorded {
+    color: var(--warning);
+}
+
+.model-correction-actions {
+    justify-content: center;
+    margin-top: 0.1rem;
 }
 
 .model-usage-data-details {

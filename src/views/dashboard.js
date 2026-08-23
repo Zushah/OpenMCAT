@@ -3,7 +3,9 @@ import { createAccessibleDataTable, createChartShell, destroyDashboardCharts, ge
 import { createStatCard } from "../components/stats.js";
 import { formatDurationMs } from "../components/timer.js";
 import { applyMistakeTypeToDrillConfig } from "../analytics/recommendations.js";
+import { getEffectiveSessionAiModel, getRecordedSessionAiModel } from "../analytics/metrics.js";
 import { compileAnalyticsPrompt } from "../prompts/analytics.js";
+import { AI_MODEL_CATALOG, AI_MODEL_CATALOG_VALUES, CUSTOM_AI_MODEL_VALUE, MAX_AI_MODEL_NAME_LENGTH } from "../data/models.js";
 
 const cb = Chalkboard;
 const DEFAULT_PAGE_SIZE = 10;
@@ -408,6 +410,158 @@ const renderAiAnalysisModal = (state, actions) => {
     return overlay;
 };
 
+const renderModelCorrectionModal = (state, actions) => {
+    const activeModel = state.dashboard?.modelCorrection?.model;
+    if (!activeModel) return null;
+    const sessions = (state.analytics?.sessions ?? []).filter((session) => getEffectiveSessionAiModel(session) === activeModel).sort((a, b) => new Date(b.completedAt ?? b.createdAt ?? 0) - new Date(a.completedAt ?? a.createdAt ?? 0));
+    if (!sessions.length) return null;
+    const overlay = createElement("section", "generation-pipeline-overlay model-correction-overlay");
+    overlay.setAttribute("role", "presentation");
+    overlay.addEventListener("click", (event) => { if (event.target === overlay) actions.closeDashboardModelCorrection(); });
+    const panel = createElement("section", "card card-pad generation-pipeline-panel model-correction-panel");
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-labelledby", "model-correction-heading");
+    panel.addEventListener("click", (event) => event.stopPropagation());
+    const top = createElement("div", "generation-pipeline-top");
+    const heading = createElement("h2", "", "Edit AI model name");
+    heading.id = "model-correction-heading";
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "btn btn-ghost generation-pipeline-close";
+    close.setAttribute("aria-label", "Close AI model correction");
+    close.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">close</span>';
+    close.addEventListener("click", () => actions.closeDashboardModelCorrection());
+    top.append(heading, close);
+    const description = createElement("p", "generation-pipeline-instructions model-correction-description", "Choose the correct model and the sessions it applies to. Original model names stay in your data.");
+    const form = createElement("form", "model-correction-form");
+    const modelGrid = createElement("div", "model-correction-model-grid");
+    const currentField = createElement("div", "field model-correction-field");
+    const currentLabel = document.createElement("label");
+    currentLabel.htmlFor = "model-correction-current";
+    currentLabel.textContent = "Current model";
+    const currentInput = document.createElement("input");
+    currentInput.id = "model-correction-current";
+    currentInput.type = "text";
+    currentInput.value = activeModel;
+    currentInput.readOnly = true;
+    currentField.append(currentLabel, currentInput);
+    const modelField = createElement("div", "field model-correction-field");
+    const modelLabel = document.createElement("label");
+    modelLabel.htmlFor = "model-correction-select";
+    modelLabel.textContent = "Correct model";
+    const select = document.createElement("select");
+    select.id = "model-correction-select";
+    select.setAttribute("aria-label", "Correct model");
+    const unknown = document.createElement("option");
+    unknown.value = "unknown";
+    unknown.textContent = "Unknown";
+    select.append(unknown);
+    AI_MODEL_CATALOG.forEach((group) => {
+        group.models.forEach((model) => {
+            const option = document.createElement("option");
+            option.value = model;
+            option.textContent = model;
+            select.append(option);
+        });
+    });
+    const customOption = document.createElement("option");
+    customOption.value = CUSTOM_AI_MODEL_VALUE;
+    customOption.textContent = "Enter another model...";
+    select.append(customOption);
+    const currentIsCatalogued = AI_MODEL_CATALOG_VALUES.has(activeModel);
+    select.value = currentIsCatalogued ? activeModel : CUSTOM_AI_MODEL_VALUE;
+    modelField.append(modelLabel, select);
+    modelGrid.append(currentField, modelField);
+    const customField = createElement("div", "field model-correction-field model-correction-custom-field");
+    const customInput = document.createElement("input");
+    customInput.id = "model-correction-custom";
+    customInput.type = "text";
+    customInput.setAttribute("aria-label", "Custom model name");
+    customInput.maxLength = MAX_AI_MODEL_NAME_LENGTH;
+    customInput.autocomplete = "off";
+    customInput.placeholder = "provider/model";
+    customInput.value = currentIsCatalogued ? "" : activeModel;
+    customField.append(customInput);
+    const syncCustomField = () => {
+        const custom = select.value === CUSTOM_AI_MODEL_VALUE;
+        customField.hidden = !custom;
+        customInput.required = custom;
+        if (custom) customInput.focus();
+    };
+    select.addEventListener("change", syncCustomField);
+    customField.hidden = currentIsCatalogued;
+    customInput.required = !currentIsCatalogued;
+    const sessionSection = createElement("fieldset", "model-correction-sessions");
+    const legend = createElement("legend", "", "Sessions generated by model");
+    const selectAllLabel = createElement("label", "model-correction-select-all");
+    const selectAll = document.createElement("input");
+    selectAll.type = "checkbox";
+    selectAll.checked = true;
+    selectAllLabel.append(selectAll, document.createTextNode("Select all"));
+    const list = createElement("div", "model-correction-session-list");
+    sessions.forEach((session) => {
+        const label = createElement("label", "model-correction-session");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.name = "model-correction-session";
+        checkbox.value = session.id;
+        checkbox.checked = true;
+        const copy = createElement("span", "model-correction-session-copy");
+        const title = session.generatedSession?.session?.title ?? "Practice session";
+        const sectionId = session.generatedSession?.session?.sectionId ?? session.config?.sectionId ?? "unknown";
+        const when = session.completedAt ?? session.createdAt;
+        appendText(copy, "strong", "", title);
+        appendText(copy, "span", "tiny", `${when ? new Date(when).toLocaleDateString() : "Unknown date"} · ${rowNameFromId("section", sectionId)}`);
+        const recordedModel = getRecordedSessionAiModel(session);
+        if (recordedModel !== activeModel) appendText(copy, "span", "tiny model-correction-recorded", `Recorded as ${recordedModel}`);
+        label.append(checkbox, copy);
+        list.append(label);
+    });
+    const sessionCheckboxes = () => Array.from(list.querySelectorAll('input[name="model-correction-session"]'));
+    selectAll.addEventListener("change", () => sessionCheckboxes().forEach((checkbox) => { checkbox.checked = selectAll.checked; }));
+    list.addEventListener("change", () => {
+        const checkboxes = sessionCheckboxes();
+        selectAll.checked = checkboxes.every((checkbox) => checkbox.checked);
+        selectAll.indeterminate = !selectAll.checked && checkboxes.some((checkbox) => checkbox.checked);
+    });
+    sessionSection.append(legend, selectAllLabel, list);
+    const controls = createElement("div", "button-row model-correction-actions");
+    const apply = document.createElement("button");
+    apply.type = "submit";
+    apply.className = "btn btn-primary";
+    apply.textContent = "Apply";
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = "btn btn-secondary";
+    cancel.textContent = "Cancel";
+    cancel.addEventListener("click", () => actions.closeDashboardModelCorrection());
+    const restore = document.createElement("button");
+    restore.type = "button";
+    restore.className = "btn btn-secondary";
+    restore.textContent = "Restore";
+    restore.disabled = !sessions.some((session) => Boolean(session.aiModelOverride));
+    const selectedIds = () => sessionCheckboxes().filter((checkbox) => checkbox.checked).map((checkbox) => checkbox.value);
+    const setBusy = (busy) => { apply.disabled = busy; cancel.disabled = busy; restore.disabled = busy || !sessions.some((session) => Boolean(session.aiModelOverride)); select.disabled = busy; customInput.disabled = busy; };
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const modelName = select.value === CUSTOM_AI_MODEL_VALUE ? customInput.value : select.value;
+        setBusy(true);
+        try { await actions.correctDashboardAiModel(selectedIds(), modelName); }
+        finally { if (document.body.contains(panel)) setBusy(false); }
+    });
+    restore.addEventListener("click", async () => {
+        setBusy(true);
+        try { await actions.restoreDashboardAiModel(selectedIds()); }
+        finally { if (document.body.contains(panel)) setBusy(false); }
+    });
+    controls.append(apply, cancel, restore);
+    form.append(modelGrid, customField, sessionSection, controls);
+    panel.append(top, description, form);
+    overlay.append(panel);
+    return overlay;
+};
+
 const renderBackupReminderModal = (state, actions) => {
     if (!state.dashboard?.backupReminderOpen) return null;
     if (!state.analytics?.sessions?.length && !state.analytics?.attempts?.length) return null;
@@ -460,8 +614,10 @@ const renderBackupReminderModal = (state, actions) => {
 const appendDashboardModals = (root, state, actions) => {
     const aiModal = renderAiAnalysisModal(state, actions);
     const backupModal = renderBackupReminderModal(state, actions);
+    const modelCorrectionModal = renderModelCorrectionModal(state, actions);
     if (aiModal) root.append(aiModal);
     if (backupModal) root.append(backupModal);
+    if (modelCorrectionModal) root.append(modelCorrectionModal);
 };
 
 const renderEmptyState = (actions, filtersActive) => {
@@ -713,7 +869,7 @@ const renderSectionMasteryChart = (metrics) => {
     });
 };
 
-const renderModelUsageLegend = (pageInfo, colors) => {
+const renderModelUsageLegend = (pageInfo, colors, actions) => {
     const legend = createElement("div", "model-usage-legend");
     if (!pageInfo?.totalItems) {
         appendText(legend, "p", "tiny", "No AI model metadata is available for the current dashboard slice yet.");
@@ -727,7 +883,14 @@ const renderModelUsageLegend = (pageInfo, colors) => {
         const body = createElement("div", "model-usage-legend-body");
         appendText(body, "strong", "", row.model);
         appendText(body, "span", "tiny", `${row.generatedQuestionCount} generated questions · ${row.sessionCount} sessions`);
-        item.append(swatch, body);
+        const correct = document.createElement("button");
+        correct.type = "button";
+        correct.className = "btn btn-ghost model-usage-correct";
+        correct.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">edit</span>';
+        correct.setAttribute("aria-label", `Edit ${row.model} model name`);
+        correct.title = "Edit model name";
+        correct.addEventListener("click", () => actions.openDashboardModelCorrection(row.model));
+        item.append(swatch, body, correct);
         legend.append(item);
     });
     return legend;
@@ -747,7 +910,7 @@ const renderModelUsageChart = (metrics, actions, pages) => {
     const header = createElement("div", "chart-card-header");
     const titleWrap = createElement("div", "chart-card-title");
     appendText(titleWrap, "h2", "", "AI model mix");
-    appendText(titleWrap, "p", "tiny", "Generated questions by recorded AI model metadata for sessions in the active dashboard slice.");
+    appendText(titleWrap, "p", "tiny", "Generated questions by recorded or corrected AI model metadata for sessions in the active dashboard slice.");
     header.append(titleWrap);
     const body = createElement("div", "dashboard-model-card-body");
     const canvasWrap = createElement("div", "chart-canvas-wrap dashboard-model-canvas-wrap");
@@ -760,7 +923,7 @@ const renderModelUsageChart = (metrics, actions, pages) => {
     const legendHeader = createElement("div", "model-usage-legend-header");
     appendText(legendHeader, "span", "tiny", "Legend");
     if (pagination) legendHeader.append(pagination);
-    legendWrap.append(legendHeader, renderModelUsageLegend(pageInfo, colors));
+    legendWrap.append(legendHeader, renderModelUsageLegend(pageInfo, colors, actions));
     side.append(legendWrap);
     const details = document.createElement("details");
     details.className = "chart-data-details model-usage-data-details";

@@ -44,13 +44,15 @@ const getDateKey = (ms) => { if (!Number.isFinite(ms) || ms <= 0) return "unknow
 
 const uniqueValues = (values) => Array.from(new Set((values ?? []).filter(Boolean)));
 
-const normalizeModelName = (value) => {
+export const normalizeAiModelName = (value) => {
     if (typeof value !== "string") return null;
     const normalized = value.trim().replace(/\s*\/\s*/g, "/").toLowerCase();
     return normalized.length ? normalized : null;
 };
 
-const getSessionAiModel = (session) => normalizeModelName(session?.generatedSession?.session?.aiModel) ?? normalizeModelName(session?.providerMeta?.model) ?? "unknown";
+export const getRecordedSessionAiModel = (session) => normalizeAiModelName(session?.generatedSession?.session?.aiModel) ?? normalizeAiModelName(session?.providerMeta?.model) ?? "unknown";
+
+export const getEffectiveSessionAiModel = (session) => normalizeAiModelName(session?.aiModelOverride) ?? getRecordedSessionAiModel(session);
 
 const getSessionSectionId = (session) => session?.config?.sectionId ?? session?.generatedSession?.session?.sectionId ?? "unknown";
 
@@ -727,7 +729,9 @@ const buildSessionSummaries = (attempts, sessions, filters) => {
             createdAtMs,
             completedAtMs,
             config: session.config ? structuredClone(session.config) : null,
-            aiModel: getSessionAiModel(session),
+            aiModel: getEffectiveSessionAiModel(session),
+            recordedAiModel: getRecordedSessionAiModel(session),
+            hasAiModelOverride: Boolean(normalizeAiModelName(session.aiModelOverride)),
             sectionId: session.generatedSession?.session?.sectionId ?? session.config?.sectionId ?? rows[0]?.sectionId ?? "unknown",
             timingMode: session.config?.timingMode ?? rows[0]?.timingMode ?? "untimed",
             reviewMode: session.config?.reviewMode ?? rows[0]?.reviewMode ?? "immediate",
@@ -748,7 +752,7 @@ const buildSessionSummaries = (attempts, sessions, filters) => {
 const buildModelUsage = (sessionSummaries) => {
     const groups = new Map();
     sessionSummaries.forEach((session) => {
-        const model = normalizeModelName(session.aiModel) ?? "unknown";
+        const model = normalizeAiModelName(session.aiModel) ?? "unknown";
         const generatedQuestionKeys = session.generatedQuestionKeys ?? [];
         if (!generatedQuestionKeys.length) return;
         if (!groups.has(model)) {

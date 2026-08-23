@@ -44,7 +44,8 @@ export const state = {
         filters: { ...DEFAULT_DASHBOARD_FILTERS },
         pages: { ...DEFAULT_DASHBOARD_PAGES },
         aiAnalysisOpen: false,
-        backupReminderOpen: false
+        backupReminderOpen: false,
+        modelCorrection: null
     },
     questionBank: {
         loading: false,

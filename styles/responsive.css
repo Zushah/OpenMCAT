@@ -449,4 +449,34 @@
     .model-usage-legend-item {
         padding: 0.62rem 0.68rem;
     }
+
+    .model-usage-correct {
+        width: 34px;
+        min-width: 34px;
+        height: 34px;
+    }
+
+    .model-correction-panel {
+        width: 100%;
+        padding: 0.8rem;
+    }
+
+    .model-correction-description {
+        margin-bottom: 0.55rem;
+        font-size: 0.82rem;
+    }
+
+    .model-correction-form {
+        gap: 0.55rem;
+    }
+
+    .model-correction-session-list {
+        max-height: 180px;
+    }
+
+    .model-correction-actions .btn {
+        flex: 1 1 0;
+        min-width: 0;
+        padding-inline: 8px;
+    }
 }

@@ -16,7 +16,8 @@ import { saveSettings as persistSettings } from "./storage/settings.js";
 import { getBackupStatus, isBackupReminderDue, markBackupCompleted, scheduleBackupReminder } from "./storage/backup.js";
 import { checkPersistentStorage, requestPersistentStorage } from "./storage/persistence.js";
 import { canShareBackup, getShareableBackupDetails, shareBackup } from "./storage/share.js";
-import { computeMetrics, normalizeDashboardFilters } from "./analytics/metrics.js";
+import { computeMetrics, getEffectiveSessionAiModel, getRecordedSessionAiModel, normalizeAiModelName, normalizeDashboardFilters } from "./analytics/metrics.js";
+import { MAX_AI_MODEL_NAME_LENGTH } from "./data/models.js";
 import { buildRecommendation } from "./analytics/recommendations.js";
 import { getSelectionHighlightRanges, toggleHighlightRange } from "./components/highlights.js";
 import { showToast } from "./components/toast.js";
@@ -140,7 +141,7 @@ export const createActions = ({ render, applyTheme }) => {
     };
 
     const navigate = (route) => {
-        if (route !== "dashboard") { state.dashboard.aiAnalysisOpen = false; state.dashboard.backupReminderOpen = false; }
+        if (route !== "dashboard") { state.dashboard.aiAnalysisOpen = false; state.dashboard.backupReminderOpen = false; state.dashboard.modelCorrection = null; }
         if (route !== "settings") state.settingsDataConfirmation = null;
         state.route = route;
         if (route === "dashboard") maybeOpenDashboardBackupReminder();
@@ -196,6 +197,56 @@ export const createActions = ({ render, applyTheme }) => {
     const closeDashboardAiAnalysis = () => {
         state.dashboard.aiAnalysisOpen = false;
         render();
+    };
+
+    const openDashboardModelCorrection = (model) => {
+        const normalizedModel = normalizeAiModelName(model);
+        const hasMatchingSession = normalizedModel && (state.analytics?.sessions ?? []).some((session) => getEffectiveSessionAiModel(session) === normalizedModel);
+        if (!hasMatchingSession) {
+            showToast("No stored sessions currently use that AI model name.");
+            return;
+        }
+        state.dashboard.modelCorrection = { model: normalizedModel };
+        render();
+    };
+
+    const closeDashboardModelCorrection = () => {
+        state.dashboard.modelCorrection = null;
+        render();
+    };
+
+    const getSelectedModelCorrectionSessions = (sessionIds) => {
+        const selectedIds = new Set(Array.isArray(sessionIds) ? sessionIds.filter((sessionId) => typeof sessionId === "string") : []);
+        const activeModel = normalizeAiModelName(state.dashboard.modelCorrection?.model);
+        if (!activeModel || !selectedIds.size) return [];
+        return (state.analytics?.sessions ?? []).filter((session) => selectedIds.has(session.id) && getEffectiveSessionAiModel(session) === activeModel);
+    };
+
+    const correctDashboardAiModel = async (sessionIds, modelName) => {
+        const normalizedModel = normalizeAiModelName(modelName);
+        if (!normalizedModel) { showToast("Choose a model or enter a model name."); return false; }
+        if (normalizedModel.length > MAX_AI_MODEL_NAME_LENGTH) { showToast(`Model names must be ${MAX_AI_MODEL_NAME_LENGTH} characters or fewer.`); return false; }
+        const sessions = getSelectedModelCorrectionSessions(sessionIds);
+        if (!sessions.length) { showToast("Select at least one session to correct."); return false; }
+        await Promise.all(sessions.map((session) => updateSession(session.id, {
+            aiModelOverride: normalizedModel === getRecordedSessionAiModel(session) ? null : normalizedModel
+        })));
+        state.dashboard.modelCorrection = null;
+        await refreshAnalytics();
+        render();
+        showToast(`Corrected the AI model name for ${sessions.length} ${sessions.length === 1 ? "session" : "sessions"}.`, "success");
+        return true;
+    };
+
+    const restoreDashboardAiModel = async (sessionIds) => {
+        const sessions = getSelectedModelCorrectionSessions(sessionIds);
+        if (!sessions.length) { showToast("Select at least one session to restore."); return false; }
+        await Promise.all(sessions.map((session) => updateSession(session.id, { aiModelOverride: null })));
+        state.dashboard.modelCorrection = null;
+        await refreshAnalytics();
+        render();
+        showToast(`Restored the recorded AI model name for ${sessions.length} ${sessions.length === 1 ? "session" : "sessions"}.`, "success");
+        return true;
     };
 
     const maybeOpenDashboardBackupReminder = () => {
@@ -1034,6 +1085,10 @@ export const createActions = ({ render, applyTheme }) => {
         setDashboardPage,
         openDashboardAiAnalysis,
         closeDashboardAiAnalysis,
+        openDashboardModelCorrection,
+        closeDashboardModelCorrection,
+        correctDashboardAiModel,
+        restoreDashboardAiModel,
         maybeOpenDashboardBackupReminder,
         closeDashboardBackupReminder,
         backupDataFromReminder,
