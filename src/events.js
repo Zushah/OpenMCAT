@@ -9,11 +9,11 @@ import { buildRepairPrompt } from "./prompts/repair.js";
 import { extractJsonObject } from "./schema/repair.js";
 import { validatePracticeSession } from "./schema/validators.js";
 import { setHashForRoute } from "./router.js";
-import { buildExportPayload, combineBackupPayloads, createExportPayload, downloadExport, getExportFileName, importPayload, parseImportText, previewBackupCombination } from "./storage/exportimport.js";
+import { buildExportPayload, combineBackupPayloads, createBackupArtifact, createExportPayload, downloadExport, importPayload, parseImportFile, parseImportText, previewBackupCombination } from "./storage/exportimport.js";
 import { clearAllData, getAllData, initializeStorage, saveAttempt, saveSession, updateAttempt, updateSession } from "./storage/db.js";
 import { normalizeGeneratorConfig, saveGeneratorOptions } from "./storage/generator.js";
 import { saveSettings as persistSettings } from "./storage/settings.js";
-import { getBackupStatus, isBackupReminderDue, markBackupCompleted, scheduleBackupReminder } from "./storage/backup.js";
+import { formatBackupDataSize, formatCurrentDataSizeMessage, getBackupStatus, isBackupReminderDue, markBackupCompleted, scheduleBackupReminder } from "./storage/backup.js";
 import { checkPersistentStorage, requestPersistentStorage } from "./storage/persistence.js";
 import { canShareBackup, getShareableBackupDetails, shareBackup } from "./storage/share.js";
 import { computeMetrics, getEffectiveSessionAiModel, getRecordedSessionAiModel, normalizeAiModelName, normalizeDashboardFilters } from "./analytics/metrics.js";
@@ -90,6 +90,47 @@ const buildMaps = () => {
 };
 
 export const createActions = ({ render, applyTheme }) => {
+    let dataSizeCompression = null;
+
+    const isDataSizeVisible = () => state.route === "settings" || state.dashboard.backupReminderOpen;
+
+    const applyCompressedDataSize = (backupStatus, artifact) => {
+        if (!backupStatus || state.analytics?.backupStatus !== backupStatus) return false;
+        Object.assign(backupStatus, {
+            dataSizeBytes: artifact.fileSize,
+            dataSizeLabel: formatBackupDataSize(artifact.fileSize),
+            dataSizeMessage: formatCurrentDataSizeMessage({ hasData: backupStatus.hasData, dataSizeLabel: formatBackupDataSize(artifact.fileSize) }),
+            dataSizeFormat: "json.gz"
+        });
+        return true;
+    };
+
+    const refreshVisibleBackupDataSize = () => {
+        const backupStatus = state.analytics?.backupStatus;
+        if (!backupStatus?.hasData || !isDataSizeVisible() || backupStatus.dataSizeFormat === "json.gz") return Promise.resolve(null);
+        if (dataSizeCompression?.backupStatus === backupStatus) return dataSizeCompression.promise;
+        const payload = createExportPayload({
+            settings: state.settings,
+            sessions: state.analytics?.sessions ?? [],
+            attempts: state.analytics?.attempts ?? []
+        });
+        const pending = {
+            backupStatus,
+            promise: createBackupArtifact(payload).then((artifact) => {
+                if (!applyCompressedDataSize(backupStatus, artifact)) return null;
+                if (isDataSizeVisible() && !state.settingsDataConfirmation) render();
+                return artifact;
+            }).catch((error) => {
+                console.warn("OpenMCAT: failed measuring the compressed data backup size.", error);
+                return null;
+            }).finally(() => {
+                if (dataSizeCompression === pending) dataSizeCompression = null;
+            })
+        };
+        dataSizeCompression = pending;
+        return pending.promise;
+    };
+
     const commitGeneratorConfig = (config, { replaceTopicHistory = false } = {}) => {
         const stored = saveGeneratorOptions(config, replaceTopicHistory ? {} : state.generatorTopicIdsBySection);
         state.currentConfig = stored.config;
@@ -264,7 +305,7 @@ export const createActions = ({ render, applyTheme }) => {
 
     const backupDataFromReminder = async () => {
         const payload = await buildExportPayload();
-        downloadExport(payload);
+        await downloadExport(payload);
         await markBackupCompleted(payload, state.settings.backupReminderCompletedTiming);
         state.dashboard.backupReminderOpen = false;
         await refreshAnalytics();
@@ -792,22 +833,22 @@ export const createActions = ({ render, applyTheme }) => {
         render();
     };
 
-    const exportData = async (preparedPayload = null) => {
+    const exportData = async (preparedPayload = null, preparedArtifact = null) => {
         const payload = preparedPayload ?? await buildExportPayload();
-        downloadExport(payload);
+        await downloadExport(payload, preparedArtifact);
         await markBackupCompleted(payload, state.settings.backupReminderCompletedTiming);
         await refreshAnalytics();
         render();
         showToast("Exported OpenMCAT data.", "success");
     };
 
-    const shareDataBackup = (options = {}, preparedPayload = null) => {
+    const shareDataBackup = (options = {}, preparedPayload = null, preparedArtifact = null) => {
         const payload = preparedPayload ?? createExportPayload({
             settings: state.settings,
             sessions: state.analytics?.sessions ?? [],
             attempts: state.analytics?.attempts ?? []
         });
-        const sharing = shareBackup(payload);
+        const sharing = shareBackup(payload, new Date(), preparedArtifact);
         return sharing.then(async (result) => {
             if (result.outcome === "canceled") return result;
             if (result.outcome !== "shared") { showToast("Your web browser could not share the OpenMCAT data backup."); return result; }
@@ -845,7 +886,7 @@ export const createActions = ({ render, applyTheme }) => {
 
     const dataCounts = (label, sessions, attempts, change = false) => ({ label, sessions, attempts, change });
 
-    const openSettingsDataConfirmation = (action) => {
+    const openSettingsDataConfirmation = async (action) => {
         const current = currentDataInspection();
         if (action !== "backup" && action !== "share" && action !== "delete") return;
         const payload = action === "delete" ? null : createExportPayload({
@@ -859,8 +900,9 @@ export const createActions = ({ render, applyTheme }) => {
             delete: "Delete all of the current OpenMCAT data on this web browser. The current OpenMCAT data will only be able to be restored if you have previously saved a backup of it."
         };
         const backupStatus = action === "delete" ? null : state.analytics?.backupStatus;
-        const contentSize = payload ? new Blob([JSON.stringify(payload, null, 2)]).size : 0;
-        const shareDetails = action === "share" ? getShareableBackupDetails(payload) : null;
+        const artifact = payload ? await createBackupArtifact(payload) : null;
+        if (artifact) applyCompressedDataSize(backupStatus, artifact);
+        const shareDetails = action === "share" ? getShareableBackupDetails(artifact) : null;
         const previousSessions = backupStatus?.completedSessionCount;
         const previousAttempts = backupStatus?.completedAttemptCount;
         const hasPreviousCounts = Number.isFinite(previousSessions) && Number.isFinite(previousAttempts);
@@ -868,8 +910,8 @@ export const createActions = ({ render, applyTheme }) => {
             action,
             description: descriptions[action],
             metadata: action === "delete" ? [] : [
-                { label: action === "share" ? "Shared backup name" : "New backup name", value: shareDetails?.fileName ?? getExportFileName(payload) },
-                { label: action === "share" ? "Shared backup size" : "New backup size", value: formatInspectionSize(shareDetails?.fileSize ?? contentSize) },
+                { label: action === "share" ? "Shared backup name" : "New backup name", value: shareDetails?.fileName ?? artifact.fileName },
+                { label: action === "share" ? "Shared backup size" : "New backup size", value: formatInspectionSize(shareDetails?.fileSize ?? artifact.fileSize) },
                 { label: action === "share" ? "Shared backup date" : "New backup date", value: formatInspectionDate(payload.exportedAt) }
             ],
             stats: action === "delete" ? [
@@ -880,13 +922,14 @@ export const createActions = ({ render, applyTheme }) => {
                 !hasPreviousCounts ? { label: "Previous backup data", empty: "None" } : dataCounts("Previous backup data", previousSessions, previousAttempts),
                 dataCounts("Difference", current.sessions.length - (hasPreviousCounts ? previousSessions : 0), current.attempts.length - (hasPreviousCounts ? previousAttempts : 0), true)
             ],
-            payload
+            payload,
+            artifact
         };
         render();
     };
 
-    const prepareDataRestore = (source) => {
-        const payload = parseImportText(source.text, source.name || "Backup");
+    const prepareDataRestore = async (source) => {
+        const payload = await parseImportFile(source.file, source.name || "Backup");
         const current = currentDataInspection();
         state.settingsDataConfirmation = {
             action: "restore",
@@ -908,13 +951,13 @@ export const createActions = ({ render, applyTheme }) => {
         render();
     };
 
-    const parseBackupSources = (sources) => sources.map((source, index) => ({
+    const parseBackupSources = (sources) => Promise.all(sources.map(async (source, index) => ({
         name: source.name || `Backup ${index + 1}`,
-        payload: parseImportText(source.text, source.name || `Backup ${index + 1}`)
-    }));
+        payload: source.payload ?? await parseImportFile(source.file, source.name || `Backup ${index + 1}`)
+    })));
 
     const prepareDataMerge = async (sources) => {
-        const backups = parseBackupSources(sources);
+        const backups = await parseBackupSources(sources);
         const preview = await previewBackupCombination(backups);
         const current = currentDataInspection();
         state.settingsDataConfirmation = {
@@ -930,7 +973,8 @@ export const createActions = ({ render, applyTheme }) => {
                 dataCounts("Selected backups data", preview.selectedSessions, preview.selectedAttempts),
                 dataCounts("Difference", preview.addedSessions, preview.addedAttempts, true)
             ],
-            sources
+            sources,
+            backups
         };
         render();
     };
@@ -945,24 +989,32 @@ export const createActions = ({ render, applyTheme }) => {
         if (!confirmation) return null;
         state.settingsDataConfirmation = null;
         render();
-        if (confirmation.action === "backup") return exportData(confirmation.payload);
-        if (confirmation.action === "share") return shareDataBackup({}, confirmation.payload);
-        if (confirmation.action === "restore") return confirm("Restore this OpenMCAT data backup? It will replace the current OpenMCAT data in this browser.") ? importDataFromText(confirmation.source.text) : null;
-        if (confirmation.action === "merge") return combineDataFromTexts(confirmation.sources);
+        if (confirmation.action === "backup") return exportData(confirmation.payload, confirmation.artifact);
+        if (confirmation.action === "share") return shareDataBackup({}, confirmation.payload, confirmation.artifact);
+        if (confirmation.action === "restore") return confirm("Restore this OpenMCAT data backup? It will replace the current OpenMCAT data in this browser.") ? importDataPayload(confirmation.source.payload) : null;
+        if (confirmation.action === "merge") return combinePreparedBackups(confirmation.backups);
         if (confirmation.action === "delete") return confirm("Are you sure you want to delete all of the current OpenMCAT data? It will be lost forever! (A long time!)") ? deleteAllLocalData() : null;
         return null;
     };
 
     const importDataFromText = async (text) => {
         const parsed = parseImportText(text);
-        await importPayload(parsed);
+        return importDataPayload(parsed);
+    };
+
+    const importDataPayload = async (payload) => {
+        await importPayload(payload);
         await refreshAnalytics();
         render();
         showToast("Data imported.", "success");
     };
 
     const combineDataFromTexts = async (sources) => {
-        const backups = parseBackupSources(sources);
+        const backups = await parseBackupSources(sources);
+        return combinePreparedBackups(backups);
+    };
+
+    const combinePreparedBackups = async (backups) => {
         const preview = await previewBackupCombination(backups);
         const newRecords = preview.addedSessions + preview.addedAttempts;
         const duplicateRecords = preview.duplicateSessions + preview.duplicateAttempts;
@@ -1080,6 +1132,7 @@ export const createActions = ({ render, applyTheme }) => {
         combineDataFromTexts,
         deleteAllLocalData,
         refreshAnalytics,
+        refreshVisibleBackupDataSize,
         updateDashboardFilters,
         resetDashboardFilters,
         setDashboardPage,

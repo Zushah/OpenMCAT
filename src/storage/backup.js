@@ -2,6 +2,7 @@ const cb = Chalkboard;
 const BACKUP_REMINDER_KEY = "openmcat_backup_reminder_v1";
 const BACKUP_STATUS_KEY = "openmcat_backup_status_v1";
 const NEVER_REMIND_AT = Number.MAX_SAFE_INTEGER;
+const SIZE_ESTIMATE_EXPORTED_AT = new Date(0).toISOString();
 
 const REMINDER_DELAYS = {
     hourly: 60 * 60 * 1000,
@@ -16,9 +17,11 @@ const getStudyData = (source = {}) => ({
     attempts: Array.isArray(source.attempts) ? source.attempts : []
 });
 
-const getBackupContent = (source = {}) => {
-    const data = getStudyData(source);
+const getBackupContent = (source = {}, data = getStudyData(source)) => {
     return JSON.stringify({
+        exportVersion: "1.0",
+        exportedAt: SIZE_ESTIMATE_EXPORTED_AT,
+        app: "OpenMCAT",
         settings: source.settings && typeof source.settings === "object" ? source.settings : {},
         sessions: data.sessions,
         attempts: data.attempts
@@ -91,13 +94,17 @@ export const formatBackupDataSize = (bytes) => {
     return `${cb.numb.roundTo(megabytes, 0.01)} MB`;
 };
 
+export const formatCurrentDataSizeMessage = ({ hasData = false, dataSizeLabel = "0.00 MB" } = {}) => hasData ? `You have ${dataSizeLabel} of current OpenMCAT data.` : "You have no current OpenMCAT data.";
+
 export const getBackupStatus = async (source) => {
     const data = getStudyData(source);
     const completedBackup = loadCompletedBackup();
     const completedSessionCount = Number(completedBackup?.sessionCount);
     const completedAttemptCount = Number(completedBackup?.attemptCount);
     const signature = await createDataSignature(data);
-    const hasData = Boolean(data.sessions.length || data.attempts.length);
+    const dataSizeBytes = new Blob([getBackupContent(source, data)]).size;
+    const emptyDataSizeBytes = new Blob([getBackupContent(source, { sessions: [], attempts: [] })]).size;
+    const hasData = dataSizeBytes > emptyDataSizeBytes;
     const hasChanges = hasData && completedBackup?.signature !== signature;
     const addedSessions = completedBackup ? Math.max(0, data.sessions.length - Number(completedBackup.sessionCount || 0)) : data.sessions.length;
     const addedAttempts = completedBackup ? Math.max(0, data.attempts.length - Number(completedBackup.attemptCount || 0)) : data.attempts.length;
@@ -109,11 +116,16 @@ export const getBackupStatus = async (source) => {
         completedAttemptCount: Number.isFinite(completedAttemptCount) && completedAttemptCount >= 0 ? completedAttemptCount : null,
         addedSessions,
         addedAttempts,
-        dataSizeBytes: new Blob([getBackupContent(source)]).size
+        dataSignature: signature,
+        dataSizeBytes,
+        emptyDataSizeBytes,
+        dataSizeFormat: "json"
     };
+    const dataSizeLabel = formatBackupDataSize(status.dataSizeBytes);
     return {
         ...status,
-        dataSizeLabel: formatBackupDataSize(status.dataSizeBytes),
+        dataSizeLabel,
+        dataSizeMessage: formatCurrentDataSizeMessage({ ...status, dataSizeLabel }),
         message: formatBackupStatus(status)
     };
 };

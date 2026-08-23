@@ -3,7 +3,8 @@
 All committed changes to the [`Zushah/OpenMCAT`](https://github.com/Zushah/OpenMCAT) code repository are recorded here.
 
 ## 31. [`v1.8.0`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-08-23&until=2026-08-23) 2026-08-23
-- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Add AI model name editing to analytics
+- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Add compression to data backups with gzip
+- [`9a85e99`](https://github.com/Zushah/OpenMCAT/commit/9a85e99) Add AI model name editing to analytics
 
 ## 30. [`v1.7.2`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-07-31&until=2026-07-31) 2026-07-31
 - [`e2dc6e1`](https://github.com/Zushah/OpenMCAT/commit/e2dc6e1) Fix generator options not being remembered

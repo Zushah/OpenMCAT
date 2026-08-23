@@ -2,6 +2,8 @@ import { getAllData, mergeData, replaceData } from "./db.js";
 import { loadSettings, saveSettings } from "./settings.js";
 
 const SUPPORTED_EXPORT_VERSIONS = new Set(["1.0"]);
+const GZIP_MAGIC_BYTES = [0x1f, 0x8b];
+const MAX_BACKUP_CONTENT_BYTES = 256 * 1024 * 1024;
 
 const validateRecords = (records, label) => records.forEach((record, index) => {
     if (!record || typeof record !== "object" || Array.isArray(record) || typeof record.id !== "string" || !record.id) throw new Error(`${label} record ${index + 1} must be an object with a non-empty string id.`);
@@ -41,25 +43,54 @@ export const buildExportPayload = async () => {
     return createExportPayload({ settings, ...data });
 };
 
-export const getExportFileName = (payload, extension = "json", now = new Date()) => {
+export const getExportFileName = (payload, extension = "json.gz", now = new Date()) => {
     const payloadDate = typeof payload?.exportedAt === "string" ? new Date(payload.exportedAt) : null;
     const exportedAt = Number.isFinite(payloadDate?.getTime()) ? payloadDate : Number.isFinite(now?.getTime()) ? now : new Date();
     const pad = (value) => String(value).padStart(2, "0");
     const date = `${String(exportedAt.getFullYear()).padStart(4, "0")}-${pad(exportedAt.getMonth() + 1)}-${pad(exportedAt.getDate())}`;
     const time = `${pad(exportedAt.getHours())}-${pad(exportedAt.getMinutes())}-${pad(exportedAt.getSeconds())}`;
-    return `openmcat-data_${date}_${time}.${extension === "txt" ? "txt" : "json"}`;
+    const normalizedExtension = extension === "txt" ? "txt" : extension === "json" ? "json" : "json.gz";
+    return `openmcat-data_${date}_${time}.${normalizedExtension}`;
 };
 
-export const downloadExport = (payload) => {
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
+const requireCompressionStream = (StreamConstructor, action) => {
+    if (typeof StreamConstructor !== "function") throw new Error(`This web browser cannot ${action} compressed OpenMCAT backups.`);
+    return StreamConstructor;
+};
+
+const createSizeLimitStream = () => {
+    let byteCount = 0;
+    return new TransformStream({
+        transform(chunk, controller) {
+            byteCount += chunk.byteLength;
+            if (byteCount > MAX_BACKUP_CONTENT_BYTES) { controller.error(new Error("The OpenMCAT backup expands beyond the supported 256 MB limit.")); return; }
+            controller.enqueue(chunk);
+        }
+    });
+};
+
+export const createBackupArtifact = async (payload, now = new Date()) => {
+    validateImportPayload(payload, "OpenMCAT backup");
+    const content = JSON.stringify(payload);
+    const contentBlob = new Blob([content], { type: "application/json" });
+    if (contentBlob.size > MAX_BACKUP_CONTENT_BYTES) throw new Error("The OpenMCAT backup exceeds the supported 256 MB limit.");
+    const Compression = requireCompressionStream(globalThis.CompressionStream, "create");
+    const compressed = await new Response(contentBlob.stream().pipeThrough(new Compression("gzip"))).blob();
+    const blob = new Blob([compressed], { type: "application/gzip" });
+    return { blob, fileName: getExportFileName(payload, "json.gz", now), fileSize: blob.size, payload };
+};
+
+export const downloadExport = async (payload, preparedArtifact = null) => {
+    const artifact = preparedArtifact ?? await createBackupArtifact(payload);
+    const url = URL.createObjectURL(artifact.blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = getExportFileName(payload);
+    anchor.download = artifact.fileName;
     document.body.append(anchor);
     anchor.click();
     anchor.remove();
     URL.revokeObjectURL(url);
+    return artifact;
 };
 
 export const parseImportText = (text, sourceName = "Imported file") => {
@@ -68,6 +99,28 @@ export const parseImportText = (text, sourceName = "Imported file") => {
     catch (error) { throw new Error(`${sourceName} is not valid JSON.`, { cause: error }); }
     return validateImportPayload(parsed, sourceName);
 }
+
+const hasGzipSignature = async (file) => {
+    if (!file || typeof file.slice !== "function" || file.size < GZIP_MAGIC_BYTES.length) return false;
+    const signature = new Uint8Array(await file.slice(0, GZIP_MAGIC_BYTES.length).arrayBuffer());
+    return signature.every((value, index) => value === GZIP_MAGIC_BYTES[index]);
+};
+
+export const parseImportFile = async (file, sourceName = file?.name || "Imported file") => {
+    if (!file || typeof file.stream !== "function") throw new TypeError(`${sourceName} could not be read.`);
+    const compressed = await hasGzipSignature(file);
+    if (!compressed) { if (file.size > MAX_BACKUP_CONTENT_BYTES) throw new Error(`${sourceName} exceeds the supported 256 MB limit.`); return parseImportText(await file.text(), sourceName); }
+    const Decompression = requireCompressionStream(globalThis.DecompressionStream, "restore");
+    let text;
+    try {
+        const stream = file.stream().pipeThrough(new Decompression("gzip")).pipeThrough(createSizeLimitStream());
+        text = await new Response(stream).text();
+    } catch (error) {
+        if (error?.message?.includes("256 MB limit")) throw error;
+        throw new Error(`${sourceName} is not a valid gzip-compressed OpenMCAT backup.`, { cause: error });
+    }
+    return parseImportText(text, sourceName);
+};
 
 export const importPayload = async (payload) => {
     const validated = validateImportPayload(payload);

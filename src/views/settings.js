@@ -30,13 +30,6 @@ const BACKUP_REMINDER_TIMING_OPTIONS = [
     { value: "never", label: "Never remind me" }
 ];
 
-const readFileText = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(reader.error ?? new Error(`Could not read ${file.name}.`));
-    reader.readAsText(file);
-});
-
 const makeDataGroup = (title, description) => {
     const group = document.createElement("section");
     group.className = "settings-data-group";
@@ -206,7 +199,7 @@ export const renderSettingsView = (state, actions) => {
     const backupStatus = state.analytics?.backupStatus;
     const dataSize = document.createElement("p");
     dataSize.className = "settings-data-size";
-    dataSize.textContent = `You have ${backupStatus?.dataSizeLabel ?? "0.00 MB"} of current OpenMCAT data.`;
+    dataSize.textContent = backupStatus?.dataSizeMessage ?? "You have no current OpenMCAT data.";
     const status = document.createElement("p");
     status.className = `settings-backup-status backup-status-note ${backupStatus?.hasChanges ? "warning-note" : "muted-note"}`;
     status.textContent = backupStatus?.message ?? "Backup status unavailable.";
@@ -216,17 +209,27 @@ export const renderSettingsView = (state, actions) => {
     const exportButton = document.createElement("button");
     exportButton.className = backupStatus?.hasChanges ? "btn btn-primary" : "btn btn-secondary";
     exportButton.textContent = "Backup data";
-    exportButton.addEventListener("click", () => actions.openSettingsDataConfirmation("backup"));
+    exportButton.addEventListener("click", async () => {
+        exportButton.disabled = true;
+        try { await actions.openSettingsDataConfirmation("backup"); }
+        catch (error) { alert(`Backup failed: ${error.message}`); }
+        finally { if (exportButton.isConnected) exportButton.disabled = false; }
+    });
     const shareButton = document.createElement("button");
     shareButton.className = "btn btn-secondary";
     shareButton.textContent = "Share data";
-    shareButton.addEventListener("click", () => actions.openSettingsDataConfirmation("share"));
+    shareButton.addEventListener("click", async () => {
+        shareButton.disabled = true;
+        try { await actions.openSettingsDataConfirmation("share"); }
+        catch (error) { alert(`Share failed: ${error.message}`); }
+        finally { if (shareButton.isConnected) shareButton.disabled = false; }
+    });
     const restoreGroup = makeDataGroup("Restore data", "Replace the current OpenMCAT data with one backup from your device.");
     const importInput = document.createElement("input");
     importInput.id = "restore-file";
     importInput.className = "settings-file-input";
     importInput.type = "file";
-    importInput.accept = ".json,.txt,application/json,text/plain";
+    importInput.accept = ".json.gz,.gz,.json,.txt,application/gzip,application/json,text/plain";
     const importPicker = document.createElement("label");
     importPicker.className = "btn btn-secondary settings-file-picker";
     importPicker.htmlFor = importInput.id;
@@ -244,7 +247,7 @@ export const renderSettingsView = (state, actions) => {
         const file = importInput.files?.[0];
         if (!file) return;
         importButton.disabled = true;
-        readFileText(file).then((text) => actions.prepareDataRestore({ name: file.name, size: file.size, text })).catch((error) => { alert(`Import failed: ${error.message}`); }).finally(() => { importButton.disabled = false; });
+        actions.prepareDataRestore({ name: file.name, size: file.size, file }).catch((error) => { alert(`Import failed: ${error.message}`); }).finally(() => { importButton.disabled = false; });
     });
     const importRow = document.createElement("div");
     importRow.className = "settings-import-row";
@@ -255,7 +258,7 @@ export const renderSettingsView = (state, actions) => {
     combineInput.id = "combine-files";
     combineInput.className = "settings-file-input";
     combineInput.type = "file";
-    combineInput.accept = ".json,.txt,application/json,text/plain";
+    combineInput.accept = ".json.gz,.gz,.json,.txt,application/gzip,application/json,text/plain";
     combineInput.multiple = true;
     const combinePicker = document.createElement("label");
     combinePicker.className = "btn btn-secondary settings-file-picker";
@@ -274,7 +277,7 @@ export const renderSettingsView = (state, actions) => {
         const files = Array.from(combineInput.files ?? []);
         if (!files.length) return;
         combineButton.disabled = true;
-        Promise.all(files.map(async (file) => ({ name: file.name, size: file.size, text: await readFileText(file) }))).then((sources) => actions.prepareDataMerge(sources)).catch((error) => { alert(`Merge failed: ${error.message}`); }).finally(() => { combineButton.disabled = false; });
+        actions.prepareDataMerge(files.map((file) => ({ name: file.name, size: file.size, file }))).catch((error) => { alert(`Merge failed: ${error.message}`); }).finally(() => { combineButton.disabled = false; });
     });
     const combineRow = document.createElement("div");
     combineRow.className = "settings-import-row";

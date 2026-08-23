@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { gunzipSync } from "node:zlib";
 import { SAMPLE_SESSION } from "../src/data/samples.js";
 import { GENERATOR_OPTIONS_KEY } from "../src/storage/generator.js";
 import { closeBackupReminderIfVisible, expect, test } from "./fixtures.js";
@@ -357,10 +358,12 @@ test("the generated-session workflow reaches review, analytics, and a data backu
     const downloadPromise = page.waitForEvent("download");
     await backupDialog.getByRole("button", { name: "Confirm", exact: true }).click();
     const download = await downloadPromise;
-    expect(download.suggestedFilename()).toMatch(/^openmcat-data_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.json$/);
+    expect(download.suggestedFilename()).toMatch(/^openmcat-data_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.json\.gz$/);
     const downloadPath = await download.path();
     expect(downloadPath).not.toBeNull();
-    const backup = JSON.parse(await readFile(downloadPath, "utf8"));
+    const compressedBackup = await readFile(downloadPath);
+    expect(compressedBackup.subarray(0, 2)).toEqual(Buffer.from([0x1f, 0x8b]));
+    const backup = JSON.parse(gunzipSync(compressedBackup).toString("utf8"));
     expect(backup.sessions).toHaveLength(1);
     expect(backup.attempts).toHaveLength(5);
     expect(backup.sessions[0].generatedSession.session.aiModel).toBe("mock-mcat-v1");

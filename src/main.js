@@ -47,6 +47,7 @@ const render = () => {
     else if (state.route === "settings") view = renderSettingsView(state, actions);
     else view = renderAboutView();
     mainElement.append(view);
+    actions.refreshVisibleBackupDataSize();
 };
 
 const actions = createActions({ render, applyTheme });

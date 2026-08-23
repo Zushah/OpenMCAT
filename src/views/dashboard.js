@@ -584,7 +584,7 @@ const renderBackupReminderModal = (state, actions) => {
     close.addEventListener("click", () => actions.closeDashboardBackupReminder());
     top.append(heading, close);
     const backupStatus = state.analytics?.backupStatus;
-    const size = createElement("p", "backup-reminder-size", `You have ${backupStatus?.dataSizeLabel ?? "0.00 MB"} of current OpenMCAT data.`);
+    const size = createElement("p", "backup-reminder-size", backupStatus?.dataSizeMessage ?? "You have no current OpenMCAT data.");
     const status = createElement("p", `backup-status-note ${backupStatus?.hasChanges ? "warning-note" : "muted-note"}`, backupStatus?.message ?? "Backup status unavailable.");
     const description = createElement("p", "generation-pipeline-instructions backup-reminder-description", "The current OpenMCAT data stays completely private in this web browser. Download or share it regularly so that it can be restored if this browser's data is ever haphazardly cleared or if OpenMCAT is used on another device.");
     const controls = createElement("div", "button-row backup-reminder-actions");
@@ -592,7 +592,12 @@ const renderBackupReminderModal = (state, actions) => {
     backupButton.type = "button";
     backupButton.className = "btn btn-primary";
     backupButton.textContent = "Backup data";
-    backupButton.addEventListener("click", () => actions.backupDataFromReminder());
+    backupButton.addEventListener("click", async () => {
+        backupButton.disabled = true;
+        try { await actions.backupDataFromReminder(); }
+        catch (error) { alert(`Backup failed: ${error.message}`); }
+        finally { if (backupButton.isConnected) backupButton.disabled = false; }
+    });
     const shareButton = document.createElement("button");
     shareButton.type = "button";
     shareButton.className = "btn btn-secondary";

@@ -1,4 +1,4 @@
-import { getExportFileName } from "./exportimport.js";
+import { createBackupArtifact } from "./exportimport.js";
 
 const getShareNavigator = () => {
     if (typeof navigator === "undefined" || typeof navigator.share !== "function" || typeof navigator.canShare !== "function") return null;
@@ -6,16 +6,15 @@ const getShareNavigator = () => {
     return navigator;
 };
 
-const createBackupFiles = (payload, now = new Date()) => {
-    const content = JSON.stringify(payload, null, 2);
+const createBackupFiles = (artifact) => {
     return [
-        new File([content], getExportFileName(payload, "json", now), { type: "application/json" }),
-        new File([content], getExportFileName(payload, "txt", now), { type: "text/plain" })
+        new File([artifact.blob], artifact.fileName, { type: "application/gzip" }),
+        new File([artifact.blob], artifact.fileName, { type: "application/octet-stream" })
     ];
 };
 
-const selectShareableFile = (shareNavigator, payload, now) => {
-    for (const file of createBackupFiles(payload, now)) {
+const selectShareableFile = (shareNavigator, artifact) => {
+    for (const file of createBackupFiles(artifact)) {
         try {
             if (shareNavigator.canShare({ files: [file] }) === true) return file;
         } catch (error) {
@@ -25,35 +24,37 @@ const selectShareableFile = (shareNavigator, payload, now) => {
     return null;
 };
 
-export const getShareableBackupDetails = (payload) => {
+export const getShareableBackupDetails = (artifact) => {
     const shareNavigator = getShareNavigator();
     if (!shareNavigator) return null;
-    const file = selectShareableFile(shareNavigator, payload, new Date());
+    const file = selectShareableFile(shareNavigator, artifact);
     return file ? { fileName: file.name, fileSize: file.size } : null;
 };
 
 export const canShareBackup = () => {
     const shareNavigator = getShareNavigator();
     if (!shareNavigator) return false;
-    const probe = { app: "OpenMCAT", exportVersion: "1.0", settings: {}, sessions: [], attempts: [] };
-    return Boolean(selectShareableFile(shareNavigator, probe, new Date(0)));
+    if (typeof CompressionStream !== "function") return false;
+    const blob = new Blob([new Uint8Array([0x1f, 0x8b, 0x08, 0x00])], { type: "application/gzip" });
+    return Boolean(selectShareableFile(shareNavigator, { blob, fileName: "openmcat-data.json.gz" }));
 };
 
-export const shareBackup = (payload, now = new Date()) => {
+export const shareBackup = async (payload, now = new Date(), preparedArtifact = null) => {
     const shareNavigator = getShareNavigator();
-    if (!shareNavigator) return Promise.resolve({ outcome: "unsupported" });
-    const file = selectShareableFile(shareNavigator, payload, now);
-    if (!file) return Promise.resolve({ outcome: "unsupported" });
+    if (!shareNavigator) return { outcome: "unsupported" };
+    const artifact = preparedArtifact ?? await createBackupArtifact(payload, now);
+    const file = selectShareableFile(shareNavigator, artifact);
+    if (!file) return { outcome: "unsupported" };
     let shareResult;
     try {
         shareResult = shareNavigator.share({ files: [file] });
     } catch (error) {
         console.warn("OpenMCAT: failed opening the browser share interface.", error);
-        return Promise.resolve({ outcome: "failed" });
+        return { outcome: "failed" };
     }
     if (!shareResult || typeof shareResult.then !== "function") {
         console.warn("OpenMCAT: the browser share interface did not return a Promise.");
-        return Promise.resolve({ outcome: "failed" });
+        return { outcome: "failed" };
     }
     return shareResult.then(
         () => ({ outcome: "shared", fileName: file.name }),
