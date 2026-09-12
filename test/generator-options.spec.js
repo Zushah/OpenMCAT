@@ -1,6 +1,6 @@
+import { expect, test } from "./fixtures.js";
 import { DEFAULT_CONFIG } from "../src/data/defaults.js";
 import { GENERATOR_OPTIONS_KEY } from "../src/storage/generator.js";
-import { expect, test } from "./fixtures.js";
 
 const getTopicButton = (page, name) => page.getByRole("group", { name: "Topics" }).getByRole("button", { name: new RegExp(`^${name}\\.`) });
 

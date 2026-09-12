@@ -1,8 +1,15 @@
-const dashboardCharts = new Set();
+const chartInstances = new Set();
+const pendingChartRenders = new Map();
+const stimulusChartStates = new WeakMap();
 
 const readCssValue = (name, fallback) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 
-export const destroyDashboardCharts = () => { dashboardCharts.forEach((chart) => { try { chart.destroy(); } catch (error) { console.warn("OpenMCAT: failed to destroy chart", error); } }); dashboardCharts.clear(); };
+export const destroyCharts = () => {
+    pendingChartRenders.forEach((frameId) => cancelAnimationFrame(frameId));
+    pendingChartRenders.clear();
+    chartInstances.forEach((chart) => { try { chart.destroy(); } catch (error) { console.warn("OpenMCAT: failed to destroy chart", error); } });
+    chartInstances.clear();
+};
 
 export const hasChartRuntime = () => typeof window !== "undefined" && typeof window.Chart === "function";
 
@@ -18,6 +25,8 @@ export const getChartTheme = () => ({
     success: readCssValue("--success", "#8ff8bc"),
     tooltipBackground: readCssValue("--chart-tooltip-background", "rgba(12, 18, 17, 0.95)")
 });
+
+const stimulusPalette = (theme) => [theme.accent, theme.accentTwo, theme.warning, theme.danger, theme.success, theme.textMuted];
 
 const normalizeTooltipTitle = (label) => Array.isArray(label) ? label.flat(Infinity).filter(Boolean).join(" ") : String(label ?? "");
 
@@ -102,22 +111,155 @@ export const getDefaultChartOptions = (overrides = {}) => {
     };
 };
 
+const registerChart = (chart) => {
+    const destroy = chart.destroy.bind(chart);
+    chart.destroy = (...args) => { chartInstances.delete(chart); return destroy(...args); };
+    chartInstances.add(chart);
+    return chart;
+};
+
 export const renderChart = (canvas, config) => {
     if (!canvas || !hasChartRuntime()) return null;
     const context = canvas.getContext("2d");
     if (!context) return null;
-    const chart = new window.Chart(context, config);
-    dashboardCharts.add(chart);
-    return chart;
+    try {
+        const existingChart = typeof window.Chart.getChart === "function" ? window.Chart.getChart(canvas) : null;
+        if (existingChart) {
+            existingChart.destroy();
+            chartInstances.delete(existingChart);
+        }
+        const chart = new window.Chart(context, config);
+        return registerChart(chart);
+    } catch (error) { console.warn("OpenMCAT: failed to render chart", error); return null; }
 };
 
 export const queueChartRender = (canvas, config) => {
     if (!hasChartRuntime()) return null;
-    requestAnimationFrame(() => {
+    if (pendingChartRenders.has(canvas)) return true;
+    const frameId = requestAnimationFrame(() => {
+        pendingChartRenders.delete(canvas);
         if (!document.body.contains(canvas)) return;
         renderChart(canvas, config);
     });
+    pendingChartRenders.set(canvas, frameId);
     return true;
+};
+
+const copyScale = (scale, theme) => {
+    if (!scale) return undefined;
+    const trustedScale = { grid: { color: theme.border }, ticks: { color: theme.textMuted } };
+    if (scale.type !== undefined) trustedScale.type = scale.type;
+    if (scale.min !== undefined) trustedScale.min = scale.min;
+    if (scale.max !== undefined) trustedScale.max = scale.max;
+    if (scale.beginAtZero !== undefined) trustedScale.beginAtZero = scale.beginAtZero;
+    if (scale.title) trustedScale.title = { display: scale.title.display, text: scale.title.text, color: theme.textSecondary, font: { weight: "600" } };
+    return trustedScale;
+};
+
+const copyDatasetData = (data = []) => data.map((value) => {
+    if (typeof value === "number") return value;
+    return { x: value.x, y: value.y };
+});
+
+export const createStimulusChartConfig = (chartSpec) => {
+    const theme = getChartTheme();
+    const colors = stimulusPalette(theme);
+    const datasets = chartSpec.config.data.datasets.map((dataset, index) => {
+        const color = colors[index % colors.length];
+        const type = dataset.type ?? chartSpec.config.type;
+        const trustedDataset = {
+            data: copyDatasetData(dataset.data),
+            borderColor: color,
+            backgroundColor: color,
+            borderWidth: type === "bar" ? 1 : 2
+        };
+        if (dataset.label !== undefined) trustedDataset.label = dataset.label;
+        if (dataset.type !== undefined) trustedDataset.type = dataset.type;
+        if (type === "line" || type === "scatter") {
+            trustedDataset.fill = false;
+            trustedDataset.pointBackgroundColor = color;
+            trustedDataset.pointBorderColor = color;
+            trustedDataset.pointRadius = 3;
+            trustedDataset.pointHoverRadius = 3;
+            trustedDataset.tension = 0;
+        }
+        return trustedDataset;
+    });
+    const data = { datasets };
+    if (chartSpec.config.data.labels !== undefined) data.labels = [...chartSpec.config.data.labels];
+    const suppliedScales = chartSpec.config.options?.scales ?? {};
+    const scales = {};
+    scales.x = copyScale(suppliedScales.x ?? {}, theme);
+    scales.y = copyScale(suppliedScales.y ?? {}, theme);
+    return {
+        type: chartSpec.config.type,
+        data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            events: [],
+            plugins: {
+                legend: {
+                    display: datasets.length > 1 && datasets.every((dataset) => Boolean(dataset.label)),
+                    position: "top",
+                    labels: {
+                        color: theme.textSecondary,
+                        boxWidth: 11,
+                        boxHeight: 11,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: { enabled: false }
+            },
+            scales
+        }
+    };
+};
+
+const queueStimulusChartRender = (figure) => {
+    const state = stimulusChartStates.get(figure);
+    if (!state || state.rendered || state.queued) return;
+    if (!hasChartRuntime()) return;
+    state.queued = true;
+    const frameId = requestAnimationFrame(() => {
+        pendingChartRenders.delete(state.canvas);
+        state.queued = false;
+        if (!document.body.contains(state.canvas)) return;
+        try {
+            const chart = renderChart(state.canvas, createStimulusChartConfig(state.chartSpec));
+            state.rendered = Boolean(chart);
+        } catch (error) {
+            state.rendered = false;
+            console.warn("OpenMCAT: failed to prepare stimulus chart", error);
+        }
+    });
+    pendingChartRenders.set(state.canvas, frameId);
+};
+
+export const createStimulusChart = (chartSpec, { defer = false, surface = "passage" } = {}) => {
+    const figure = document.createElement("figure");
+    figure.className = `stimulus-chart stimulus-chart--${surface === "question" ? "question" : "passage"}`;
+    figure.dataset.chartId = chartSpec.id;
+    const canvasWrap = document.createElement("div");
+    canvasWrap.className = "stimulus-chart-canvas-wrap";
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute("role", "img");
+    canvas.setAttribute("aria-label", chartSpec.caption);
+    canvasWrap.append(canvas);
+    const caption = document.createElement("figcaption");
+    caption.className = "stimulus-chart-caption";
+    caption.textContent = chartSpec.caption;
+    figure.append(caption, canvasWrap);
+    stimulusChartStates.set(figure, { canvas, chartSpec, queued: false, rendered: false });
+    if (!defer) queueStimulusChartRender(figure);
+    return figure;
+};
+
+export const renderStimulusCharts = (root) => {
+    if (!root) return;
+    const figures = root.matches?.(".stimulus-chart") ? [root] : Array.from(root.querySelectorAll?.(".stimulus-chart") ?? []);
+    figures.forEach(queueStimulusChartRender);
 };
 
 export const createChartShell = ({ title, subtitle = "", canvasLabel = "Dashboard chart", table = null, headerControls = null }) => {

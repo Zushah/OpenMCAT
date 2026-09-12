@@ -1,8 +1,8 @@
+import { expect, test } from "./fixtures.js";
 import { readFile } from "node:fs/promises";
 import { gunzipSync } from "node:zlib";
 import { SAMPLE_SESSION } from "../src/data/samples.js";
 import { GENERATOR_OPTIONS_KEY } from "../src/storage/generator.js";
-import { closeBackupReminderIfVisible, expect, test } from "./fixtures.js";
 
 test("the generated-session workflow reaches review, analytics, and a data backup", async ({ browserName, page }) => {
     test.setTimeout(45_000);
@@ -71,7 +71,9 @@ test("the generated-session workflow reaches review, analytics, and a data backu
     await expect(pipeline.getByRole("button", { name: "Copied" })).toBeVisible();
     const prompt = await page.evaluate(() => navigator.clipboard.readText());
     expect(prompt).toContain("Generate a practice session with the following settings:");
-    expect(prompt).toContain('"schemaVersion": "1.0"');
+    expect(prompt).toContain('"schemaVersion": "1.1"');
+    expect(prompt).toContain("Optional charts arrays may appear on passage objects and directly on question objects.");
+    expect(prompt).toContain("Do not add charts merely because the schema supports them.");
 
     const invalidSession = structuredClone(SAMPLE_SESSION);
     delete invalidSession.schemaVersion;
@@ -93,7 +95,7 @@ test("the generated-session workflow reaches review, analytics, and a data backu
     await repairButton.click();
     await expect(pipeline.getByRole("button", { name: "Copied" })).toBeVisible();
     const repairPrompt = await page.evaluate(() => navigator.clipboard.readText());
-    expect(repairPrompt).toContain('Add the top-level field "schemaVersion" with the value "1.0".');
+    expect(repairPrompt).toContain('Add the top-level field "schemaVersion" with the value "1.1".');
     expect(repairPrompt).toContain("Return exactly 5 questions instead of 4.");
     expect(repairPrompt).toContain("one single-line JSON object");
     expect(repairPrompt.length).toBeLessThan(600);
@@ -149,7 +151,8 @@ test("the generated-session workflow reaches review, analytics, and a data backu
     await expect(page.locator(".stat-card").filter({ hasText: "Accuracy" })).toContainText("100%");
 
     await page.getByRole("button", { name: "Back to dashboard" }).click();
-    await closeBackupReminderIfVisible(page);
+    const laterButton = page.getByRole("button", { name: "Remind me later" });
+    if (await laterButton.isVisible()) await laterButton.click();
     await expect(page).toHaveURL(/#\/dashboard$/);
     await expect(page.locator(".stat-card").filter({ hasText: "Questions answered" })).toContainText("5");
     await expect(page.locator(".stat-card").filter({ hasText: "Overall accuracy" })).toContainText("100%");
@@ -286,7 +289,7 @@ test("the generated-session workflow reaches review, analytics, and a data backu
     await expect(page.getByText("google/gemini-3.6-flash", { exact: true }).first()).toBeVisible();
 
     await page.reload();
-    await closeBackupReminderIfVisible(page);
+    if (await laterButton.isVisible()) await laterButton.click();
     await expect(page.getByText("google/gemini-3.6-flash", { exact: true }).first()).toBeVisible();
     await page.getByRole("button", { name: "Edit google/gemini-3.6-flash model name" }).click();
     modelCorrection = page.getByRole("dialog", { name: "Edit AI model name" });
@@ -327,7 +330,7 @@ test("the generated-session workflow reaches review, analytics, and a data backu
     await expect(page.getByLabel("Section")).toHaveValue(recommendationOptions.config.sectionId);
     await expect(page.getByLabel("Question count (1-59)")).toHaveValue(String(recommendationOptions.config.questionCount));
     await page.getByRole("link", { name: "Dashboard" }).click();
-    await closeBackupReminderIfVisible(page);
+    if (await laterButton.isVisible()) await laterButton.click();
     await expect(page).toHaveURL(/#\/dashboard$/);
 
     await page.getByRole("button", { name: "Evaluate dashboard stats with AI" }).click();

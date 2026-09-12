@@ -1,5 +1,5 @@
 import { DIFFICULTIES, SCIENCE_SKILLS, SECTIONS, TOPICS } from "../data/taxonomy.js";
-import { createAccessibleDataTable, createChartShell, destroyDashboardCharts, getChartTheme, getDefaultChartOptions, hasChartRuntime, queueChartRender } from "../components/charts.js";
+import { createAccessibleDataTable, createChartShell, destroyCharts, getChartTheme, getDefaultChartOptions, hasChartRuntime, queueChartRender } from "../components/charts.js";
 import { createStatCard } from "../components/stats.js";
 import { formatDurationMs } from "../components/timer.js";
 import { applyMistakeTypeToDrillConfig } from "../analytics/recommendations.js";
@@ -1619,7 +1619,7 @@ const renderTables = (metrics, actions, pages) => {
 const filtersAreActive = (filters) => filters.range !== "all" || filters.sectionId !== "all" || filters.timingMode !== "all" || filters.reviewMode !== "all";
 
 export const renderDashboardView = (state, actions) => {
-    destroyDashboardCharts();
+    destroyCharts();
     const root = document.createElement("section");
     root.className = "dashboard-page";
     const analytics = state.analytics;

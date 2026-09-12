@@ -10,8 +10,3 @@ export const test = base.extend({
         expect(errors, `Unexpected browser errors:\n${errors.join("\n\n")}`).toEqual([]);
     }
 });
-
-export const closeBackupReminderIfVisible = async (page) => {
-    const laterButton = page.getByRole("button", { name: "Remind me later" });
-    if (await laterButton.isVisible()) await laterButton.click();
-};

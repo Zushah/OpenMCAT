@@ -1,4 +1,5 @@
-import { PRACTICE_SCHEMA_VERSION } from "./practice.js";
+import { PRACTICE_SCHEMA_VERSION, SUPPORTED_PRACTICE_SCHEMA_VERSIONS } from "./practice.js";
+import { validateCharts } from "./charts.js";
 
 const CHOICE_IDS = ["A", "B", "C", "D"];
 
@@ -7,7 +8,8 @@ const isText = (value) => typeof value === "string" && value.trim().length > 0;
 const unique = (values) => Array.from(new Set(values));
 
 const normalizeSessionShape = (rawSession) => {
-    const session = structuredClone(rawSession);
+    let session;
+    try { session = structuredClone(rawSession); } catch { session = { ...rawSession }; }
     if (!Array.isArray(session.passages)) session.passages = [];
     if (!Array.isArray(session.questions)) session.questions = [];
     session.questions = session.questions.map((question, index) => {
@@ -66,7 +68,7 @@ export const validatePracticeSession = (candidate, context = {}) => {
     }
     const normalized = normalizeSessionShape(candidate);
     if (!isText(normalized.schemaVersion)) errors.push("schemaVersion is required.");
-    else if (normalized.schemaVersion !== PRACTICE_SCHEMA_VERSION) warnings.push(`schemaVersion is "${normalized.schemaVersion}", expected "${PRACTICE_SCHEMA_VERSION}".`);
+    else if (!SUPPORTED_PRACTICE_SCHEMA_VERSIONS.includes(normalized.schemaVersion)) errors.push(`schemaVersion "${normalized.schemaVersion}" is unsupported; use "${PRACTICE_SCHEMA_VERSION}".`);
     if (!normalized.session || typeof normalized.session !== "object") errors.push("session object is required."); else {
         validateStringField(errors, normalized.session.title, "session.title");
         validateStringField(errors, normalized.session.sectionId, "session.sectionId");
@@ -85,23 +87,23 @@ export const validatePracticeSession = (candidate, context = {}) => {
         validateStringField(errors, passage.id, `${path}.id`);
         validateStringField(errors, passage.title, `${path}.title`);
         validateStringField(errors, passage.text, `${path}.text`);
+        if (normalized.schemaVersion === "1.0" && Array.isArray(passage.charts) && passage.charts.length > 0) errors.push(`${path}.charts requires schemaVersion "${PRACTICE_SCHEMA_VERSION}"; declared "1.0".`);
+        validateCharts(errors, passage, path);
         if (passage.tables && !Array.isArray(passage.tables)) errors.push(`${path}.tables must be an array if provided.`);
-        if (Array.isArray(passage.tables)) {
-            passage.tables.forEach((table, tableIndex) => {
-                const tablePath = `${path}.tables[${tableIndex}]`;
-                validateStringField(errors, table.id, `${tablePath}.id`);
-                validateStringField(errors, table.caption, `${tablePath}.caption`);
-                if (!Array.isArray(table.columns)) errors.push(`${tablePath}.columns must be an array.`);
-                else table.columns.forEach((columnValue, columnIndex) => { validateStringField(errors, columnValue, `${tablePath}.columns[${columnIndex}]`); });
-                if (!Array.isArray(table.rows)) errors.push(`${tablePath}.rows must be an array.`);
-                else {
-                    table.rows.forEach((row, rowIndex) => {
-                        if (!Array.isArray(row)) errors.push(`${tablePath}.rows[${rowIndex}] must be an array.`);
-                        else row.forEach((value, colIndex) => { validateStringField(errors, value, `${tablePath}.rows[${rowIndex}][${colIndex}]`); });
-                    });
-                }
+        if (Array.isArray(passage.tables)) passage.tables.forEach((table, tableIndex) => {
+            const tablePath = `${path}.tables[${tableIndex}]`;
+            validateStringField(errors, table.id, `${tablePath}.id`);
+            validateStringField(errors, table.caption, `${tablePath}.caption`);
+            if (!Array.isArray(table.columns)) errors.push(`${tablePath}.columns must be an array.`);
+            else table.columns.forEach((columnValue, columnIndex) => { validateStringField(errors, columnValue, `${tablePath}.columns[${columnIndex}]`); });
+            if (!Array.isArray(table.rows)) errors.push(`${tablePath}.rows must be an array.`);
+            else {
+                table.rows.forEach((row, rowIndex) => {
+                    if (!Array.isArray(row)) errors.push(`${tablePath}.rows[${rowIndex}] must be an array.`);
+                    else row.forEach((value, colIndex) => { validateStringField(errors, value, `${tablePath}.rows[${rowIndex}][${colIndex}]`); });
                 });
-        }
+            }
+        });
         if (passage.figureDescriptions && !Array.isArray(passage.figureDescriptions)) errors.push(`${path}.figureDescriptions must be an array if provided.`);
         if (Array.isArray(passage.figureDescriptions)) {
             passage.figureDescriptions.forEach((figure, figureIndex) => {
@@ -119,6 +121,8 @@ export const validatePracticeSession = (candidate, context = {}) => {
         validateStringField(errors, question.stem, `${path}.stem`);
         validateStringField(errors, question.explanation, `${path}.explanation`);
         validateStringField(errors, question.type, `${path}.type`);
+        if (normalized.schemaVersion === "1.0" && Array.isArray(question.charts) && question.charts.length > 0) errors.push(`${path}.charts requires schemaVersion "${PRACTICE_SCHEMA_VERSION}"; declared "1.0".`);
+        validateCharts(errors, question, path);
         if (!Array.isArray(question.choices) || question.choices.length !== 4) errors.push(`${path}.choices must contain exactly 4 choices.`);
         else {
             const ids = question.choices.map((choice) => choice.id);

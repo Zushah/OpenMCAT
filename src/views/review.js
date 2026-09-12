@@ -1,5 +1,6 @@
 import { createHighlightableText, getQuestionHighlightScopeKey, getQuestionStemHighlightKey } from "../components/highlights.js";
 import { createPassageCard, createPassageMetadataById, getPassageCardTitle } from "../components/questions.js";
+import { createStimulusChart, renderStimulusCharts } from "../components/charts.js";
 import { MISTAKE_TYPES, normalizeMistakeTypeIds } from "../data/mistakes.js";
 import { formatDurationMs } from "../components/timer.js";
 
@@ -120,10 +121,11 @@ const createReviewPassageDropdown = (passage, passageMetadata = {}, highlightRan
     expandIcon.setAttribute("aria-hidden", "true");
     expandIcon.textContent = "expand_more";
     summary.append(passageIcon, label, expandIcon);
-    details.append(summary, createPassageCard(passage, { className: "card card-pad passage-card review-passage-card", ...passageMetadata, highlightRangesByTargetKey }));
+    details.append(summary, createPassageCard(passage, { className: "card card-pad passage-card review-passage-card", ...passageMetadata, highlightRangesByTargetKey, deferCharts: true }));
     details.addEventListener("toggle", () => {
         label.textContent = details.open ? `Hide ${passageTitle}` : `Show ${passageTitle}`;
         expandIcon.textContent = details.open ? "expand_less" : "expand_more";
+        if (details.open) renderStimulusCharts(details);
         syncMistakeTypePanelHeights(details.closest(".review-question-row") ?? details);
     });
     return details;
@@ -148,6 +150,7 @@ const makeQuestionReviewBlock = (record, index, isFocused, passagesById, passage
         ranges: highlightRangesByTargetKey[questionHighlightKey] ?? []
     }));
     card.append(heading);
+    (question.charts ?? []).forEach((chart) => card.append(createStimulusChart(chart, { surface: "question" })));
     const meta = document.createElement("p");
     meta.className = "tiny";
     const selected = state.submitted ? state.submittedChoiceId ?? state.selectedChoiceId ?? "Unsubmitted" : "Unsubmitted";

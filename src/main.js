@@ -1,7 +1,7 @@
 import { state } from "./app.js";
 import { createActions } from "./events.js";
 import { getRouteFromHash, isRouteHash } from "./router.js";
-import { destroyDashboardCharts } from "./components/charts.js";
+import { destroyCharts } from "./components/charts.js";
 import { subscribeToDataChanges } from "./storage/db.js";
 import { renderAboutView } from "./views/about.js";
 import { renderDashboardView } from "./views/dashboard.js";
@@ -33,7 +33,7 @@ const updateActiveNav = (route) => {
 };
 
 const render = () => {
-    destroyDashboardCharts();
+    destroyCharts();
     updateActiveNav(state.route);
     mainElement.replaceChildren();
     let view;

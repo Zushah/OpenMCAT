@@ -382,6 +382,48 @@
     color: var(--text-secondary);
 }
 
+.stimulus-chart {
+    min-width: 0;
+    margin: var(--space-md) 0 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-sm);
+    background: color-mix(in srgb, var(--bg-elevated), transparent 32%);
+    overflow: hidden;
+}
+
+.stimulus-chart--question {
+    width: min(100%, 42rem);
+    margin: var(--space-md) auto;
+}
+
+.stimulus-chart--passage {
+    width: min(100%, 36rem);
+    margin-inline: auto;
+}
+
+.stimulus-chart-canvas-wrap {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    height: clamp(240px, 34vw, 330px);
+}
+
+.stimulus-chart-canvas-wrap canvas {
+    display: block;
+    max-width: 100%;
+}
+
+.stimulus-chart-caption {
+    margin-bottom: var(--space-sm);
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.45;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
 .question-stem {
     color: var(--text-primary);
 }
@@ -2302,6 +2344,14 @@
 }
 
 @media (max-width: 640px) {
+    .stimulus-chart {
+        padding: 0.4rem;
+    }
+
+    .stimulus-chart-canvas-wrap {
+        height: 240px;
+    }
+
     .dashboard-card-pagination {
         width: 100%;
         justify-content: flex-start;

@@ -1,6 +1,7 @@
 import { getSectionById, getSkillById, getTopicById } from "../data/taxonomy.js";
 import { PRACTICE_SCHEMA_SUMMARY } from "../schema/practice.js";
 import { BASE_SYSTEM_PROMPT } from "./base.js";
+import { CHART_PROMPT } from "./charts.js";
 import { buildDifficultyPrompt } from "./difficulty.js";
 import { FORMAT_PROMPTS } from "./format.js";
 import { SECTION_PROMPTS } from "./section.js";
@@ -16,6 +17,7 @@ export const compileSystemPrompt = (config) => {
     const difficultyPrompt = buildDifficultyPrompt(config);
     const formatPrompt = FORMAT_PROMPTS[config.questionFormat] ?? "";
     const selectedSkills = config.skillIds.map((skillId) => getSkillById(skillId)).filter(Boolean);
+    const chartPrompt = CHART_PROMPT;
     return [
         BASE_SYSTEM_PROMPT,
         "Legal and quality constraints:",
@@ -26,7 +28,8 @@ export const compileSystemPrompt = (config) => {
         buildTopicPrompt(config.topicIds),
         buildSkillPrompt(selectedSkills),
         difficultyPrompt,
-        formatPrompt
+        formatPrompt,
+        chartPrompt
     ].filter(Boolean).join("\n\n");
 };
 

@@ -1,7 +1,8 @@
-export const PRACTICE_SCHEMA_VERSION = "1.0";
+export const PRACTICE_SCHEMA_VERSION = "1.1";
+export const SUPPORTED_PRACTICE_SCHEMA_VERSIONS = Object.freeze(["1.0", PRACTICE_SCHEMA_VERSION]);
 
 export const PRACTICE_SCHEMA_SUMMARY = `{
-    "schemaVersion": "1.0",
+    "schemaVersion": "1.1",
     "session": {
         "title": "string",
         "sectionId": "cp|bb|ps",
@@ -26,6 +27,43 @@ export const PRACTICE_SCHEMA_SUMMARY = `{
                     "rows": [["string"]]
                 }
             ],
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "string",
+                    "config": {
+                        "type": "line|bar|scatter",
+                        "data": {
+                            "labels": ["optional category labels"],
+                            "datasets": [
+                                {
+                                    "label": "optional string",
+                                    "type": "optional line|bar|scatter override",
+                                    "data": [1, 2, 3]
+                                }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": {
+                                    "type": "category|linear|logarithmic",
+                                    "title": { "display": true, "text": "string" },
+                                    "min": 0,
+                                    "max": 10,
+                                    "beginAtZero": false
+                                },
+                                "y": {
+                                    "type": "linear|logarithmic",
+                                    "title": { "display": true, "text": "string" },
+                                    "min": 0,
+                                    "max": 10,
+                                    "beginAtZero": true
+                                }
+                            }
+                        }
+                    }
+                }
+            ],
             "figureDescriptions": [
                 {
                     "id": "f1",
@@ -41,6 +79,27 @@ export const PRACTICE_SCHEMA_SUMMARY = `{
             "passageId": null,
             "type": "discrete|passage_based",
             "stem": "string",
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "string",
+                    "config": {
+                        "type": "scatter",
+                        "data": {
+                            "datasets": [
+                                {
+                                    "label": "optional string",
+                                    "data": [
+                                        { "x": 0.5, "y": 2.1 },
+                                        { "x": 1.0, "y": 4.2 }
+                                    ]
+                                }
+                            ]
+                        },
+                        "options": { "scales": { "x": { "type": "linear" }, "y": { "type": "linear" } } }
+                    }
+                }
+            ],
             "choices": [
                 { "id": "A", "text": "string" },
                 { "id": "B", "text": "string" },

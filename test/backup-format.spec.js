@@ -1,5 +1,5 @@
-import { gzipSync } from "node:zlib";
 import { expect, test } from "./fixtures.js";
+import { gzipSync } from "node:zlib";
 
 const createPayload = (suffix, exportedAt = "2026-08-23T12:34:56.789Z") => ({
     exportVersion: "1.0",

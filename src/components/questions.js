@@ -1,4 +1,5 @@
 import { createHighlightableText, getPassageFigureCaptionHighlightKey, getPassageFigureDescriptionHighlightKey, getPassageHighlightScopeKey, getPassageTableCaptionHighlightKey, getPassageTableCellHighlightKey, getPassageTableColumnHighlightKey, getPassageTextHighlightKey, getPassageTitleHighlightKey } from "./highlights.js";
+import { createStimulusChart } from "./charts.js";
 
 export const createChoiceCard = (choice, { selectedId, submitted, correctId }) => {
     const button = document.createElement("button");
@@ -180,6 +181,9 @@ export const createPassageCard = (passage, options = {}) => {
             scopeKey: passageScopeKey,
             highlightRangesByTargetKey
         }));
+    });
+    (passage.charts ?? []).forEach((chart) => {
+        card.append(createStimulusChart(chart, { defer: options.deferCharts === true }));
     });
     (passage.figureDescriptions ?? []).forEach((figure, figureIndex) => {
         const figureId = getStableContentId(figure, figureIndex, "figure");
