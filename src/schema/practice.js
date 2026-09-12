@@ -1,8 +1,8 @@
-export const PRACTICE_SCHEMA_VERSION = "1.1";
-export const SUPPORTED_PRACTICE_SCHEMA_VERSIONS = Object.freeze(["1.0", PRACTICE_SCHEMA_VERSION]);
+export const PRACTICE_SCHEMA_VERSION = "1.2";
+export const SUPPORTED_PRACTICE_SCHEMA_VERSIONS = Object.freeze(["1.0", "1.1", PRACTICE_SCHEMA_VERSION]);
 
 export const PRACTICE_SCHEMA_SUMMARY = `{
-    "schemaVersion": "1.1",
+    "schemaVersion": "1.2",
     "session": {
         "title": "string",
         "sectionId": "cp|bb|ps",
@@ -79,6 +79,14 @@ export const PRACTICE_SCHEMA_SUMMARY = `{
             "passageId": null,
             "type": "discrete|passage_based",
             "stem": "string",
+            "tables": [
+                {
+                    "id": "t1",
+                    "caption": "string",
+                    "columns": ["string"],
+                    "rows": [["string"]]
+                }
+            ],
             "charts": [
                 {
                     "id": "c1",
@@ -98,6 +106,13 @@ export const PRACTICE_SCHEMA_SUMMARY = `{
                         },
                         "options": { "scales": { "x": { "type": "linear" }, "y": { "type": "linear" } } }
                     }
+                }
+            ],
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "string",
+                    "description": "string"
                 }
             ],
             "choices": [

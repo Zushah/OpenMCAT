@@ -1,6 +1,6 @@
 import { createHighlightableText, getQuestionHighlightScopeKey, getQuestionStemHighlightKey } from "../components/highlights.js";
-import { createPassageCard, createPassageMetadataById, getPassageCardTitle } from "../components/questions.js";
-import { createStimulusChart, renderStimulusCharts } from "../components/charts.js";
+import { appendStimulusContent, createPassageCard, createPassageMetadataById, getPassageCardTitle } from "../components/questions.js";
+import { renderStimulusCharts } from "../components/charts.js";
 import { MISTAKE_TYPES, normalizeMistakeTypeIds } from "../data/mistakes.js";
 import { formatDurationMs } from "../components/timer.js";
 
@@ -150,7 +150,12 @@ const makeQuestionReviewBlock = (record, index, isFocused, passagesById, passage
         ranges: highlightRangesByTargetKey[questionHighlightKey] ?? []
     }));
     card.append(heading);
-    (question.charts ?? []).forEach((chart) => card.append(createStimulusChart(chart, { surface: "question" })));
+    appendStimulusContent(card, question, {
+        surface: "question",
+        ownerId: question.id,
+        scopeKey: getQuestionHighlightScopeKey(question.id),
+        highlightRangesByTargetKey
+    });
     const meta = document.createElement("p");
     meta.className = "tiny";
     const selected = state.submitted ? state.submittedChoiceId ?? state.selectedChoiceId ?? "Unsubmitted" : "Unsubmitted";

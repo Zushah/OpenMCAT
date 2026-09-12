@@ -41,15 +41,15 @@ const validChartSession = () => {
     return session;
 };
 
-test("practice prompts describe optional schema-v1.1 charts without encouraging overuse", () => {
+test("practice prompts describe optional schema-v1.2 stimuli without encouraging overuse", () => {
     const discrete = compilePracticePrompt({ ...DEFAULT_CONFIG, questionFormat: "discrete" });
-    expect(discrete.user).toContain('"schemaVersion": "1.1"');
-    expect(discrete.system).toContain("Optional charts arrays may appear on passage objects and directly on question objects.");
-    expect(discrete.system).toContain("Do not add charts merely because the schema supports them.");
+    expect(discrete.user).toContain('"schemaVersion": "1.2"');
+    expect(discrete.system).toContain("Optional tables, charts, and figureDescriptions arrays may appear on passage objects and directly on question objects.");
+    expect(discrete.system).toContain("Do not add any stimulus merely because the schema permits it.");
     expect(discrete.system).toContain("line, bar, and scatter");
     expect(discrete.system).toContain("category, linear, and logarithmic");
     expect(discrete.system).toContain("Every value and bound on a logarithmic dimension must be positive");
-    expect(discrete.system).toContain("may contain a charts array directly while keeping passageId: null");
+    expect(discrete.system).toContain("may contain tables, charts, and figureDescriptions arrays directly while keeping passageId: null");
     expect(discrete.system).toContain("scientificallyCoherent means the prose, tables, charts, figure descriptions");
 
     const passage = compilePracticePrompt({ ...DEFAULT_CONFIG, questionFormat: "passage" });
@@ -59,13 +59,13 @@ test("practice prompts describe optional schema-v1.1 charts without encouraging 
 
 test("repair prompts give targeted chart and schema corrections", () => {
     const errors = [
-        'schemaVersion "2.0" is unsupported; use "1.1".',
+        'schemaVersion "2.0" is unsupported; use "1.2".',
         'questions[0].charts[0].config contains unsupported property "plugins".',
         "questions[0].charts[0].config.data.datasets[0].data length must match questions[0].charts[0].config.data.labels length.",
         "questions[0].charts[0].config.data.datasets[0].data[1].y must be greater than zero for a logarithmic y-axis."
     ];
     const prompt = buildRepairPrompt(errors);
-    expect(prompt).toContain('Replace unsupported schemaVersion "2.0" with "1.1".');
+    expect(prompt).toContain('Replace unsupported schemaVersion "2.0" with "1.2".');
     expect(prompt).toContain('Remove unsupported property "plugins"');
     expect(prompt).toContain("the same length as config.data.labels");
     expect(prompt).toContain("greater than zero");
@@ -74,10 +74,10 @@ test("repair prompts give targeted chart and schema corrections", () => {
     expect(prompt).toContain("complete corrected response as exactly one single-line JSON object");
 });
 
-test("practice schema exposes v1.1 while retaining v1.0 support", () => {
-    expect(PRACTICE_SCHEMA_VERSION).toBe("1.1");
-    expect(SUPPORTED_PRACTICE_SCHEMA_VERSIONS).toEqual(["1.0", "1.1"]);
-    expect(PRACTICE_SCHEMA_SUMMARY).toContain('"schemaVersion": "1.1"');
+test("practice schema exposes v1.2 while retaining v1.0 and v1.1 support", () => {
+    expect(PRACTICE_SCHEMA_VERSION).toBe("1.2");
+    expect(SUPPORTED_PRACTICE_SCHEMA_VERSIONS).toEqual(["1.0", "1.1", "1.2"]);
+    expect(PRACTICE_SCHEMA_SUMMARY).toContain('"schemaVersion": "1.2"');
     expect(PRACTICE_SCHEMA_SUMMARY.match(/"charts": \[/g)).toHaveLength(2);
     expect(PRACTICE_SCHEMA_SUMMARY).toContain('{ "x": 0.5, "y": 2.1 }');
     expect(validatePracticeSession(structuredClone(SAMPLE_SESSION)).valid).toBe(true);
@@ -91,7 +91,7 @@ test("chart validation enforces schema compatibility and the supported subset", 
 
     const unknownVersion = structuredClone(SAMPLE_SESSION);
     unknownVersion.schemaVersion = "2.0";
-    expect(validatePracticeSession(unknownVersion).errors).toContain('schemaVersion "2.0" is unsupported; use "1.1".');
+    expect(validatePracticeSession(unknownVersion).errors).toContain('schemaVersion "2.0" is unsupported; use "1.2".');
 
     const unsafe = validChartSession();
     unsafe.questions[0].charts[0].config.data.datasets[0].backgroundColor = "red";
@@ -243,8 +243,8 @@ test("schema v1.1 validates the supported chart grammar and rejects unsafe struc
         expect(result[key].valid, key).toBe(false);
         expect(result[key].repair, key).toContain("single-line JSON object");
     }
-    expect(result.legacyCharts.repair).toContain('Set schemaVersion to "1.1"');
-    expect(result.future.repair).toContain('Replace unsupported schemaVersion "2.0" with "1.1"');
+    expect(result.legacyCharts.repair).toContain('Set schemaVersion to "1.2"');
+    expect(result.future.repair).toContain('Replace unsupported schemaVersion "2.0" with "1.2"');
     expect(result.badType.repair).toContain("line, bar, or scatter");
     expect(result.unsafeStyle.repair).toContain('Remove unsupported property "backgroundColor"');
     expect(result.unsafeBehavior.repair).toContain('Remove unsupported property "plugins"');

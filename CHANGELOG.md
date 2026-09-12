@@ -3,7 +3,8 @@
 All committed changes to the [`Zushah/OpenMCAT`](https://github.com/Zushah/OpenMCAT) code repository are recorded here.
 
 ## 32. [`v1.9.0`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-09-12&until=2026-09-12) 2026-09-12
-- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Add custom website build and deployment workflow
+- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Add tables and figure descriptions for questions
+- [`56632a3`](https://github.com/Zushah/OpenMCAT/commit/56632a3) Add custom GitHub Pages workflow
 - [`f46f132`](https://github.com/Zushah/OpenMCAT/commit/f46f132) Add charts for questions and passages
 
 ## 31. [`v1.8.0`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-08-23&until=2026-08-23) 2026-08-23

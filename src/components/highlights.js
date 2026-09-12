@@ -26,6 +26,16 @@ export const getQuestionHighlightScopeKey = (questionId) => `question:${getKeyPa
 
 export const getQuestionStemHighlightKey = (questionId) => `question:${getKeyPart(questionId)}:stem`;
 
+export const getQuestionTableCaptionHighlightKey = (questionId, tableId) => `question:${getKeyPart(questionId)}:table:${getKeyPart(tableId)}:caption`;
+
+export const getQuestionTableColumnHighlightKey = (questionId, tableId, columnIndex) => `question:${getKeyPart(questionId)}:table:${getKeyPart(tableId)}:column:${getKeyPart(columnIndex)}`;
+
+export const getQuestionTableCellHighlightKey = (questionId, tableId, rowIndex, columnIndex) => `question:${getKeyPart(questionId)}:table:${getKeyPart(tableId)}:cell:${getKeyPart(rowIndex)}:${getKeyPart(columnIndex)}`;
+
+export const getQuestionFigureCaptionHighlightKey = (questionId, figureId) => `question:${getKeyPart(questionId)}:figure:${getKeyPart(figureId)}:caption`;
+
+export const getQuestionFigureDescriptionHighlightKey = (questionId, figureId) => `question:${getKeyPart(questionId)}:figure:${getKeyPart(figureId)}:description`;
+
 export const normalizeHighlightRanges = (ranges = [], textLength = Infinity) => {
     const max = Number.isFinite(textLength) ? Math.max(0, Math.floor(textLength)) : Infinity;
     const normalized = (Array.isArray(ranges) ? ranges : []).map((range) => {

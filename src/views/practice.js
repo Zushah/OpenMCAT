@@ -1,7 +1,6 @@
 import { createProgressBar } from "../components/progress.js";
 import { createHighlightableText, getQuestionHighlightScopeKey, getQuestionStemHighlightKey } from "../components/highlights.js";
-import { createChoiceCard, createPassageCard, createPassageMetadataById } from "../components/questions.js";
-import { createStimulusChart } from "../components/charts.js";
+import { appendStimulusContent, createChoiceCard, createPassageCard, createPassageMetadataById } from "../components/questions.js";
 import { formatDurationMs } from "../components/timer.js";
 
 const cb = Chalkboard;
@@ -400,7 +399,12 @@ export const renderPracticeView = (state, actions, nowMs) => {
         ranges: highlightRangesByTargetKey[questionHighlightKey]
     });
     questionCard.append(questionHeading, statusRow, stem);
-    (question.charts ?? []).forEach((chart) => questionCard.append(createStimulusChart(chart, { surface: "question" })));
+    appendStimulusContent(questionCard, question, {
+        surface: "question",
+        ownerId: question.id,
+        scopeKey: getQuestionHighlightScopeKey(question.id),
+        highlightRangesByTargetKey
+    });
     const choiceList = document.createElement("div");
     choiceList.className = "choice-list";
     const controlsLocked = questionState.submitted && activeSession.config.reviewMode === "immediate";

@@ -402,6 +402,23 @@
     margin-inline: auto;
 }
 
+.stimulus-table, .stimulus-figure-description {
+    min-width: 0;
+    margin: var(--space-md) auto;
+}
+
+.stimulus-table {
+    padding-block: var(--space-sm);
+}
+
+.stimulus-table--question, .stimulus-figure-description--question {
+    width: min(100%, 42rem);
+}
+
+.stimulus-table--passage, .stimulus-figure-description--passage {
+    width: min(100%, 36rem);
+}
+
 .stimulus-chart-canvas-wrap {
     position: relative;
     width: 100%;

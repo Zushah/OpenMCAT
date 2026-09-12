@@ -1,4 +1,4 @@
-import { createHighlightableText, getPassageFigureCaptionHighlightKey, getPassageFigureDescriptionHighlightKey, getPassageHighlightScopeKey, getPassageTableCaptionHighlightKey, getPassageTableCellHighlightKey, getPassageTableColumnHighlightKey, getPassageTextHighlightKey, getPassageTitleHighlightKey } from "./highlights.js";
+import { createHighlightableText, getPassageFigureCaptionHighlightKey, getPassageFigureDescriptionHighlightKey, getPassageHighlightScopeKey, getPassageTableCaptionHighlightKey, getPassageTableCellHighlightKey, getPassageTableColumnHighlightKey, getPassageTextHighlightKey, getPassageTitleHighlightKey, getQuestionFigureCaptionHighlightKey, getQuestionFigureDescriptionHighlightKey, getQuestionHighlightScopeKey, getQuestionTableCaptionHighlightKey, getQuestionTableCellHighlightKey, getQuestionTableColumnHighlightKey } from "./highlights.js";
 import { createStimulusChart } from "./charts.js";
 
 export const createChoiceCard = (choice, { selectedId, submitted, correctId }) => {
@@ -30,20 +30,38 @@ const getStableContentId = (item, index, fallbackPrefix) => String(item?.id || `
 
 const getHighlightRanges = (highlightRangesByTargetKey = {}, targetKey) => highlightRangesByTargetKey[targetKey] ?? [];
 
-export const createPassageTable = (tableData, options = {}) => {
+const getStimulusHighlightKeys = (surface) => surface === "question" ? {
+    getScopeKey: getQuestionHighlightScopeKey,
+    getTableCaptionKey: getQuestionTableCaptionHighlightKey,
+    getTableColumnKey: getQuestionTableColumnHighlightKey,
+    getTableCellKey: getQuestionTableCellHighlightKey,
+    getFigureCaptionKey: getQuestionFigureCaptionHighlightKey,
+    getFigureDescriptionKey: getQuestionFigureDescriptionHighlightKey
+} : {
+    getScopeKey: getPassageHighlightScopeKey,
+    getTableCaptionKey: getPassageTableCaptionHighlightKey,
+    getTableColumnKey: getPassageTableColumnHighlightKey,
+    getTableCellKey: getPassageTableCellHighlightKey,
+    getFigureCaptionKey: getPassageFigureCaptionHighlightKey,
+    getFigureDescriptionKey: getPassageFigureDescriptionHighlightKey
+};
+
+export const createStimulusTable = (tableData, options = {}) => {
     const highlightRangesByTargetKey = options.highlightRangesByTargetKey ?? {};
-    const passageId = options.passageId ?? "";
-    const passageScopeKey = options.scopeKey ?? "";
+    const ownerId = options.ownerId ?? "";
+    const highlightKeys = getStimulusHighlightKeys(options.surface);
+    const scopeKey = options.scopeKey ?? highlightKeys.getScopeKey(ownerId);
     const tableId = getStableContentId(tableData, options.tableIndex ?? 0, "table");
     const wrap = document.createElement("div");
-    wrap.className = "table-wrap";
-    const captionKey = getPassageTableCaptionHighlightKey(passageId, tableId);
+    const surfaceClass = options.surface === "question" ? "question" : "passage";
+    wrap.className = `table-wrap stimulus-table stimulus-table--${surfaceClass}`;
+    const captionKey = highlightKeys.getTableCaptionKey(ownerId, tableId);
     const title = createHighlightableText({
         tagName: "p",
         className: "tiny",
         text: tableData.caption,
         targetKey: captionKey,
-        scopeKey: passageScopeKey,
+        scopeKey,
         ranges: getHighlightRanges(highlightRangesByTargetKey, captionKey)
     });
     wrap.append(title);
@@ -51,12 +69,12 @@ export const createPassageTable = (tableData, options = {}) => {
     const thead = document.createElement("thead");
     const headRow = document.createElement("tr");
     (tableData.columns ?? []).forEach((column, columnIndex) => {
-        const columnKey = getPassageTableColumnHighlightKey(passageId, tableId, columnIndex);
+        const columnKey = highlightKeys.getTableColumnKey(ownerId, tableId, columnIndex);
         const th = createHighlightableText({
             tagName: "th",
             text: column,
             targetKey: columnKey,
-            scopeKey: passageScopeKey,
+            scopeKey,
             ranges: getHighlightRanges(highlightRangesByTargetKey, columnKey)
         });
         headRow.append(th);
@@ -67,12 +85,12 @@ export const createPassageTable = (tableData, options = {}) => {
     (tableData.rows ?? []).forEach((row, rowIndex) => {
         const tr = document.createElement("tr");
         row.forEach((value, columnIndex) => {
-            const cellKey = getPassageTableCellHighlightKey(passageId, tableId, rowIndex, columnIndex);
+            const cellKey = highlightKeys.getTableCellKey(ownerId, tableId, rowIndex, columnIndex);
             const td = createHighlightableText({
                 tagName: "td",
                 text: value,
                 targetKey: cellKey,
-                scopeKey: passageScopeKey,
+                scopeKey,
                 ranges: getHighlightRanges(highlightRangesByTargetKey, cellKey)
             });
             tr.append(td);
@@ -82,6 +100,57 @@ export const createPassageTable = (tableData, options = {}) => {
     table.append(tbody);
     wrap.append(table);
     return wrap;
+};
+
+export const createPassageTable = (tableData, options = {}) => createStimulusTable(tableData, {
+    ...options,
+    ownerId: options.passageId ?? options.ownerId,
+    surface: "passage"
+});
+
+export const createStimulusFigureDescription = (figure, options = {}) => {
+    const highlightRangesByTargetKey = options.highlightRangesByTargetKey ?? {};
+    const ownerId = options.ownerId ?? "";
+    const highlightKeys = getStimulusHighlightKeys(options.surface);
+    const scopeKey = options.scopeKey ?? highlightKeys.getScopeKey(ownerId);
+    const figureId = getStableContentId(figure, options.figureIndex ?? 0, "figure");
+    const figureCard = document.createElement("div");
+    const surfaceClass = options.surface === "question" ? "question" : "passage";
+    figureCard.className = `card card-pad stimulus-figure-description stimulus-figure-description--${surfaceClass}`;
+    const captionKey = highlightKeys.getFigureCaptionKey(ownerId, figureId);
+    const figureHeading = createHighlightableText({
+        tagName: "p",
+        className: "tiny",
+        text: figure.caption,
+        targetKey: captionKey,
+        scopeKey,
+        ranges: getHighlightRanges(highlightRangesByTargetKey, captionKey)
+    });
+    const descriptionKey = highlightKeys.getFigureDescriptionKey(ownerId, figureId);
+    const figureText = createHighlightableText({
+        tagName: "p",
+        text: figure.description,
+        targetKey: descriptionKey,
+        scopeKey,
+        ranges: getHighlightRanges(highlightRangesByTargetKey, descriptionKey)
+    });
+    figureCard.append(figureHeading, figureText);
+    return figureCard;
+};
+
+export const appendStimulusContent = (parent, stimulus, options = {}) => {
+    const surface = options.surface === "question" ? "question" : "passage";
+    const ownerId = options.ownerId ?? stimulus.id;
+    (stimulus.tables ?? []).forEach((tableData, tableIndex) => {
+        parent.append(createStimulusTable(tableData, { ...options, surface, ownerId, tableIndex }));
+    });
+    (stimulus.charts ?? []).forEach((chart) => {
+        parent.append(createStimulusChart(chart, surface === "question" ? { surface: "question", defer: options.deferCharts === true } : { defer: options.deferCharts === true }));
+    });
+    (stimulus.figureDescriptions ?? []).forEach((figure, figureIndex) => {
+        parent.append(createStimulusFigureDescription(figure, { ...options, surface, ownerId, figureIndex }));
+    });
+    return parent;
 };
 
 const formatQuestionNumberRanges = (questionNumbers = []) => {
@@ -174,41 +243,12 @@ export const createPassageCard = (passage, options = {}) => {
         ranges: getHighlightRanges(highlightRangesByTargetKey, passageHighlightKey)
     });
     card.append(passageText);
-    (passage.tables ?? []).forEach((tableData, tableIndex) => {
-        card.append(createPassageTable(tableData, {
-            passageId: passage.id,
-            tableIndex,
-            scopeKey: passageScopeKey,
-            highlightRangesByTargetKey
-        }));
-    });
-    (passage.charts ?? []).forEach((chart) => {
-        card.append(createStimulusChart(chart, { defer: options.deferCharts === true }));
-    });
-    (passage.figureDescriptions ?? []).forEach((figure, figureIndex) => {
-        const figureId = getStableContentId(figure, figureIndex, "figure");
-        const figureCard = document.createElement("div");
-        figureCard.className = "card card-pad";
-        figureCard.style.marginTop = "0.5rem";
-        const figureCaptionKey = getPassageFigureCaptionHighlightKey(passage.id, figureId);
-        const figureHeading = createHighlightableText({
-            tagName: "p",
-            className: "tiny",
-            text: figure.caption,
-            targetKey: figureCaptionKey,
-            scopeKey: passageScopeKey,
-            ranges: getHighlightRanges(highlightRangesByTargetKey, figureCaptionKey)
-        });
-        const figureDescriptionKey = getPassageFigureDescriptionHighlightKey(passage.id, figureId);
-        const figureText = createHighlightableText({
-            tagName: "p",
-            text: figure.description,
-            targetKey: figureDescriptionKey,
-            scopeKey: passageScopeKey,
-            ranges: getHighlightRanges(highlightRangesByTargetKey, figureDescriptionKey)
-        });
-        figureCard.append(figureHeading, figureText);
-        card.append(figureCard);
+    appendStimulusContent(card, passage, {
+        surface: "passage",
+        ownerId: passage.id,
+        scopeKey: passageScopeKey,
+        highlightRangesByTargetKey,
+        deferCharts: options.deferCharts === true
     });
     return card;
 };

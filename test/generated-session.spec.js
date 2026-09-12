@@ -71,9 +71,9 @@ test("the generated-session workflow reaches review, analytics, and a data backu
     await expect(pipeline.getByRole("button", { name: "Copied" })).toBeVisible();
     const prompt = await page.evaluate(() => navigator.clipboard.readText());
     expect(prompt).toContain("Generate a practice session with the following settings:");
-    expect(prompt).toContain('"schemaVersion": "1.1"');
-    expect(prompt).toContain("Optional charts arrays may appear on passage objects and directly on question objects.");
-    expect(prompt).toContain("Do not add charts merely because the schema supports them.");
+    expect(prompt).toContain('"schemaVersion": "1.2"');
+    expect(prompt).toContain("Optional tables, charts, and figureDescriptions arrays may appear on passage objects and directly on question objects.");
+    expect(prompt).toContain("Do not add any stimulus merely because the schema permits it.");
 
     const invalidSession = structuredClone(SAMPLE_SESSION);
     delete invalidSession.schemaVersion;
@@ -95,7 +95,7 @@ test("the generated-session workflow reaches review, analytics, and a data backu
     await repairButton.click();
     await expect(pipeline.getByRole("button", { name: "Copied" })).toBeVisible();
     const repairPrompt = await page.evaluate(() => navigator.clipboard.readText());
-    expect(repairPrompt).toContain('Add the top-level field "schemaVersion" with the value "1.1".');
+    expect(repairPrompt).toContain('Add the top-level field "schemaVersion" with the value "1.2".');
     expect(repairPrompt).toContain("Return exactly 5 questions instead of 4.");
     expect(repairPrompt).toContain("one single-line JSON object");
     expect(repairPrompt.length).toBeLessThan(600);
