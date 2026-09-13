@@ -1,9 +1,9 @@
 {
-    "schemaVersion": "1.0",
+    "schemaVersion": "1.2",
     "bank": {
         "id": "ps_core",
         "sectionId": "ps",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "targetQuestionCount": 100,
         "description": "OpenMCAT P/S core question bank."
     },
@@ -105,11 +105,26 @@
                     ]
                 }
             ],
-            "figureDescriptions": [
+            "charts": [
                 {
-                    "id": "f1",
-                    "caption": "Retrieval benefit",
-                    "description": "Both groups recalled more words on cued recall than on free recall, but the restricted-sleep group performed worse than the normal-sleep group on both tests."
+                    "id": "c1",
+                    "caption": "Free- and cued-recall performance by sleep condition.",
+                    "config": {
+                        "type": "bar",
+                        "data": {
+                            "labels": ["Normal sleep", "Restricted sleep"],
+                            "datasets": [
+                                { "label": "Free recall", "data": [18.4, 13.2] },
+                                { "label": "Cued recall", "data": [24.1, 20.2] }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": { "type": "category", "title": { "display": true, "text": "Sleep condition" } },
+                                "y": { "type": "linear", "beginAtZero": true, "max": 30, "title": { "display": true, "text": "Mean words recalled" } }
+                            }
+                        }
+                    }
                 }
             ]
         },
@@ -161,6 +176,27 @@
                     ]
                 }
             ],
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "Skin conductance response across conditioning phases and test stimuli.",
+                    "config": {
+                        "type": "bar",
+                        "data": {
+                            "labels": ["Late acquisition: A", "Late acquisition: B", "Late extinction: A", "Late extinction: B", "Final test: C"],
+                            "datasets": [
+                                { "label": "Mean skin conductance response", "data": [0.78, 0.22, 0.31, 0.20, 0.49] }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": { "type": "category", "title": { "display": true, "text": "Phase and stimulus" } },
+                                "y": { "type": "linear", "beginAtZero": true, "title": { "display": true, "text": "Mean response (arbitrary units)" } }
+                            }
+                        }
+                    }
+                }
+            ],
             "figureDescriptions": [
                 {
                     "id": "f1",
@@ -187,6 +223,29 @@
                         ["Personal-values prompt", "3.0", "4.9", "5.5"],
                         ["Group-comparison prompt", "4.8", "3.8", "4.1"]
                     ]
+                }
+            ],
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "Post-feedback ratings by writing-prompt condition.",
+                    "config": {
+                        "type": "bar",
+                        "data": {
+                            "labels": ["Personal-values prompt", "Group-comparison prompt"],
+                            "datasets": [
+                                { "label": "Perceived threat", "data": [3.0, 4.8] },
+                                { "label": "Expected future performance", "data": [4.9, 3.8] },
+                                { "label": "Willingness to attempt similar task", "data": [5.5, 4.1] }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": { "type": "category", "title": { "display": true, "text": "Writing-prompt condition" } },
+                                "y": { "type": "linear", "min": 1, "max": 7, "title": { "display": true, "text": "Mean rating" } }
+                            }
+                        }
+                    }
                 }
             ],
             "figureDescriptions": [
@@ -216,19 +275,29 @@
                         ["Congruent lemon scent", "4.2", "4.5", "4.5"],
                         ["Incongruent coffee scent", "2.7", "5.0", "2.8"]
                     ]
-                },
+                }
+            ],
+            "charts": [
                 {
-                    "id": "t2",
-                    "caption": "Odor detection threshold in arbitrary concentration units",
-                    "columns": [
-                        "Time point",
-                        "Mean lemon odor detection threshold"
-                    ],
-                    "rows": [
-                        ["Before continuous odor exposure", "2.0"],
-                        ["Immediately after 3 minutes of exposure", "6.0"],
-                        ["Ten minutes after exposure ended", "3.0"]
-                    ]
+                    "id": "c1",
+                    "caption": "Beverage ratings across ambient scent conditions.",
+                    "config": {
+                        "type": "bar",
+                        "data": {
+                            "labels": ["No ambient scent", "Congruent lemon scent", "Incongruent coffee scent"],
+                            "datasets": [
+                                { "label": "Perceived sweetness", "data": [3.1, 4.2, 2.7] },
+                                { "label": "Perceived sourness", "data": [4.8, 4.5, 5.0] },
+                                { "label": "Purchase intention", "data": [3.2, 4.5, 2.8] }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": { "type": "category", "title": { "display": true, "text": "Ambient scent condition" } },
+                                "y": { "type": "linear", "min": 1, "max": 7, "title": { "display": true, "text": "Mean rating" } }
+                            }
+                        }
+                    }
                 }
             ],
             "figureDescriptions": [
@@ -313,6 +382,29 @@
                     ]
                 }
             ],
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "Health-information comprehension scores by district and workshop attendance.",
+                    "config": {
+                        "type": "bar",
+                        "data": {
+                            "labels": ["Working-class district", "Mixed-income district", "Professional-class district"],
+                            "datasets": [
+                                { "label": "Baseline", "data": [58, 64, 75] },
+                                { "label": "Four-week nonattendees", "data": [60, 65, 76] },
+                                { "label": "Four-week workshop attendees", "data": [72, 75, 82] }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": { "type": "category", "title": { "display": true, "text": "Center district" } },
+                                "y": { "type": "linear", "min": 0, "max": 100, "title": { "display": true, "text": "Mean comprehension score" } }
+                            }
+                        }
+                    }
+                }
+            ],
             "figureDescriptions": [
                 {
                     "id": "f1",
@@ -343,6 +435,30 @@
                     ]
                 }
             ],
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "Recycling accuracy from baseline through reward removal.",
+                    "config": {
+                        "type": "line",
+                        "data": {
+                            "labels": ["Baseline week", "Week 4", "Reward-removal week"],
+                            "datasets": [
+                                { "label": "Informational signs only", "data": [43, 55, 52] },
+                                { "label": "Fixed-ratio points", "data": [42, 68, 50] },
+                                { "label": "Variable-ratio points", "data": [44, 75, 63] },
+                                { "label": "Observational modeling plus signs", "data": [41, 70, 66] }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": { "type": "category", "title": { "display": true, "text": "Study phase" } },
+                                "y": { "type": "linear", "min": 0, "max": 100, "title": { "display": true, "text": "Items correctly sorted (%)" } }
+                            }
+                        }
+                    }
+                }
+            ],
             "figureDescriptions": [
                 {
                     "id": "f1",
@@ -371,6 +487,28 @@
                         ["Coping-continuum message", "72", "2.7", "5.1"],
                         ["Danger-focused message", "80", "5.2", "3.1"]
                     ]
+                }
+            ],
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "Stigma and help-seeking ratings by message condition.",
+                    "config": {
+                        "type": "bar",
+                        "data": {
+                            "labels": ["Neutral", "Biological explanation", "Coping continuum", "Danger focused"],
+                            "datasets": [
+                                { "label": "Stigma rating", "data": [3.8, 3.5, 2.7, 5.2] },
+                                { "label": "Willingness to recommend help-seeking", "data": [3.9, 4.4, 5.1, 3.1] }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": { "type": "category", "title": { "display": true, "text": "Message condition" } },
+                                "y": { "type": "linear", "min": 1, "max": 7, "title": { "display": true, "text": "Mean rating" } }
+                            }
+                        }
+                    }
                 }
             ],
             "figureDescriptions": [
@@ -602,7 +740,7 @@
             "id": "q6",
             "passageId": "p1",
             "type": "passage_based",
-            "stem": "Which conclusion is best supported by the reaction-time data in Table 1?",
+            "stem": "Which conclusion is best supported by the reaction-time data in the 'Mean task performance and stress ratings by notification condition' table?",
             "choices": [
                 {
                     "id": "A",
@@ -777,7 +915,7 @@
             "id": "q10",
             "passageId": "p1",
             "type": "passage_based",
-            "stem": "Based on Table 2, what is the approximate percentage-point increase in phone checking from the no-notification condition to the vibration condition?",
+            "stem": "Based on the 'Phone-checking behavior after task' table, what is the approximate percentage-point increase in phone checking from the no-notification condition to the vibration condition?",
             "choices": [
                 {
                     "id": "A",
@@ -1164,7 +1302,7 @@
             "id": "q19",
             "passageId": "p2",
             "type": "passage_based",
-            "stem": "Which alternative explanation for the memory findings is most directly weakened by Table 2?",
+            "stem": "Which alternative explanation for the memory findings is most directly weakened by the 'Self-reported fatigue and motivation' table?",
             "choices": [
                 {
                     "id": "A",
@@ -1187,9 +1325,9 @@
             "explanation": "Motivation ratings were similar across groups: 5.8 in the normal-sleep group and 5.6 in the restricted-sleep group. This weakens the claim that lower performance was primarily due to substantially lower motivation in the restricted-sleep group.",
             "choiceExplanations": {
                 "A": "This is correct. The motivation scores are nearly the same, so motivation differences are unlikely to fully explain the performance gap.",
-                "B": "Table 2 supports, rather than weakens, greater fatigue in the restricted-sleep group.",
+                "B": "The 'Self-reported fatigue and motivation' table supports, rather than weakens, greater fatigue in the restricted-sleep group.",
                 "C": "The existence of retrieval cues is part of the task structure, not an alternative explanation weakened by motivation and fatigue data.",
-                "D": "The 2-back results are consistent with an effect on working memory, not weakened by Table 2."
+                "D": "The 2-back results are consistent with an effect on working memory, not weakened by the 'Self-reported fatigue and motivation' table."
             },
             "testedTopicIds": ["ps_memory", "ps_stress"],
             "testedSkillIds": ["sirs_4", "sirs_3"],
@@ -1207,7 +1345,7 @@
             "id": "q20",
             "passageId": "p2",
             "type": "passage_based",
-            "stem": "Based on Table 1, what is the approximate difference in 2-back accuracy between the normal-sleep and restricted-sleep groups?",
+            "stem": "Based on the 'Memory and working-memory performance' table, what is the approximate difference in 2-back accuracy between the normal-sleep and restricted-sleep groups?",
             "choices": [
                 {
                     "id": "A",
@@ -1251,6 +1389,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "A child understands that the amount of water remains the same when it is poured from a short wide glass into a tall narrow glass. In Piaget's theory, this understanding is called:",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Liquid-transfer task.",
+                    "description": "An equal amount of water is shown first in a short, wide glass and then after transfer into a tall, narrow glass. The water level is higher in the second glass, but no water is added or removed during the transfer."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -1465,7 +1610,7 @@
             "id": "q26",
             "passageId": "p3",
             "type": "passage_based",
-            "stem": "Which conclusion is most justified by the data in Table 1?",
+            "stem": "Which conclusion is most justified by the data in the 'Neighborhood characteristics and participant outcomes' table?",
             "choices": [
                 {
                     "id": "A",
@@ -1485,12 +1630,12 @@
                 }
             ],
             "correctChoiceId": "D",
-            "explanation": "The table shows that as neighborhood resource level decreases from high to low, perceived stress rises from 13.1 to 22.0 and morning cortisol rises from 11.2 to 16.7 nmol/L. Because participants were not randomly assigned to neighborhoods, a causal conclusion is not warranted from these data alone.",
+            "explanation": "The 'Neighborhood characteristics and participant outcomes' table shows that as neighborhood resource level decreases from high to low, perceived stress rises from 13.1 to 22.0 and morning cortisol rises from 11.2 to 16.7 nmol/L. Because participants were not randomly assigned to neighborhoods, a causal conclusion is not warranted from these data alone.",
             "choiceExplanations": {
-                "A": "Mean income differs across resource levels, so this statement is contradicted by the table.",
+                "A": "Mean income differs across resource levels, so this statement is contradicted by the 'Neighborhood characteristics and participant outcomes' table.",
                 "B": "The observational design and income differences prevent a strong independent causal conclusion.",
-                "C": "Recreational-space use varies with resource level in a direction consistent with stress differences; the table does not show no relationship.",
-                "D": "This is correct. The table supports an association between resource level and both stress indicators."
+                "C": "Recreational-space use varies with resource level in a direction consistent with stress differences; the 'Neighborhood characteristics and participant outcomes' table does not show no relationship.",
+                "D": "This is correct. The 'Neighborhood characteristics and participant outcomes' table supports an association between resource level and both stress indicators."
             },
             "testedTopicIds": ["ps_social_class", "ps_stress"],
             "testedSkillIds": ["sirs_4"],
@@ -1681,6 +1826,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "A participant in a reaction-time study responds faster when a warning light reliably appears 500 ms before the target than when no warning light appears. The warning light most likely improves performance by:",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Warning-cue timing.",
+                    "description": "A trial timeline shows the warning light, a 500 ms interval, the target onset, and then the participant's keypress. In comparison trials, the timeline begins with the target onset and contains no warning light."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -1770,6 +1922,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "In a fictional experiment, participants memorize a list of words and then immediately learn a second list of similar words. Later, memory for the first list is worse than it would have been without the second list. This effect is best described as:",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Two-list memory sequence.",
+                    "description": "The study sequence is shown left to right: learn List 1, immediately learn a similar List 2, delay, then test memory for List 1. A comparison sequence omits List 2 before the same List 1 test."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -1947,7 +2106,7 @@
             "id": "q37",
             "passageId": "p4",
             "type": "passage_based",
-            "stem": "Which result in Table 1 provides the strongest evidence that conditioning occurred during acquisition?",
+            "stem": "Which result in the 'Mean skin conductance response in arbitrary units' table provides the strongest evidence that conditioning occurred during acquisition?",
             "choices": [
                 {
                     "id": "A",
@@ -2389,7 +2548,7 @@
             "id": "q47",
             "passageId": "p5",
             "type": "passage_based",
-            "stem": "Based on Table 1, which statement best describes the effect of the group-comparison prompt relative to the personal-values prompt?",
+            "stem": "Based on the 'Mean post-feedback ratings on 1 to 7 scales' table, which statement best describes the effect of the group-comparison prompt relative to the personal-values prompt?",
             "choices": [
                 {
                     "id": "A",
@@ -2412,7 +2571,7 @@
             "explanation": "The group-comparison prompt had higher perceived threat than the personal-values prompt, 4.8 versus 3.0, and lower willingness to attempt a similar task, 4.1 versus 5.5. It also had lower expected future performance.",
             "choiceExplanations": {
                 "A": "This is correct. It matches the observed direction of the ratings.",
-                "B": "This reverses the pattern shown in the table.",
+                "B": "This reverses the pattern shown in the 'Mean post-feedback ratings on 1 to 7 scales' table.",
                 "C": "The ratings differ across conditions for all three outcomes.",
                 "D": "Expected future performance was lower, not higher, in the group-comparison condition."
             },
@@ -2572,6 +2731,17 @@
             "passageId": null,
             "type": "discrete",
             "stem": "In a psychophysics demonstration, a participant can just notice when 2 g are added to a 100 g weight. According to Weber's law, which added mass would the participant be most likely to just notice when lifting a 300 g weight?",
+            "tables": [
+                {
+                    "id": "t1",
+                    "caption": "Observed and target weight comparisons.",
+                    "columns": ["Comparison", "Starting mass", "Just-noticeable added mass"],
+                    "rows": [
+                        ["Observed", "100 g", "2 g"],
+                        ["Target", "300 g", "Unknown"]
+                    ]
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -2786,7 +2956,7 @@
             "id": "q56",
             "passageId": "p6",
             "type": "passage_based",
-            "stem": "Which conclusion is best supported by Table 1?",
+            "stem": "Which conclusion is best supported by the 'Mean ratings for identical beverage across ambient scent conditions' table?",
             "choices": [
                 {
                     "id": "A",
@@ -2810,7 +2980,7 @@
             "choiceExplanations": {
                 "A": "This is correct. The same beverage received different ratings depending on ambient odor.",
                 "B": "The coffee scent produced lower purchase intention than the lemon scent.",
-                "C": "The table shows separate sweetness and sourness ratings, but it does not show that participants could not distinguish them.",
+                "C": "The 'Mean ratings for identical beverage across ambient scent conditions' table shows separate sweetness and sourness ratings, but it does not show that participants could not distinguish them.",
                 "D": "The congruent lemon scent produced the highest perceived sweetness."
             },
             "testedTopicIds": ["ps_sensory_processing", "ps_cognition"],
@@ -2872,7 +3042,22 @@
             "id": "q58",
             "passageId": "p6",
             "type": "passage_based",
-            "stem": "The increase in lemon odor detection threshold immediately after continuous odor exposure in Table 2 is best explained by:",
+            "stem": "The increase in lemon odor detection threshold immediately after continuous odor exposure in the 'Odor detection threshold in arbitrary concentration units' table is best explained by:",
+            "tables": [
+                {
+                    "id": "t2",
+                    "caption": "Odor detection threshold in arbitrary concentration units",
+                    "columns": [
+                        "Time point",
+                        "Mean lemon odor detection threshold"
+                    ],
+                    "rows": [
+                        ["Before continuous odor exposure", "2.0"],
+                        ["Immediately after 3 minutes of exposure", "6.0"],
+                        ["Ten minutes after exposure ended", "3.0"]
+                    ]
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -3225,7 +3410,7 @@
             "id": "q66",
             "passageId": "p7",
             "type": "passage_based",
-            "stem": "Which interpretation is best supported by the data in Table 1?",
+            "stem": "Which interpretation is best supported by the data in the 'Mean outcomes by task condition' table?",
             "choices": [
                 {
                     "id": "A",
@@ -3249,7 +3434,7 @@
             "choiceExplanations": {
                 "A": "The private-reading group had the lowest physiological changes.",
                 "B": "The challenge group still showed a 16 beats/min heart rate increase and a cortisol increase.",
-                "C": "This is correct. The table supports a difference between challenge and threat framing on cortisol and working memory.",
+                "C": "This is correct. The 'Mean outcomes by task condition' table supports a difference between challenge and threat framing on cortisol and working memory.",
                 "D": "Perceived control was higher in the challenge group than in the threat group."
             },
             "testedTopicIds": ["ps_stress", "ps_cognition"],
@@ -3397,7 +3582,7 @@
             "id": "q70",
             "passageId": "p7",
             "type": "passage_based",
-            "stem": "Based on Table 1, what is the approximate difference in working-memory accuracy between the evaluative-challenge and evaluative-threat groups?",
+            "stem": "Based on the 'Mean outcomes by task condition' table, what is the approximate difference in working-memory accuracy between the evaluative-challenge and evaluative-threat groups?",
             "choices": [
                 {
                     "id": "A",
@@ -3484,6 +3669,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "In a fictional animal-learning study, animals first experience unavoidable mild stressors. Later, when escape becomes possible, many do not attempt to escape. This pattern is most consistent with:",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Two-phase learning design.",
+                    "description": "Phase 1 places animals in a setting with mild stressors and no available escape response. Phase 2 places them in a setting where an open route permits escape, while the same animals' attempts to use the route are observed."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -3665,7 +3857,7 @@
             "id": "q76",
             "passageId": "p8",
             "type": "passage_based",
-            "stem": "Which conclusion is best supported by Table 1?",
+            "stem": "Which conclusion is best supported by the 'Mean health-information comprehension scores out of 100' table?",
             "choices": [
                 {
                     "id": "A",
@@ -3685,10 +3877,10 @@
                 }
             ],
             "correctChoiceId": "B",
-            "explanation": "Workshop attendees had higher four-week scores than nonattendees in every district. However, the professional-class district still had the highest scores and greatest broadband access, showing persistent resource differences.",
+            "explanation": "The 'Mean health-information comprehension scores out of 100' table shows that workshop attendees had higher four-week scores than nonattendees in every district. However, the professional-class district still had the highest scores and greatest broadband access, showing persistent resource differences.",
             "choiceExplanations": {
                 "A": "Four-week scores still differed by district, so baseline differences were not fully eliminated.",
-                "B": "This is correct. The table supports both workshop-associated gains and continuing district differences.",
+                "B": "This is correct. The 'Mean health-information comprehension scores out of 100' table supports both workshop-associated gains and continuing district differences.",
                 "C": "Working-class nonattendees scored 60, whereas professional-class attendees scored 82.",
                 "D": "Broadband access ranged from 62% to 94%, so it was not identical."
             },
@@ -3771,7 +3963,7 @@
                 }
             ],
             "correctChoiceId": "A",
-            "explanation": "The digital divide refers to unequal access to digital technologies and internet resources. The table shows lower reliable broadband access in the working-class district than in the professional-class district.",
+            "explanation": "The digital divide refers to unequal access to digital technologies and internet resources. The 'Mean health-information comprehension scores out of 100' table shows lower reliable broadband access in the working-class district than in the professional-class district.",
             "choiceExplanations": {
                 "A": "This is correct. Broadband inequality is a digital divide issue.",
                 "B": "Binocular disparity is a depth cue based on slightly different retinal images.",
@@ -3837,7 +4029,7 @@
             "id": "q80",
             "passageId": "p8",
             "type": "passage_based",
-            "stem": "Based on Table 1, what is the difference between four-week scores for workshop attendees in the professional-class district and workshop attendees in the working-class district?",
+            "stem": "Based on the 'Mean health-information comprehension scores out of 100' table, what is the difference between four-week scores for workshop attendees in the professional-class district and workshop attendees in the working-class district?",
             "choices": [
                 {
                     "id": "A",
@@ -3881,6 +4073,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "A person judges depth partly because each eye receives a slightly different image of the same object. This depth cue is called:",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Binocular view of an object.",
+                    "description": "The left and right eyes view the same nearby object from horizontally separated positions. The object's projection falls at a slightly different relative location on each retina before the visual information is combined."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -4095,7 +4294,7 @@
             "id": "q86",
             "passageId": "p9",
             "type": "passage_based",
-            "stem": "Which conclusion is best supported by Table 1?",
+            "stem": "Which conclusion is best supported by the 'Mean percentage of items correctly sorted' table?",
             "choices": [
                 {
                     "id": "A",
@@ -4115,7 +4314,7 @@
                 }
             ],
             "correctChoiceId": "A",
-            "explanation": "The variable-ratio condition reached 75% accuracy at Week 4, the highest of all conditions, and remained at 63% during reward removal, compared with 50% in the fixed-ratio condition.",
+            "explanation": "The 'Mean percentage of items correctly sorted' table shows that the variable-ratio condition reached 75% accuracy at Week 4, the highest of all conditions, and remained at 63% during reward removal, compared with 50% in the fixed-ratio condition.",
             "choiceExplanations": {
                 "A": "This is correct. It accurately describes both Week 4 and reward-removal patterns.",
                 "B": "Informational signs alone improved to 55%, less than the other intervention conditions at Week 4.",
@@ -4207,8 +4406,8 @@
             "explanation": "The variable-ratio condition declined less after reward removal than the fixed-ratio condition. Variable schedules can produce persistent responding because the absence of immediate reward is less clearly informative that reinforcement has ended.",
             "choiceExplanations": {
                 "A": "Operant reinforcement schedules can affect voluntary behavior such as recycling choices.",
-                "B": "The table shows the opposite pattern during reward removal.",
-                "C": "This is correct. The table shows greater persistence after a variable-ratio schedule.",
+                "B": "The 'Mean percentage of items correctly sorted' table shows the opposite pattern during reward removal.",
+                "C": "This is correct. The 'Mean percentage of items correctly sorted' table shows greater persistence after a variable-ratio schedule.",
                 "D": "Removing rewards usually decreases reinforced behavior, although the degree of decrease can vary."
             },
             "testedTopicIds": ["ps_associative_learning"],
@@ -4247,7 +4446,7 @@
                 }
             ],
             "correctChoiceId": "C",
-            "explanation": "The dependent variable is the measured outcome. The table reports recycling accuracy as the percentage of items correctly sorted across time and conditions.",
+            "explanation": "The dependent variable is the measured outcome. The 'Mean percentage of items correctly sorted' table reports recycling accuracy as the percentage of items correctly sorted across time and conditions.",
             "choiceExplanations": {
                 "A": "Dormitory kitchens are part of the setting, not the measured behavioral outcome.",
                 "B": "Condition assignment is an independent variable manipulated by the researchers.",
@@ -4360,6 +4559,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "A cellular neuroscience experiment finds that repeated coactivation of two neurons strengthens the synaptic response between them for hours. This phenomenon is most relevant to which mechanism of memory?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Repeated synaptic coactivation.",
+                    "description": "A presynaptic neuron repeatedly activates a postsynaptic neuron during an induction period. A later test pulse at the same synapse evokes a larger postsynaptic response than an equal test pulse delivered before induction."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -4403,6 +4609,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "A dancer spins several times and then stops but briefly feels as if the room is still moving. Which sensory system is most directly involved?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Head rotation and inner-ear fluid motion.",
+                    "description": "During repeated spinning, the head and fluid within looped inner-ear canals move. Immediately after the head stops, the fluid briefly continues moving relative to the canal walls and bends sensory structures."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -4534,7 +4747,7 @@
             "id": "q96",
             "passageId": "p10",
             "type": "passage_based",
-            "stem": "Which conclusion is best supported by Table 1?",
+            "stem": "Which conclusion is best supported by the 'Mean outcomes by message condition' table?",
             "choices": [
                 {
                     "id": "A",
@@ -4554,11 +4767,11 @@
                 }
             ],
             "correctChoiceId": "C",
-            "explanation": "The danger-focused message had 80% recognition, the highest of all groups, but it also had the highest stigma rating, 5.2, and the lowest help-seeking willingness, 3.1.",
+            "explanation": "The 'Mean outcomes by message condition' table shows that the danger-focused message had 80% recognition, the highest of all groups, but it also had the highest stigma rating, 5.2, and the lowest help-seeking willingness, 3.1.",
             "choiceExplanations": {
                 "A": "The neutral message had willingness of 3.9, lower than the biological and coping-continuum messages.",
                 "B": "The coping-continuum message had the lowest stigma rating, 2.7.",
-                "C": "This is correct. It captures the tradeoff shown in the table.",
+                "C": "This is correct. It captures the tradeoff shown in the 'Mean outcomes by message condition' table.",
                 "D": "Stigma ratings varied substantially across conditions."
             },
             "testedTopicIds": ["ps_psychological_disorders", "ps_stress"],
@@ -4713,7 +4926,7 @@
             "id": "q100",
             "passageId": "p10",
             "type": "passage_based",
-            "stem": "Based on Table 1, what is the difference in willingness to recommend help-seeking between the coping-continuum message and the neutral campus-services message?",
+            "stem": "Based on the 'Mean outcomes by message condition' table, what is the difference in willingness to recommend help-seeking between the coping-continuum message and the neutral campus-services message?",
             "choices": [
                 {
                     "id": "A",

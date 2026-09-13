@@ -1,9 +1,9 @@
 {
-    "schemaVersion": "1.0",
+    "schemaVersion": "1.2",
     "bank": {
         "id": "cp_core",
         "sectionId": "cp",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "targetQuestionCount": 100,
         "description": "OpenMCAT C/P core question bank."
     },
@@ -33,7 +33,7 @@
         {
             "id": "p1",
             "title": "Electrochemical Monitoring of Dissolved Oxygen",
-            "text": "A fictional microfluidic device is designed to monitor oxygen consumption by cultured cells. The device contains a 10.0 mL sealed gas headspace above an aqueous medium. At the working electrode, oxygen is reduced according to: O2 + 4H+ + 4e- -> 2H2O. A 3.0 V source drives current through a variable series resistor and the electrode system. In the tested range, electrode current is approximately proportional to oxygen partial pressure unless the electrode becomes limited by oxygen diffusion from the bulk solution. A pressure sensor in the chamber acts as a parallel-plate capacitor. When gas pressure increases, a flexible membrane deflects toward the fixed plate, decreasing the plate separation d. Before each run, the headspace is sealed, and the table reports conditions just before current is measured.",
+            "text": "A fictional microfluidic device is designed to monitor oxygen consumption by cultured cells. The device contains a 10.0 mL sealed gas headspace above an aqueous medium. At the working electrode, oxygen is reduced according to: O2 + 4H+ + 4e- -> 2H2O. A 3.0 V source drives current through a variable series resistor and the electrode system. In the tested range, electrode current is approximately proportional to oxygen partial pressure unless the electrode becomes limited by oxygen diffusion from the bulk solution. A pressure sensor in the chamber acts as a parallel-plate capacitor. When gas pressure increases, a flexible membrane deflects toward the fixed plate, decreasing the plate separation d. Before each run, the headspace is sealed, and the 'Operating conditions and measured current for the oxygen sensor' table reports conditions just before current is measured.",
             "tables": [
                 {
                     "id": "t1",
@@ -55,11 +55,46 @@
                     ]
                 }
             ],
-            "figureDescriptions": [
+            "charts": [
                 {
-                    "id": "f1",
-                    "caption": "Current response of the oxygen electrode.",
-                    "description": "For runs with 1000 ohm resistance, measured current increases approximately linearly with oxygen mole fraction. At lower resistance, the current increases less than expected from Ohm's law, consistent with a diffusion-limited plateau."
+                    "id": "c1",
+                    "caption": "Observed current and resistor-only Ohm's-law current at standard gas conditions.",
+                    "config": {
+                        "type": "line",
+                        "data": {
+                            "datasets": [
+                                {
+                                    "label": "Observed current",
+                                    "data": [
+                                        { "x": 500, "y": 2.4 },
+                                        { "x": 1000, "y": 1.8 },
+                                        { "x": 2000, "y": 0.95 }
+                                    ]
+                                },
+                                {
+                                    "label": "3.0 V / series resistance",
+                                    "data": [
+                                        { "x": 500, "y": 6.0 },
+                                        { "x": 1000, "y": 3.0 },
+                                        { "x": 2000, "y": 1.5 }
+                                    ]
+                                }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": {
+                                    "type": "linear",
+                                    "title": { "display": true, "text": "Series resistance (ohm)" }
+                                },
+                                "y": {
+                                    "type": "linear",
+                                    "beginAtZero": true,
+                                    "title": { "display": true, "text": "Current (mA)" }
+                                }
+                            }
+                        }
+                    }
                 }
             ]
         },
@@ -187,6 +222,40 @@
                     ]
                 }
             ],
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "Charge passed versus collected gas volume for Trials 1-3 at 298 K.",
+                    "config": {
+                        "type": "scatter",
+                        "data": {
+                            "datasets": [
+                                {
+                                    "label": "Trials 1-3",
+                                    "data": [
+                                        { "x": 193, "y": 24.0 },
+                                        { "x": 386, "y": 48.0 },
+                                        { "x": 386, "y": 46.5 }
+                                    ]
+                                }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": {
+                                    "type": "linear",
+                                    "title": { "display": true, "text": "Charge passed (C)" }
+                                },
+                                "y": {
+                                    "type": "linear",
+                                    "beginAtZero": true,
+                                    "title": { "display": true, "text": "Collected gas volume (mL)" }
+                                }
+                            }
+                        }
+                    }
+                }
+            ],
             "figureDescriptions": [
                 {
                     "id": "f1",
@@ -264,6 +333,41 @@
                     ]
                 }
             ],
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "Load-current response without electrolyte stirring.",
+                    "config": {
+                        "type": "line",
+                        "data": {
+                            "datasets": [
+                                {
+                                    "label": "Measured current",
+                                    "data": [
+                                        { "x": 250, "y": 1.85 },
+                                        { "x": 500, "y": 1.70 },
+                                        { "x": 1000, "y": 1.20 },
+                                        { "x": 2000, "y": 0.70 }
+                                    ]
+                                }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": {
+                                    "type": "logarithmic",
+                                    "title": { "display": true, "text": "External load resistance (ohm)" }
+                                },
+                                "y": {
+                                    "type": "linear",
+                                    "beginAtZero": true,
+                                    "title": { "display": true, "text": "Current (mA)" }
+                                }
+                            }
+                        }
+                    }
+                }
+            ],
             "figureDescriptions": [
                 {
                     "id": "f1",
@@ -304,15 +408,35 @@
                         ["4", "Chiral", "7.5", "high", "8.0", "9.0", "0.8"],
                         ["5", "Chiral", "9.5", "low", "13.0", "16.2", "2.3"]
                     ]
-                },
+                }
+            ],
+            "charts": [
                 {
-                    "id": "t2",
-                    "caption": "Peak areas for a mixture analyzed under Condition 3.",
-                    "columns": ["Peak identity", "Peak area"],
-                    "rows": [
-                        ["R-C", "300"],
-                        ["S-C", "100"]
-                    ]
+                    "id": "c1",
+                    "caption": "Retention times of R-C and S-C across chromatographic conditions.",
+                    "config": {
+                        "type": "bar",
+                        "data": {
+                            "labels": ["Condition 1", "Condition 2", "Condition 3", "Condition 4", "Condition 5"],
+                            "datasets": [
+                                { "label": "R-C", "data": [5.1, 6.2, 12.8, 8.0, 13.0] },
+                                { "label": "S-C", "data": [5.1, 7.0, 16.4, 9.0, 16.2] }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": {
+                                    "type": "category",
+                                    "title": { "display": true, "text": "Chromatographic condition" }
+                                },
+                                "y": {
+                                    "type": "linear",
+                                    "beginAtZero": true,
+                                    "title": { "display": true, "text": "Retention time (min)" }
+                                }
+                            }
+                        }
+                    }
                 }
             ],
             "figureDescriptions": [
@@ -343,6 +467,34 @@
                         ["C", "0.50", "1.00", "12.0"],
                         ["D", "1.00", "1.00", "24.1"]
                     ]
+                }
+            ],
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "Observed carbon dioxide volume by trial.",
+                    "config": {
+                        "type": "bar",
+                        "data": {
+                            "labels": ["Trial A", "Trial B", "Trial C", "Trial D"],
+                            "datasets": [
+                                { "label": "Observed CO2 volume", "data": [6.0, 12.1, 12.0, 24.1] }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": {
+                                    "type": "category",
+                                    "title": { "display": true, "text": "Trial" }
+                                },
+                                "y": {
+                                    "type": "linear",
+                                    "beginAtZero": true,
+                                    "title": { "display": true, "text": "Observed CO2 volume (mL)" }
+                                }
+                            }
+                        }
+                    }
                 }
             ],
             "figureDescriptions": [
@@ -417,6 +569,42 @@
                     ]
                 }
             ],
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "Fraction of carboxylic acid R deprotonated as a function of pH.",
+                    "config": {
+                        "type": "line",
+                        "data": {
+                            "datasets": [
+                                {
+                                    "label": "Fraction deprotonated",
+                                    "data": [
+                                        { "x": 3.8, "y": 0.09 },
+                                        { "x": 4.8, "y": 0.50 },
+                                        { "x": 5.8, "y": 0.91 },
+                                        { "x": 7.4, "y": 0.998 }
+                                    ]
+                                }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": {
+                                    "type": "linear",
+                                    "title": { "display": true, "text": "pH" }
+                                },
+                                "y": {
+                                    "type": "linear",
+                                    "min": 0,
+                                    "max": 1,
+                                    "title": { "display": true, "text": "Fraction deprotonated" }
+                                }
+                            }
+                        }
+                    }
+                }
+            ],
             "figureDescriptions": [
                 {
                     "id": "f1",
@@ -432,6 +620,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "A 4.0 kg medical cart is pushed 3.0 m up a ramp inclined 30 degrees above the horizontal at constant speed. The kinetic friction force opposing the motion is 5.0 N. Approximately how much work is done by the applied pushing force?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Ramp geometry and forces.",
+                    "description": "A 4.0 kg cart lies on a ramp that rises at 30 degrees above horizontal. The cart moves 3.0 m up the ramp at constant speed. An applied force points up the ramp, kinetic friction of 5.0 N points down the ramp, and gravity points vertically downward."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -518,6 +713,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "Two point charges, +q and -q, are separated by a fixed distance. At the midpoint between the charges, which statement best describes the electric field and electric potential?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Charge arrangement.",
+                    "description": "A positive point charge +q is on the left and a negative point charge -q is on the right. Point P lies exactly halfway between them on the line joining the charges."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -866,6 +1068,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "A converging lens with focal length 10 cm is used to view a small object placed 30 cm from the lens. What are the image distance and magnification?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Converging-lens arrangement.",
+                    "description": "An upright object is positioned on the principal axis 30 cm to the left of a thin converging lens. Focal points are marked 10 cm from the lens on both sides, and an image screen can be moved along the axis to the right of the lens."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -995,6 +1204,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "A 10 V battery is connected to a 2 ohm resistor in series with two 6 ohm resistors that are parallel to each other. What is the current through each 6 ohm resistor?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Series-parallel circuit.",
+                    "description": "A single loop leaves the 10 V battery and passes through a 2 ohm resistor. The wire then splits into two branches, each containing one 6 ohm resistor, before the branches rejoin and return to the battery."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -1038,6 +1254,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "A Cu/Cu2+ concentration cell has one half-cell with 1.0 M Cu2+ and another with 0.010 M Cu2+. Which statement correctly describes the spontaneous operation of the cell?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Copper concentration cell.",
+                    "description": "A copper electrode immersed in 1.0 M Cu2+ solution and a copper electrode immersed in 0.010 M Cu2+ solution are connected by an external wire. A salt bridge connects the two solutions. No electron-flow direction or electrode role is labeled."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -1439,6 +1662,17 @@
             "passageId": null,
             "type": "discrete",
             "stem": "Given standard reduction potentials Ag+ + e- -> Ag, E = +0.80 V, and Zn2+ + 2e- -> Zn, E = -0.76 V, what is the standard cell potential for a galvanic cell using Ag+/Ag and Zn2+/Zn electrodes?",
+            "tables": [
+                {
+                    "id": "t1",
+                    "caption": "Standard reduction potentials.",
+                    "columns": ["Reduction half-reaction", "E degrees (V)"],
+                    "rows": [
+                        ["Ag+ + e- -> Ag", "+0.80"],
+                        ["Zn2+ + 2e- -> Zn", "-0.76"]
+                    ]
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -1482,6 +1716,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "Light travels from a medium with refractive index 1.40 into water with refractive index 1.33. Which statement best describes total internal reflection at the interface?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Optical interface.",
+                    "description": "A light ray in a medium of refractive index 1.40 approaches a flat boundary with water, refractive index 1.33. A normal is drawn perpendicular to the boundary at the point of incidence, and the incident angle is measured between the incoming ray and this normal."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -1926,6 +2167,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "In an ideal hydraulic lift, a small piston of area 5 cm2 is pushed down 40 cm, causing a large piston of area 100 cm2 to rise. Neglecting losses, how far does the large piston rise?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Hydraulic lift geometry.",
+                    "description": "Two vertical cylinders filled with incompressible fluid are connected at their bases. The left piston has area 5 cm2 and moves downward 40 cm; the right piston has area 100 cm2 and moves upward an unknown distance."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -2320,6 +2568,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "A concave mirror has radius of curvature 20 cm. An object is placed 5 cm in front of the mirror. What type of image is formed?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Concave-mirror arrangement.",
+                    "description": "An upright object stands 5 cm in front of a concave spherical mirror on its principal axis. The mirror's center of curvature is marked 20 cm in front of the mirror; the focal point and image location are not labeled."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -2425,7 +2680,7 @@
                 }
             ],
             "correctChoiceId": "D",
-            "explanation": "For constant external pressure, work magnitude is P delta V. In Trial B, 10.0 kPa = 10000 Pa and 100 mL = 1.00 x 10^-4 m3, so W = 10000 x 1.00 x 10^-4 = 1.00 J, matching the table.",
+            "explanation": "For constant external pressure, work magnitude is P delta V. In Trial B, 10.0 kPa = 10000 Pa and 100 mL = 1.00 x 10^-4 m3, so W = 10000 x 1.00 x 10^-4 = 1.00 J, matching the 'Mechanical calibration trials' table.",
             "choiceExplanations": {
                 "A": "This uses the initial gas state rather than the trial's pressure-volume change.",
                 "B": "Pressure times distance is not work unless area is also included, and the units are not converted.",
@@ -3051,6 +3306,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "A point P is a distance 2r from a +4q charge and a distance r from a +q charge. How do the magnitudes of the electric fields at P due to the two charges compare?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Distances from point P.",
+                    "description": "Point P is shown with a +4q point charge located 2r away and a separate +q point charge located r away. The comparison concerns the magnitude of each charge's field at P independently; no relative direction is specified."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -3094,6 +3356,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "Light enters glass with refractive index 1.50 from air at an incident angle of 30 degrees from the normal. What is the approximate refracted angle?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Refraction from air into glass.",
+                    "description": "A ray in air approaches a flat glass surface. A normal is drawn at the point of incidence, and the incoming ray makes a 30 degree angle with the normal. The refracted ray enters glass with refractive index 1.50."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -3288,7 +3557,7 @@
                 }
             ],
             "correctChoiceId": "C",
-            "explanation": "Resolution is the most direct measure of chromatographic separation in the table. Condition 3 has the highest listed resolution among the answer choices, 2.4, and the largest retention-time difference between enantiomers.",
+            "explanation": "Resolution is the most direct measure of chromatographic separation in the 'Chromatographic performance under different conditions' table. Condition 3 has the highest listed resolution among the answer choices, 2.4, and the largest retention-time difference between enantiomers.",
             "choiceExplanations": {
                 "A": "Condition 1 has no separation because the achiral column gives identical retention times.",
                 "B": "Condition 2 separates the enantiomers somewhat, but its resolution is lower than Condition 3.",
@@ -3404,7 +3673,18 @@
             "id": "q69",
             "passageId": "p7",
             "type": "passage_based",
-            "stem": "Using the peak areas in Table 2, what is the enantiomeric excess of R-C in the mixture?",
+            "stem": "Using the peak areas in the 'Peak areas for a mixture analyzed under Condition 3' table, what is the enantiomeric excess of R-C in the mixture?",
+            "tables": [
+                {
+                    "id": "t2",
+                    "caption": "Peak areas for a mixture analyzed under Condition 3.",
+                    "columns": ["Peak identity", "Peak area"],
+                    "rows": [
+                        ["R-C", "300"],
+                        ["S-C", "100"]
+                    ]
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -3534,6 +3814,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "A 6 microF capacitor and a 3 microF capacitor are connected in series across a 9 V battery. What is the voltage across the 3 microF capacitor?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Series-capacitor circuit.",
+                    "description": "A 9 V battery is connected across a single series path containing a 6 microF capacitor followed by a 3 microF capacitor. The junction between the capacitors is not connected to any other circuit element."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -3921,6 +4208,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "A beta-keto carboxylic acid is heated and releases CO2. Which structural feature most directly explains its relatively facile decarboxylation?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Beta-keto acid decarboxylation framework.",
+                    "description": "A beta-keto acid is represented as R-C(=O)-CH2-C(=O)-OH. The ketone carbonyl and carboxylic acid group are separated by one methylene carbon; reaction arrows and transition-state geometry are not shown."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -4408,6 +4702,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "In a galvanic Zn/Cu cell, Zn is oxidized at the anode and Cu2+ is reduced at the cathode. Which statement correctly describes ion migration in the salt bridge?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Galvanic cell and salt bridge.",
+                    "description": "A zinc electrode in a Zn2+ solution is labeled anode, and a copper electrode in a Cu2+ solution is labeled cathode. The half-cells are connected by an external wire and a salt bridge containing mobile cations and anions; ion-migration arrows are intentionally omitted."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -4602,7 +4903,7 @@
                 }
             ],
             "correctChoiceId": "D",
-            "explanation": "The Henderson-Hasselbalch relationship gives pH = pKa + log([R-]/[HR]). At pH 5.8 and pKa 4.8, the pH is 1.0 unit above pKa, so [R-]/[HR] = 10. This matches the high deprotonated fraction in the table.",
+            "explanation": "The Henderson-Hasselbalch relationship gives pH = pKa + log([R-]/[HR]). At pH 5.8 and pKa 4.8, the pH is 1.0 unit above pKa, so [R-]/[HR] = 10. This matches the high deprotonated fraction in the 'Assay results after 20 min at different pH values' table.",
             "choiceExplanations": {
                 "A": "This reverses the ratio expected when pH is above pKa.",
                 "B": "A 1:1 ratio occurs at pH = pKa, not one unit above pKa.",

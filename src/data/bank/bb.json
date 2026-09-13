@@ -1,9 +1,9 @@
 {
-    "schemaVersion": "1.0",
+    "schemaVersion": "1.2",
     "bank": {
         "id": "bb_core",
         "sectionId": "bb",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "targetQuestionCount": 100,
         "description": "OpenMCAT B/B core question bank."
     },
@@ -108,6 +108,29 @@
                     ]
                 }
             ],
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "Respiration, ATP synthesis, and membrane potential after mitochondrial perturbations.",
+                    "config": {
+                        "type": "bar",
+                        "data": {
+                            "labels": ["Control", "Rotenone", "Antimycin A", "Oligomycin", "CCCP", "BAX peptide"],
+                            "datasets": [
+                                { "label": "O2 consumption, pyruvate/malate (%)", "data": [100, 25, 10, 35, 160, 70] },
+                                { "label": "ATP synthesis (%)", "data": [100, 35, 10, 8, 15, 60] },
+                                { "label": "Membrane potential (%)", "data": [100, 45, 20, 130, 15, 70] }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": { "type": "category", "title": { "display": true, "text": "Condition" } },
+                                "y": { "type": "linear", "beginAtZero": true, "title": { "display": true, "text": "Percent of control" } }
+                            }
+                        }
+                    }
+                }
+            ],
             "figureDescriptions": [
                 {
                     "id": "p2_f1",
@@ -145,6 +168,29 @@
                     ]
                 }
             ],
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "Full-length mRNA, NrdP protein, and enzyme activity by construct.",
+                    "config": {
+                        "type": "bar",
+                        "data": {
+                            "labels": ["WT, no M", "WT, +M", "-10 mutant", "Hairpin disrupted, +M", "Shine-Dalgarno mutant", "Active-site mutant"],
+                            "datasets": [
+                                { "label": "Full-length mRNA (%)", "data": [100, 30, 12, 95, 105, 100] },
+                                { "label": "NrdP protein (%)", "data": [100, 28, 10, 92, 15, 98] },
+                                { "label": "NrdP activity (%)", "data": [100, 30, 11, 90, 14, 8] }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": { "type": "category", "title": { "display": true, "text": "Construct and condition" } },
+                                "y": { "type": "linear", "beginAtZero": true, "title": { "display": true, "text": "Relative amount or activity (%)" } }
+                            }
+                        }
+                    }
+                }
+            ],
             "figureDescriptions": [
                 {
                     "id": "p3_f1",
@@ -167,33 +213,27 @@
                         ["Blue", "59"],
                         ["White", "83"]
                     ]
-                },
-                {
-                    "id": "p4_t2",
-                    "caption": "Biochemical characterization of enzyme B variants.",
-                    "columns": [
-                        "Enzyme B protein",
-                        "Dimeric protein (%)",
-                        "Km for blue intermediate (mM)",
-                        "Relative Vmax (%)"
-                    ],
-                    "rows": [
-                        ["B wild type", "95", "0.10", "100"],
-                        ["b Gly45Asp variant", "25", "0.12", "20"],
-                        [
-                            "b Gly45Asp + stabilizing osmolyte",
-                            "70",
-                            "0.11",
-                            "65"
-                        ]
-                    ]
                 }
             ],
-            "figureDescriptions": [
+            "charts": [
                 {
-                    "id": "p4_f1",
-                    "caption": "Native gel analysis of enzyme B.",
-                    "description": "Wild-type enzyme B migrates mainly as a dimer. The Gly45Asp variant shows a stronger monomer band and weaker dimer band. Adding a stabilizing osmolyte partially restores the dimer band."
+                    "id": "c1",
+                    "caption": "Observed F2 colony phenotypes.",
+                    "config": {
+                        "type": "bar",
+                        "data": {
+                            "labels": ["Purple", "Blue", "White"],
+                            "datasets": [
+                                { "label": "Observed colonies", "data": [178, 59, 83] }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": { "type": "category", "title": { "display": true, "text": "Colony phenotype" } },
+                                "y": { "type": "linear", "beginAtZero": true, "title": { "display": true, "text": "Observed colonies" } }
+                            }
+                        }
+                    }
                 }
             ]
         },
@@ -257,6 +297,28 @@
                         ["Wild-type G6PD", "0.08", "100"],
                         ["G6PD-M", "0.09", "30"]
                     ]
+                }
+            ],
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "Radiolabeled carbon dioxide production from carbon-1- and carbon-6-labeled glucose.",
+                    "config": {
+                        "type": "bar",
+                        "data": {
+                            "labels": ["WT basal", "WT + oxidant", "G6PD-M basal", "G6PD-M + oxidant"],
+                            "datasets": [
+                                { "label": "14CO2 from [1-14C]glucose (%)", "data": [100, 180, 35, 40] },
+                                { "label": "14CO2 from [6-14C]glucose (%)", "data": [5, 8, 5, 7] }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": { "type": "category", "title": { "display": true, "text": "Cells and condition" } },
+                                "y": { "type": "linear", "beginAtZero": true, "title": { "display": true, "text": "Relative 14CO2 production (%)" } }
+                            }
+                        }
+                    }
                 }
             ],
             "figureDescriptions": [
@@ -360,6 +422,29 @@
                     ]
                 }
             ],
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "Mature LUM1 mRNA, protein abundance, and dimerization by condition.",
+                    "config": {
+                        "type": "bar",
+                        "data": {
+                            "labels": ["Wild type", "RBP-K knockdown", "Exon 3 acceptor weakened", "Intron 2 donor mutant", "Kozak mutant", "Exon 3 coding mutant"],
+                            "datasets": [
+                                { "label": "Total mature mRNA (%)", "data": [100, 55, 50, 18, 95, 98] },
+                                { "label": "LUM1 protein (%)", "data": [100, 25, 20, 6, 22, 45] },
+                                { "label": "Dimeric detected protein (%)", "data": [80, 18, 12, 8, 78, 20] }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": { "type": "category", "title": { "display": true, "text": "Condition" } },
+                                "y": { "type": "linear", "beginAtZero": true, "title": { "display": true, "text": "Percent" } }
+                            }
+                        }
+                    }
+                }
+            ],
             "figureDescriptions": [
                 {
                     "id": "p7_f1",
@@ -429,6 +514,29 @@
                     ]
                 }
             ],
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "Charging fidelity and reporter activity by ThrRS-F condition.",
+                    "config": {
+                        "type": "bar",
+                        "data": {
+                            "labels": ["WT", "D201A", "K55A", "Acceptor-stem mutant", "D201A + valine", "Noncognate tRNA"],
+                            "datasets": [
+                                { "label": "Thr-tRNA charging rate (%)", "data": [100, 95, 8, 18, 90, 3] },
+                                { "label": "Val-tRNA accumulation (%)", "data": [1, 28, 1, 1, 45, 0.5] },
+                                { "label": "Active reporter protein (%)", "data": [98, 62, 12, 20, 45, 8] }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": { "type": "category", "title": { "display": true, "text": "ThrRS-F and tRNA condition" } },
+                                "y": { "type": "linear", "beginAtZero": true, "title": { "display": true, "text": "Percent" } }
+                            }
+                        }
+                    }
+                }
+            ],
             "figureDescriptions": [
                 {
                     "id": "p8_f1",
@@ -478,6 +586,28 @@
                     ]
                 }
             ],
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "Complex IV activity and oxygen consumption in representative strains.",
+                    "config": {
+                        "type": "bar",
+                        "data": {
+                            "labels": ["E_F_", "eeF_", "E_ff", "eeff", "E_F_ + inhibitor"],
+                            "datasets": [
+                                { "label": "Complex IV activity (%)", "data": [100, 18, 20, 15, 5] },
+                                { "label": "O2 consumption (%)", "data": [100, 22, 25, 20, 8] }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": { "type": "category", "title": { "display": true, "text": "Strain or condition" } },
+                                "y": { "type": "linear", "beginAtZero": true, "title": { "display": true, "text": "Percent of control" } }
+                            }
+                        }
+                    }
+                }
+            ],
             "figureDescriptions": [
                 {
                     "id": "p9_f1",
@@ -517,6 +647,29 @@
                         ],
                         ["Acetyl-CoA analog", "135", "70", "155", "112", "4.6"]
                     ]
+                }
+            ],
+            "charts": [
+                {
+                    "id": "c1",
+                    "caption": "Glucose output, cytosolic pyruvate, and mitochondrial OAA/malate after pathway perturbations.",
+                    "config": {
+                        "type": "bar",
+                        "data": {
+                            "labels": ["Control", "MPC inhibitor", "PC inhibitor", "PEPCK knockdown", "ETC inhibitor", "Acetyl-CoA analog"],
+                            "datasets": [
+                                { "label": "Glucose output (%)", "data": [100, 20, 12, 18, 44, 135] },
+                                { "label": "Cytosolic pyruvate (%)", "data": [100, 190, 220, 120, 115, 70] },
+                                { "label": "Mitochondrial OAA/malate pool (%)", "data": [100, 35, 28, 210, 82, 155] }
+                            ]
+                        },
+                        "options": {
+                            "scales": {
+                                "x": { "type": "category", "title": { "display": true, "text": "Condition" } },
+                                "y": { "type": "linear", "beginAtZero": true, "title": { "display": true, "text": "Percent of control" } }
+                            }
+                        }
+                    }
                 }
             ],
             "figureDescriptions": [
@@ -620,6 +773,17 @@
             "passageId": null,
             "type": "discrete",
             "stem": "An inhibitor of a Michaelis-Menten enzyme increases the apparent Km from 4 micromolar to 12 micromolar but does not change Vmax when substrate is saturating. Which mechanism is most consistent with these data?",
+            "tables": [
+                {
+                    "id": "t1",
+                    "caption": "Apparent kinetic parameters with and without inhibitor.",
+                    "columns": ["Condition", "Apparent Km (micromolar)", "Vmax"],
+                    "rows": [
+                        ["No inhibitor", "4", "Reference value"],
+                        ["With inhibitor", "12", "Unchanged"]
+                    ]
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -748,7 +912,7 @@
             "id": "q6",
             "passageId": "p1",
             "type": "passage_based",
-            "stem": "Based on Table p1_t1, which conclusion best describes the effect of AMP on wild-type PFK-X?",
+            "stem": "Based on the 'Kinetic properties of PFK-X under selected conditions' table, which conclusion best describes the effect of AMP on wild-type PFK-X?",
             "choices": [
                 {
                     "id": "A",
@@ -814,7 +978,7 @@
                 }
             ],
             "correctChoiceId": "B",
-            "explanation": "R212E has a lower Hill coefficient and little response to AMP, yet Table p1_t2 shows it remains mostly tetrameric. The best supported interpretation is a defect in AMP-mediated allosteric regulation rather than gross oligomer loss or catalytic ATP binding.",
+            "explanation": "R212E has a lower Hill coefficient and little response to AMP, yet the 'Oligomeric state of PFK-X variants measured by native gel electrophoresis' table shows it remains mostly tetrameric. The best supported interpretation is a defect in AMP-mediated allosteric regulation rather than gross oligomer loss or catalytic ATP binding.",
             "choiceExplanations": {
                 "A": "The data do not show ATP binding directly, and the enzyme retains substantial activity.",
                 "B": "This accounts for preserved tetramer formation with loss of AMP responsiveness.",
@@ -860,7 +1024,7 @@
                 }
             ],
             "correctChoiceId": "B",
-            "explanation": "At low F6P, the enzyme condition with the lowest S0.5 should reach a larger fraction of its Vmax. Wild type plus AMP has the lowest S0.5 in Table p1_t1 and a normal Vmax, so it should have the highest rate at 0.20 mM F6P.",
+            "explanation": "At low F6P, the enzyme condition with the lowest S0.5 should reach a larger fraction of its Vmax. Wild type plus AMP has the lowest S0.5 in the 'Kinetic properties of PFK-X under selected conditions' table and a normal Vmax, so it should have the highest rate at 0.20 mM F6P.",
             "choiceExplanations": {
                 "A": "Citrate raises S0.5, so low F6P would poorly activate the enzyme.",
                 "B": "This condition has the lowest S0.5 and nearly full Vmax, favoring activity at low F6P.",
@@ -955,7 +1119,7 @@
             "explanation": "Asp to Asn preserves approximate side-chain size but removes a carboxylate charge. Because D150N remains mostly tetrameric while activity is nearly abolished, Asp150 is most likely important for catalytic chemistry or active-site electrostatics rather than quaternary assembly.",
             "choiceExplanations": {
                 "A": "A high Hill coefficient would not by itself explain Vmax below 5%.",
-                "B": "Table p1_t2 shows D150N is 90% tetrameric, arguing against a primary tetramer assembly defect.",
+                "B": "The 'Oligomeric state of PFK-X variants measured by native gel electrophoresis' table shows D150N is 90% tetrameric, arguing against a primary tetramer assembly defect.",
                 "C": "This connects the conservative size change but loss of charge to an active-site functional defect.",
                 "D": "No evidence suggests AMP becomes a covalent substrate."
             },
@@ -980,6 +1144,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "An mRNA segment is read by a ribosome as 5'-AUG GAA UGC UAA-3'. For the codon GAA, which tRNA anticodon is correctly written in the antiparallel orientation?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Codon-anticodon alignment.",
+                    "description": "The mRNA is drawn horizontally in the 5' to 3' direction, with the GAA codon centered in the ribosome. A three-base anticodon site on an approaching tRNA is aligned beneath GAA, but its bases and end labels are left blank."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -1115,6 +1286,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "A compound makes the inner mitochondrial membrane permeable to protons but does not block electron transfer. Which immediate pattern is most likely in mitochondria supplied with NADH-generating substrates?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Uncoupled inner mitochondrial membrane.",
+                    "description": "An inner mitochondrial membrane separates the intermembrane space from the matrix. Electron-transport complexes and ATP synthase remain embedded in the membrane, while additional unlabeled paths allow protons to cross the membrane independently of ATP synthase."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -1207,7 +1385,7 @@
             "id": "q16",
             "passageId": "p2",
             "type": "passage_based",
-            "stem": "Which site of inhibition best explains the rotenone results in Table p2_t1?",
+            "stem": "Which site of inhibition best explains the rotenone results in the 'Effects of mitochondrial perturbations' table?",
             "choices": [
                 {
                     "id": "A",
@@ -1232,7 +1410,7 @@
                 "A": "ATP synthase inhibition would not be bypassed by changing electron entry from Complex I to Complex II.",
                 "B": "A Complex II inhibitor would be expected to impair succinate-supported respiration more strongly.",
                 "C": "This matches the substrate-specific rescue by succinate.",
-                "D": "Cytochrome c release is not increased with rotenone in the table."
+                "D": "Cytochrome c release is not increased with rotenone in the 'Effects of mitochondrial perturbations' table."
             },
             "testedTopicIds": ["bb_oxidative_phosphorylation"],
             "testedSkillIds": ["sirs_4", "sirs_2"],
@@ -1275,7 +1453,7 @@
                 "A": "A Complex IV inhibitor would lower membrane potential rather than raise it as proton pumping collapses.",
                 "B": "This explains high membrane potential, low ATP synthesis, and lower oxygen consumption together.",
                 "C": "A proton carrier would lower membrane potential and often increase oxygen consumption, resembling CCCP.",
-                "D": "The table shows no increase in cytochrome c outside mitochondria with oligomycin."
+                "D": "The 'Effects of mitochondrial perturbations' table shows no increase in cytochrome c outside mitochondria with oligomycin."
             },
             "testedTopicIds": [
                 "bb_oxidative_phosphorylation",
@@ -1321,7 +1499,7 @@
                 "A": "This is directly supported by high respiration with low ATP synthesis and low membrane potential.",
                 "B": "ATP synthase does not transfer electrons to oxygen; Complex IV reduces oxygen.",
                 "C": "Low ATP synthesis when membrane potential is low shows the gradient is important.",
-                "D": "Complex II does not pump protons, and the figure states that Complexes I, III, and IV do."
+                "D": "Complex II does not pump protons, and the 'Simplified map of oxidative phosphorylation' figure description states that Complexes I, III, and IV do."
             },
             "testedTopicIds": [
                 "bb_oxidative_phosphorylation",
@@ -1410,7 +1588,7 @@
                 "A": "This conclusion follows from low oxygen consumption with both NADH-linked and succinate-linked substrates.",
                 "B": "If only pyruvate import were blocked, succinate-supported oxygen consumption should remain high.",
                 "C": "Succinate enters through Complex II upstream of ubiquinone and Complex III, not downstream of Complex IV.",
-                "D": "The table shows no increase in cytochrome c outside mitochondria with antimycin A."
+                "D": "The 'Effects of mitochondrial perturbations' table shows no increase in cytochrome c outside mitochondria with antimycin A."
             },
             "testedTopicIds": ["bb_oxidative_phosphorylation"],
             "testedSkillIds": ["sirs_4", "sirs_2"],
@@ -1646,7 +1824,7 @@
             "id": "q26",
             "passageId": "p3",
             "type": "passage_based",
-            "stem": "Which construct in Table p3_t1 most directly identifies a defect in transcription initiation?",
+            "stem": "Which construct in the 'Expression and activity of nrdP constructs' table most directly identifies a defect in transcription initiation?",
             "choices": [
                 {
                     "id": "A",
@@ -1964,6 +2142,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "A mitochondrial inhibitor blocks Complex IV. Which immediate effect is most likely?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Electron-transport chain with Complex IV blocked.",
+                    "description": "The inner-membrane sequence is shown as Complex I and Complex II feeding ubiquinone, followed by Complex III, cytochrome c, and Complex IV adjacent to oxygen. An inhibitor symbol covers Complex IV; no changes in metabolite levels or flux are indicated."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -2185,6 +2370,35 @@
             "passageId": "p4",
             "type": "passage_based",
             "stem": "Which interpretation best explains the biochemical behavior of the b Gly45Asp enzyme B variant?",
+            "tables": [
+                {
+                    "id": "p4_t2",
+                    "caption": "Biochemical characterization of enzyme B variants.",
+                    "columns": [
+                        "Enzyme B protein",
+                        "Dimeric protein (%)",
+                        "Km for blue intermediate (mM)",
+                        "Relative Vmax (%)"
+                    ],
+                    "rows": [
+                        ["B wild type", "95", "0.10", "100"],
+                        ["b Gly45Asp variant", "25", "0.12", "20"],
+                        [
+                            "b Gly45Asp + stabilizing osmolyte",
+                            "70",
+                            "0.11",
+                            "65"
+                        ]
+                    ]
+                }
+            ],
+            "figureDescriptions": [
+                {
+                    "id": "p4_f1",
+                    "caption": "Native gel analysis of enzyme B.",
+                    "description": "Wild-type enzyme B migrates mainly as a dimer. The Gly45Asp variant shows a stronger monomer band and weaker dimer band. Adding a stabilizing osmolyte partially restores the dimer band."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -2204,7 +2418,7 @@
                 }
             ],
             "correctChoiceId": "D",
-            "explanation": "Table p4_t2 shows low dimer percentage and reduced Vmax for the Gly45Asp variant, with Km nearly unchanged. The osmolyte partially restores dimerization and Vmax, supporting a quaternary-structure stability defect.",
+            "explanation": "The 'Biochemical characterization of enzyme B variants' table shows low dimer percentage and reduced Vmax for the Gly45Asp variant, with Km nearly unchanged. The osmolyte partially restores dimerization and Vmax, supporting a quaternary-structure stability defect.",
             "choiceExplanations": {
                 "A": "The pathway requires enzyme A to make the blue intermediate before enzyme B acts.",
                 "B": "Purified enzyme B variant is characterized, so the defect is not simply absence of transcription.",
@@ -2274,7 +2488,7 @@
             "id": "q40",
             "passageId": "p4",
             "type": "passage_based",
-            "stem": "The F2 cross produced 320 total colonies. If the expected ratio is 9:3:4, which conclusion is most reasonable from Table p4_t1?",
+            "stem": "The F2 cross produced 320 total colonies. If the expected ratio is 9:3:4, which conclusion is most reasonable from the 'Observed F2 colony phenotypes from AaBb selfing' table?",
             "choices": [
                 {
                     "id": "A",
@@ -2361,6 +2575,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "Which statement best describes how mitochondrial ATP synthase uses the proton gradient?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "ATP synthase across the inner mitochondrial membrane.",
+                    "description": "The Fo portion spans the inner mitochondrial membrane, and the F1 catalytic head projects into the matrix beside ADP and inorganic phosphate. The intermembrane space contains a higher proton concentration than the matrix, but no direction arrow is drawn through the enzyme."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -2583,7 +2804,7 @@
             "id": "q47",
             "passageId": "p5",
             "type": "passage_based",
-            "stem": "Based on Table p5_t2, which kinetic effect best describes the G6PD-M mutation?",
+            "stem": "Based on the 'Purified G6PD kinetic parameters' table, which kinetic effect best describes the G6PD-M mutation?",
             "choices": [
                 {
                     "id": "A",
@@ -2607,7 +2828,7 @@
             "choiceExplanations": {
                 "A": "This correctly compares the Vmax and Km values.",
                 "B": "Km changes very little, whereas Vmax changes substantially.",
-                "C": "The table compares purified enzymes and does not show NADPH inhibition.",
+                "C": "The 'Purified G6PD kinetic parameters' table compares purified enzymes and does not show NADPH inhibition.",
                 "D": "If glucose 6-phosphate binding were absent, a meaningful Km near wild type would not be expected."
             },
             "testedTopicIds": [
@@ -2629,7 +2850,7 @@
             "id": "q48",
             "passageId": "p5",
             "type": "passage_based",
-            "stem": "Which conclusion is best supported by the wild-type response to oxidant exposure in Table p5_t1?",
+            "stem": "Which conclusion is best supported by the wild-type response to oxidant exposure in the 'Metabolic responses to oxidant exposure' table?",
             "choices": [
                 {
                     "id": "A",
@@ -2651,7 +2872,7 @@
             "correctChoiceId": "D",
             "explanation": "In wild-type cells, oxidant exposure increases 14CO2 from [1-14C]glucose from 100% to 180%, consistent with increased oxidative PPP flux. The NADPH/NADP+ and GSH/GSSG ratios fall but remain higher than in oxidant-treated G6PD-M cells, supporting a redox-defense role.",
             "choiceExplanations": {
-                "A": "The figure shows glucose 6-phosphate can enter either glycolysis or the PPP.",
+                "A": "The 'Relationship between glycolysis and the oxidative PPP' figure description shows glucose 6-phosphate can enter either glycolysis or the PPP.",
                 "B": "Lactate release increases to 120%, so glycolysis is not completely shut down.",
                 "C": "14CO2 from [6-14C]glucose remains low compared with [1-14C]glucose.",
                 "D": "This integrates the label data with NADPH and glutathione measurements."
@@ -2855,6 +3076,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "A DNA template strand contains the sequence 3'-TAC GGA CTT ACT-5'. What mRNA sequence would be produced from this template region?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Template-directed transcription.",
+                    "description": "The DNA template sequence 3'-TAC GGA CTT ACT-5' is shown on one horizontal line. Directly below it is an empty antiparallel RNA line with its bases and 5'/3' end labels left for determination."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -3445,7 +3673,7 @@
             "id": "q66",
             "passageId": "p7",
             "type": "passage_based",
-            "stem": "Which conclusion is best supported by the RBP-K knockdown data in Table p7_t1?",
+            "stem": "Which conclusion is best supported by the RBP-K knockdown data in the 'Effects of LUM1 expression constructs in cultured cells' table?",
             "choices": [
                 {
                     "id": "A",
@@ -4310,6 +4538,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "In mitochondria, the intermembrane space is more acidic than the matrix during active respiration. Which movement is directly coupled to ATP synthesis by ATP synthase?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Mitochondrial proton gradient.",
+                    "description": "The inner mitochondrial membrane separates an acidic, proton-rich intermembrane space from a less acidic matrix. ATP synthase spans the membrane with its catalytic head facing the matrix; the direction of proton movement through ATP synthase is not marked."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -4401,7 +4636,7 @@
             "id": "q87",
             "passageId": "p9",
             "type": "passage_based",
-            "stem": "Which conclusion is best supported by the representative strain data in Table p9_t2?",
+            "stem": "Which conclusion is best supported by the representative strain data in the 'Respiratory measurements in representative strains' table?",
             "choices": [
                 {
                     "id": "A",
@@ -4761,6 +4996,13 @@
             "passageId": null,
             "type": "discrete",
             "stem": "A mitochondrial preparation is supplied with ADP and phosphate, but the inner mitochondrial membrane is mechanically ruptured. Which outcome is most likely?",
+            "figureDescriptions": [
+                {
+                    "id": "f1",
+                    "caption": "Ruptured inner mitochondrial membrane.",
+                    "description": "A break in the inner mitochondrial membrane connects the intermembrane space directly with the matrix. Electron-transport complexes and ATP synthase remain present in membrane fragments, and ADP plus phosphate are available in the preparation."
+                }
+            ],
             "choices": [
                 {
                     "id": "A",
@@ -4806,7 +5048,7 @@
             "id": "q96",
             "passageId": "p10",
             "type": "passage_based",
-            "stem": "Which interpretation best explains the effect of PC inhibitor C in Table p10_t1?",
+            "stem": "Which interpretation best explains the effect of PC inhibitor C in the 'Metabolic effects of perturbing gluconeogenesis from lactate and alanine' table?",
             "choices": [
                 {
                     "id": "A",
@@ -4829,7 +5071,7 @@
             "explanation": "PC inhibitor C causes high cytosolic pyruvate, low mitochondrial OAA/malate pool, and very low glucose output. This supports a block at pyruvate carboxylase, which normally converts mitochondrial pyruvate to oxaloacetate.",
             "choiceExplanations": {
                 "A": "Cytosolic pyruvate increases, not decreases, with PC inhibitor C.",
-                "B": "PEPCK knockdown, not PC inhibition, causes OAA/malate accumulation in the table.",
+                "B": "PEPCK knockdown, not PC inhibition, causes OAA/malate accumulation in the 'Metabolic effects of perturbing gluconeogenesis from lactate and alanine' table.",
                 "C": "This matches the accumulation of pyruvate with depletion of downstream OAA/malate.",
                 "D": "Glucose output falls, showing PC supports rather than inhibits gluconeogenesis in this context."
             },
