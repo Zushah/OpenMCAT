@@ -323,11 +323,11 @@ test("the generated-session workflow reaches review, analytics, and a data backu
     await expect(page).toHaveURL(/#\/generate$/);
     const recommendationOptions = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)), GENERATOR_OPTIONS_KEY);
     expect(Object.keys(recommendationOptions.topicIdsBySection)).toEqual([recommendationOptions.config.sectionId]);
-    await expect(page.getByLabel("Section")).toHaveValue(recommendationOptions.config.sectionId);
+    await expect(page.getByRole("group", { name: "Section" }).locator('button[aria-pressed="true"]')).toHaveAttribute("data-section-id", recommendationOptions.config.sectionId);
     await expect(page.getByLabel("Question format")).toHaveValue(recommendationOptions.config.questionFormat);
     await expect(page.getByLabel("Question count (1-59)")).toHaveValue(String(recommendationOptions.config.questionCount));
     await page.reload();
-    await expect(page.getByLabel("Section")).toHaveValue(recommendationOptions.config.sectionId);
+    await expect(page.getByRole("group", { name: "Section" }).locator('button[aria-pressed="true"]')).toHaveAttribute("data-section-id", recommendationOptions.config.sectionId);
     await expect(page.getByLabel("Question count (1-59)")).toHaveValue(String(recommendationOptions.config.questionCount));
     await page.getByRole("link", { name: "Dashboard" }).click();
     if (await laterButton.isVisible()) await laterButton.click();

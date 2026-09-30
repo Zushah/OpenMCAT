@@ -1,6 +1,35 @@
 import { createHighlightableText, getPassageFigureCaptionHighlightKey, getPassageFigureDescriptionHighlightKey, getPassageHighlightScopeKey, getPassageTableCaptionHighlightKey, getPassageTableCellHighlightKey, getPassageTableColumnHighlightKey, getPassageTextHighlightKey, getPassageTitleHighlightKey, getQuestionFigureCaptionHighlightKey, getQuestionFigureDescriptionHighlightKey, getQuestionHighlightScopeKey, getQuestionTableCaptionHighlightKey, getQuestionTableCellHighlightKey, getQuestionTableColumnHighlightKey } from "./highlights.js";
 import { createStimulusChart } from "./charts.js";
 
+const createChoiceContent = (element, choice, tagText = "") => {
+    const label = document.createElement("span");
+    label.className = "choice-label";
+    label.setAttribute("aria-hidden", "true");
+    label.textContent = choice.id;
+    const body = document.createElement("span");
+    body.className = "choice-body";
+    const text = document.createElement("span");
+    text.className = "choice-text";
+    text.textContent = choice.text;
+    body.append(text);
+    if (tagText) {
+        const tag = document.createElement("span");
+        tag.className = "choice-tag";
+        tag.setAttribute("aria-hidden", "true");
+        tag.textContent = tagText;
+        body.append(tag);
+    }
+    element.append(label, body);
+    return element;
+};
+
+const getChoiceFeedback = (choice, { selectedId, submitted, correctId }) => {
+    if (!submitted) return { className: selectedId === choice.id ? "is-selected" : "", tag: "", label: `${choice.id}. ${choice.text}` };
+    if (choice.id === correctId) return { className: "is-correct", tag: "Correct answer", label: `${choice.id}. ${choice.text}. Correct answer.` };
+    if (selectedId === choice.id && selectedId !== correctId) return { className: "is-incorrect", tag: "Your answer · incorrect", label: `${choice.id}. ${choice.text}. Your selected answer, incorrect.` };
+    return { className: "", tag: "", label: `${choice.id}. ${choice.text}.` };
+};
+
 export const createChoiceCard = (choice, { selectedId, submitted, correctId }) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -8,23 +37,37 @@ export const createChoiceCard = (choice, { selectedId, submitted, correctId }) =
     button.dataset.choiceId = choice.id;
     button.setAttribute("aria-pressed", selectedId === choice.id ? "true" : "false");
     if (selectedId === choice.id) button.classList.add("is-selected");
-    if (submitted) {
-        if (choice.id === correctId) {
-            button.classList.add("is-correct");
-            button.setAttribute("aria-label", `${choice.id}. ${choice.text}. Correct answer.`);
-        } else if (selectedId === choice.id && selectedId !== correctId) {
-            button.classList.add("is-incorrect");
-            button.setAttribute("aria-label", `${choice.id}. ${choice.text}. Your selected answer, incorrect.`);
-        } else button.setAttribute("aria-label", `${choice.id}. ${choice.text}.`);
-    } else button.setAttribute("aria-label", `${choice.id}. ${choice.text}`);
-    const label = document.createElement("span");
-    label.className = "choice-label";
-    label.textContent = `${choice.id}.`;
-    const text = document.createElement("span");
-    text.textContent = choice.text;
-    button.append(label, text);
-    return button;
+    const feedback = getChoiceFeedback(choice, { selectedId, submitted, correctId });
+    if (feedback.className && feedback.className !== "is-selected") button.classList.add(feedback.className);
+    button.setAttribute("aria-label", feedback.label);
+    return createChoiceContent(button, choice, feedback.tag);
 }
+
+export const createStaticChoiceList = (question, { selectedId = null, submitted = false } = {}) => {
+    const list = document.createElement("ol");
+    list.className = "choice-list is-static";
+    list.setAttribute("aria-label", "Answer choices");
+    (question.choices ?? []).forEach((choice) => {
+        const item = document.createElement("li");
+        item.className = "choice-card";
+        item.dataset.choiceId = choice.id;
+        const feedback = getChoiceFeedback(choice, { selectedId, submitted, correctId: question.correctChoiceId });
+        if (feedback.className && feedback.className !== "is-selected") item.classList.add(feedback.className);
+        const hidden = document.createElement("span");
+        hidden.className = "visually-hidden";
+        hidden.textContent = `${choice.id}. `;
+        createChoiceContent(item, choice, feedback.tag);
+        item.prepend(hidden);
+        if (feedback.tag) {
+            const spoken = document.createElement("span");
+            spoken.className = "visually-hidden";
+            spoken.textContent = ` ${feedback.tag}.`;
+            item.append(spoken);
+        }
+        list.append(item);
+    });
+    return list;
+};
 
 const getStableContentId = (item, index, fallbackPrefix) => String(item?.id || `${fallbackPrefix}${index + 1}`);
 
@@ -55,6 +98,7 @@ export const createStimulusTable = (tableData, options = {}) => {
     const wrap = document.createElement("div");
     const surfaceClass = options.surface === "question" ? "question" : "passage";
     wrap.className = `table-wrap stimulus-table stimulus-table--${surfaceClass}`;
+    wrap.dataset.scrollKey = `table:${scopeKey}:${tableId}`;
     const captionKey = highlightKeys.getTableCaptionKey(ownerId, tableId);
     const title = createHighlightableText({
         tagName: "p",
@@ -116,7 +160,7 @@ export const createStimulusFigureDescription = (figure, options = {}) => {
     const figureId = getStableContentId(figure, options.figureIndex ?? 0, "figure");
     const figureCard = document.createElement("div");
     const surfaceClass = options.surface === "question" ? "question" : "passage";
-    figureCard.className = `card card-pad stimulus-figure-description stimulus-figure-description--${surfaceClass}`;
+    figureCard.className = `stimulus-figure-description stimulus-figure-description--${surfaceClass}`;
     const captionKey = highlightKeys.getFigureCaptionKey(ownerId, figureId);
     const figureHeading = createHighlightableText({
         tagName: "p",
@@ -165,11 +209,11 @@ const formatQuestionNumberRanges = (questionNumbers = []) => {
             end = number;
             return;
         }
-        ranges.push(start === end ? String(start) : `${start} - ${end}`);
+        ranges.push(start === end ? String(start) : `${start}–${end}`);
         start = number;
         end = number;
     });
-    ranges.push(start === end ? String(start) : `${start} - ${end}`);
+    ranges.push(start === end ? String(start) : `${start}–${end}`);
     const prefix = numbers.length === 1 ? "Question" : "Questions";
     return `${prefix} ${ranges.join(", ")}`;
 };
@@ -198,13 +242,13 @@ export const getPassageCardTitle = (passage, options = {}) => {
     if (!hasNumberedTitle) return passage.title ?? "Passage";
     const questionLabel = formatQuestionNumberRanges(options.questionNumbers);
     const passageLabel = options.passageNumber ? `Passage ${options.passageNumber}` : "Passage";
-    return questionLabel ? `${passageLabel} (${questionLabel})` : passageLabel;
+    return questionLabel ? `${passageLabel} · ${questionLabel}` : passageLabel;
 };
 
 export const createPassageCard = (passage, options = {}) => {
     const highlightRangesByTargetKey = options.highlightRangesByTargetKey ?? {};
     const card = document.createElement("article");
-    card.className = options.className ?? "card card-pad passage-card";
+    card.className = options.className ?? "passage-card";
     const title = getPassageCardTitle(passage, options);
     const passageScopeKey = getPassageHighlightScopeKey(passage.id);
     const titleHighlightKey = getPassageTitleHighlightKey(passage.id);
@@ -216,6 +260,7 @@ export const createPassageCard = (passage, options = {}) => {
     } else {
         card.append(createHighlightableText({
             tagName: "h3",
+            className: "passage-plain-title",
             text: title,
             targetKey: titleHighlightKey,
             scopeKey: passageScopeKey,
@@ -225,7 +270,7 @@ export const createPassageCard = (passage, options = {}) => {
     if (hasNumberedTitle && passage.title) {
         const originalTitle = createHighlightableText({
             tagName: "p",
-            className: "tiny passage-original-title",
+            className: "passage-original-title",
             text: passage.title,
             targetKey: titleHighlightKey,
             scopeKey: passageScopeKey,

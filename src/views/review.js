@@ -1,8 +1,10 @@
 import { createHighlightableText, getQuestionHighlightScopeKey, getQuestionStemHighlightKey } from "../components/highlights.js";
-import { appendStimulusContent, createPassageCard, createPassageMetadataById, getPassageCardTitle } from "../components/questions.js";
+import { appendStimulusContent, createPassageCard, createPassageMetadataById, createStaticChoiceList, getPassageCardTitle } from "../components/questions.js";
 import { renderStimulusCharts } from "../components/charts.js";
 import { MISTAKE_TYPES, normalizeMistakeTypeIds } from "../data/mistakes.js";
 import { formatDurationMs } from "../components/timer.js";
+import { icon } from "../components/icons.js";
+import { REVIEW_MODES, TIMING_MODES } from "../data/defaults.js";
 
 const cb = Chalkboard;
 
@@ -28,15 +30,16 @@ const summarize = (activeSession) => {
 
 const makeSummaryCard = (label, value, hint = "") => {
     const card = document.createElement("article");
-    card.className = "card card-pad stat-card";
+    card.className = "stat-card";
     const title = document.createElement("h3");
     title.textContent = label;
     const text = document.createElement("p");
+    text.className = "stat-value";
     text.textContent = value;
     card.append(title, text);
     if (hint) {
         const helper = document.createElement("p");
-        helper.className = "tiny";
+        helper.className = "stat-hint";
         helper.textContent = hint;
         card.append(helper);
     }
@@ -46,12 +49,10 @@ const makeSummaryCard = (label, value, hint = "") => {
 const makeFilterButton = (label, filterId, currentFilter, onClick) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "btn btn-ghost";
     button.textContent = label;
-    if (filterId === currentFilter) {
-        button.classList.remove("btn-ghost");
-        button.classList.add("btn-secondary");
-    }
+    const selected = filterId === currentFilter;
+    if (selected) button.classList.add("is-selected");
+    button.setAttribute("aria-pressed", selected ? "true" : "false");
     button.addEventListener("click", onClick);
     return button;
 };
@@ -59,7 +60,7 @@ const makeFilterButton = (label, filterId, currentFilter, onClick) => {
 const makeMistakeTypePanel = (questionId, qState, actions) => {
     const selectedIds = new Set(normalizeMistakeTypeIds(qState.mistakeTypeIds));
     const panel = document.createElement("aside");
-    panel.className = "card card-pad mistake-type-panel";
+    panel.className = "mistake-type-panel";
     const heading = document.createElement("h5");
     heading.textContent = "What went wrong?";
     const note = document.createElement("p");
@@ -91,7 +92,7 @@ const getIncorrectReviewRows = (root) => {
 const syncMistakeTypePanelHeights = (root) => {
     if (typeof window === "undefined" || typeof window.requestAnimationFrame !== "function") return;
     window.requestAnimationFrame(() => {
-        const shouldSync = typeof window.matchMedia !== "function" || window.matchMedia("(min-width: 901px)").matches;
+        const shouldSync = typeof window.matchMedia !== "function" || window.matchMedia("(min-width: 1025px)").matches;
         getIncorrectReviewRows(root).forEach((row) => {
             const questionCard = row.querySelector(".review-question");
             const mistakePanel = row.querySelector(".mistake-type-panel");
@@ -109,37 +110,68 @@ const createReviewPassageDropdown = (passage, passageMetadata = {}, highlightRan
     details.className = "review-passage-dropdown";
     const summary = document.createElement("summary");
     summary.className = "review-passage-summary";
-    const passageIcon = document.createElement("span");
-    passageIcon.className = "material-symbols-outlined";
-    passageIcon.setAttribute("aria-hidden", "true");
-    passageIcon.textContent = "menu_book";
     const label = document.createElement("span");
     const passageTitle = getPassageCardTitle(passage, passageMetadata);
     label.textContent = `Show ${passageTitle}`;
     const expandIcon = document.createElement("span");
-    expandIcon.className = "material-symbols-outlined";
-    expandIcon.setAttribute("aria-hidden", "true");
-    expandIcon.textContent = "expand_more";
-    summary.append(passageIcon, label, expandIcon);
-    details.append(summary, createPassageCard(passage, { className: "card card-pad passage-card review-passage-card", ...passageMetadata, highlightRangesByTargetKey, deferCharts: true }));
+    expandIcon.className = "review-passage-icon";
+    expandIcon.append(icon("chevron-down", { size: 14 }));
+    summary.append(label, expandIcon);
+    details.append(summary, createPassageCard(passage, { className: "passage-card review-passage-card", ...passageMetadata, highlightRangesByTargetKey, deferCharts: true }));
     details.addEventListener("toggle", () => {
         label.textContent = details.open ? `Hide ${passageTitle}` : `Show ${passageTitle}`;
-        expandIcon.textContent = details.open ? "expand_less" : "expand_more";
+        expandIcon.replaceChildren(icon(details.open ? "chevron-up" : "chevron-down", { size: 14 }));
         if (details.open) renderStimulusCharts(details);
         syncMistakeTypePanelHeights(details.closest(".review-question-row") ?? details);
     });
     return details;
 };
 
+const appendReviewExplanation = (card, question, state) => {
+    const explanation = document.createElement("section");
+    const verdictClass = state.submitted ? state.isCorrect ? "is-correct" : "is-incorrect" : "is-unanswered";
+    explanation.className = `explanation-panel ${verdictClass}`;
+    explanation.setAttribute("aria-label", "Explanation");
+    const text = document.createElement("p");
+    text.className = "explanation-text";
+    text.textContent = question.explanation;
+    explanation.append(text);
+    const choiceNotes = document.createElement("ul");
+    choiceNotes.className = "choice-explanations";
+    ["A", "B", "C", "D"].forEach((choiceId) => {
+        const li = document.createElement("li");
+        const letter = document.createElement("strong");
+        letter.textContent = choiceId;
+        const note = document.createElement("span");
+        note.textContent = question.choiceExplanations?.[choiceId] ?? "";
+        li.append(letter, note);
+        choiceNotes.append(li);
+    });
+    explanation.append(choiceNotes);
+    card.append(explanation);
+};
+
 const makeQuestionReviewBlock = (record, index, isFocused, passagesById, passageMetadataById, highlightRangesByTargetKey, actions) => {
     const { question, state } = record;
     const card = document.createElement("article");
     const resultClass = state.submitted ? state.isCorrect ? "is-correct" : "is-incorrect" : "is-unanswered";
-    card.className = `card card-pad review-question ${resultClass}`;
+    card.className = `review-question ${resultClass}`;
     card.dataset.reviewIndex = String(index);
     if (isFocused) card.classList.add("is-focused");
+    const selected = state.submitted ? state.submittedChoiceId ?? state.selectedChoiceId ?? "Unsubmitted" : "Unsubmitted";
+    const verdict = state.submitted ? state.isCorrect ? "Correct" : "Incorrect" : "Unsubmitted";
+    const meta = document.createElement("p");
+    meta.className = "tiny review-question-meta";
+    const verdictText = document.createElement("strong");
+    verdictText.className = "review-verdict";
+    verdictText.textContent = verdict;
+    meta.append(`Selected: ${selected} | Correct: ${question.correctChoiceId} | `, verdictText, ` | ${formatDurationMs(state.elapsedMs ?? 0)}`);
+    card.append(meta);
     const heading = document.createElement("h4");
-    heading.append(document.createTextNode(`Q${index + 1}. `));
+    const number = document.createElement("span");
+    number.className = "review-question-number";
+    number.textContent = `Q${index + 1}. `;
+    heading.append(number);
     const questionHighlightKey = getQuestionStemHighlightKey(question.id);
     heading.append(createHighlightableText({
         tagName: "span",
@@ -156,24 +188,8 @@ const makeQuestionReviewBlock = (record, index, isFocused, passagesById, passage
         scopeKey: getQuestionHighlightScopeKey(question.id),
         highlightRangesByTargetKey
     });
-    const meta = document.createElement("p");
-    meta.className = "tiny";
-    const selected = state.submitted ? state.submittedChoiceId ?? state.selectedChoiceId ?? "Unsubmitted" : "Unsubmitted";
-    const verdict = state.submitted ? state.isCorrect ? "Correct" : "Incorrect" : "Unsubmitted";
-    meta.textContent = `Selected: ${selected} | Correct: ${question.correctChoiceId} | ${verdict} | ${formatDurationMs(state.elapsedMs ?? 0)}`;
-    card.append(meta);
-    const explanation = document.createElement("p");
-    explanation.textContent = question.explanation;
-    card.append(explanation);
-    const choiceNotes = document.createElement("ul");
-    choiceNotes.style.display = "grid";
-    choiceNotes.style.gap = "4px";
-    ["A", "B", "C", "D"].forEach((choiceId) => {
-        const li = document.createElement("li");
-        li.textContent = `${choiceId}: ${question.choiceExplanations?.[choiceId] ?? ""}`;
-        choiceNotes.append(li);
-    });
-    card.append(choiceNotes);
+    card.append(createStaticChoiceList(question, { selectedId: state.submitted ? state.submittedChoiceId ?? state.selectedChoiceId : null, submitted: true }));
+    appendReviewExplanation(card, question, state);
     if (state.flagged) {
         const flagged = document.createElement("p");
         flagged.className = "warning-note";
@@ -190,12 +206,15 @@ const makeQuestionReviewBlock = (record, index, isFocused, passagesById, passage
     return row;
 };
 
+const formatModeLabel = (list, id, fallback) => list.find((item) => item.id === id)?.label ?? fallback;
+
 export const renderReviewView = (state, actions) => {
     const root = document.createElement("section");
+    root.className = "review-page";
     const activeSession = state.activeSession;
     if (!activeSession) {
         const empty = document.createElement("section");
-        empty.className = "card card-pad";
+        empty.className = "empty-state review-empty-state";
         const heading = document.createElement("h2");
         heading.textContent = "No session to review";
         const text = document.createElement("p");
@@ -209,29 +228,49 @@ export const renderReviewView = (state, actions) => {
         return root;
     }
     const summary = summarize(activeSession);
-    const headingWrap = document.createElement("section");
-    headingWrap.className = "card card-pad";
+    const accuracyText = `${cb.numb.roundTo(summary.accuracy * 100, 0.1)}%`;
+    const headingWrap = document.createElement("header");
+    headingWrap.className = "review-header";
     const heading = document.createElement("h2");
     heading.textContent = "Session review";
     const sub = document.createElement("p");
+    sub.className = "review-session-title";
     sub.textContent = activeSession.generatedSession.session.title;
+    const scoreLine = document.createElement("p");
+    scoreLine.className = "review-score-line";
+    const correct = document.createElement("strong");
+    correct.textContent = String(summary.correct);
+    const accuracy = document.createElement("strong");
+    accuracy.textContent = accuracyText;
+    scoreLine.append(correct, ` of ${summary.answered} correct · `, accuracy);
+    const when = activeSession.completedAt ?? activeSession.createdAt;
+    const metaLine = document.createElement("p");
+    metaLine.className = "review-meta-line";
+    metaLine.textContent = [when ? new Date(when).toLocaleDateString() : null, formatModeLabel(TIMING_MODES, activeSession.config?.timingMode, null), formatModeLabel(REVIEW_MODES, activeSession.config?.reviewMode, null)].filter(Boolean).join(" · ");
     const note = document.createElement("p");
     note.className = "muted-note";
     note.textContent = "AI-generated. Use for drilling and review. Verify uncertain explanations.";
-    headingWrap.append(heading, sub, note);
+    headingWrap.append(heading, sub, scoreLine);
+    if (metaLine.textContent) headingWrap.append(metaLine);
+    headingWrap.append(note);
     root.append(headingWrap);
     const summaryGrid = document.createElement("section");
-    summaryGrid.className = "summary-grid";
+    summaryGrid.className = "summary-grid review-summary";
+    summaryGrid.setAttribute("aria-label", "Session summary");
     summaryGrid.append(
         makeSummaryCard("Score", `${summary.correct}/${summary.answered}`, summary.incomplete ? `${summary.incomplete} unsubmitted` : "All submitted"),
-        makeSummaryCard("Accuracy", `${cb.numb.roundTo(summary.accuracy * 100, 0.1)}%`),
+        makeSummaryCard("Accuracy", accuracyText),
         makeSummaryCard("Total Time", formatDurationMs(summary.elapsedMs)),
         makeSummaryCard("Avg / Question", formatDurationMs(summary.avgMs))
     );
     root.append(summaryGrid);
     const controls = document.createElement("div");
-    controls.className = "button-row review-controls";
-    controls.append(
+    controls.className = "review-controls";
+    const filters = document.createElement("div");
+    filters.className = "segment";
+    filters.setAttribute("role", "group");
+    filters.setAttribute("aria-label", "Review filter");
+    filters.append(
         makeFilterButton("All", "all", activeSession.reviewFilter, () => actions.setReviewFilter("all")),
         makeFilterButton("Incorrect only", "incorrect", activeSession.reviewFilter, () => actions.setReviewFilter("incorrect")),
         makeFilterButton("Flagged only", "flagged", activeSession.reviewFilter, () => actions.setReviewFilter("flagged"))
@@ -239,7 +278,7 @@ export const renderReviewView = (state, actions) => {
     const navHint = document.createElement("p");
     navHint.className = "tiny";
     navHint.textContent = "Review shortcuts: Left/Right arrows move focus.";
-    controls.append(navHint);
+    controls.append(filters, navHint);
     root.append(controls);
     const passagesById = new Map((activeSession.generatedSession.passages ?? []).map((passage) => [passage.id, passage]));
     const passageMetadataById = createPassageMetadataById(activeSession.generatedSession.passages ?? [], activeSession.generatedSession.questions);
@@ -251,12 +290,11 @@ export const renderReviewView = (state, actions) => {
     });
     const reviewList = document.createElement("section");
     reviewList.className = "review-list";
+    reviewList.setAttribute("aria-label", "Questions");
     if (!records.length) {
-        const empty = document.createElement("article");
-        empty.className = "card card-pad";
-        const text = document.createElement("p");
-        text.textContent = "No questions match this filter.";
-        empty.append(text);
+        const empty = document.createElement("p");
+        empty.className = "review-empty";
+        empty.textContent = "No questions match this filter.";
         reviewList.append(empty);
     } else {
         const focusedIndex = state.activeSession.viewQuestionIndex ?? 0;
@@ -264,7 +302,7 @@ export const renderReviewView = (state, actions) => {
     };
     root.append(reviewList);
     const actionRow = document.createElement("div");
-    actionRow.className = "question-actions";
+    actionRow.className = "question-actions review-actions";
     const drillMissed = document.createElement("button");
     drillMissed.className = "btn btn-secondary";
     drillMissed.textContent = "Drill missed topics";

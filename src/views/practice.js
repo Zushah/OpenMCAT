@@ -2,16 +2,25 @@ import { createProgressBar } from "../components/progress.js";
 import { createHighlightableText, getQuestionHighlightScopeKey, getQuestionStemHighlightKey } from "../components/highlights.js";
 import { appendStimulusContent, createChoiceCard, createPassageCard, createPassageMetadataById } from "../components/questions.js";
 import { formatDurationMs } from "../components/timer.js";
+import { icon } from "../components/icons.js";
 
 const cb = Chalkboard;
+
+const LOW_TIME_THRESHOLD_MS = 15000;
 
 const computeTimerText = (mode, submitted, elapsedMs, maxMs) => {
     if (mode === "timed") {
         const remainingMs = maxMs - elapsedMs;
-        if (remainingMs <= 0 && !submitted) return { text: `Time expired (${formatDurationMs(elapsedMs)} elapsed)`, expired: true };
-        return { text: `Time left ${formatDurationMs(cb.stat.max([0, remainingMs]))}`, expired: false };
+        if (remainingMs <= 0 && !submitted) return { label: "Time expired", value: `(${formatDurationMs(elapsedMs)} elapsed)`, expired: true, low: false };
+        return { label: "Time left", value: formatDurationMs(cb.stat.max([0, remainingMs])), expired: false, low: !submitted && remainingMs <= LOW_TIME_THRESHOLD_MS };
     }
-    return { text: `Time elapsed ${formatDurationMs(elapsedMs)}`, expired: false };
+    return { label: "Time elapsed", value: formatDurationMs(elapsedMs), expired: false, low: false };
+};
+
+const setTimerContent = (timerElement, label, value) => {
+    const strong = document.createElement("strong");
+    strong.textContent = value;
+    timerElement.replaceChildren(document.createTextNode(`${label} `), strong);
 };
 
 const safeElapsedMs = (value) => {
@@ -28,8 +37,8 @@ export const updatePracticeTimerElement = (timerElement, nowMs = Date.now()) => 
     const maxMs = Number(timerElement.dataset.maxMs || 0);
     const elapsedMs = submitted ? storedElapsedMs : storedElapsedMs + cb.stat.max([0, nowMs - startedAtMs]);
     const timerInfo = computeTimerText(mode, submitted, elapsedMs, maxMs);
-    timerElement.textContent = timerInfo.text;
-    timerElement.className = timerInfo.expired ? "danger-note session-timer-text" : "tiny session-timer-text";
+    setTimerContent(timerElement, timerInfo.label, timerInfo.value);
+    timerElement.className = `session-timer-text${timerInfo.expired ? " is-expired" : ""}${timerInfo.low ? " is-low" : ""}`;
 };
 
 export const updatePracticeTotalTimerElement = (timerElement, nowMs = Date.now()) => {
@@ -38,8 +47,8 @@ export const updatePracticeTotalTimerElement = (timerElement, nowMs = Date.now()
     const currentQuestionSubmitted = timerElement.dataset.currentQuestionSubmitted === "true";
     const startedAtMs = Number(timerElement.dataset.startedAtMs || nowMs);
     const elapsedMs = currentQuestionSubmitted ? storedElapsedMs : storedElapsedMs + cb.stat.max([0, nowMs - startedAtMs]);
-    timerElement.textContent = `Total time elapsed ${formatDurationMs(elapsedMs)}`;
-    timerElement.className = "tiny session-timer-text";
+    setTimerContent(timerElement, "Total time elapsed", formatDurationMs(elapsedMs));
+    timerElement.className = "session-timer-text";
 };
 
 const getStoredSessionElapsedMs = (activeSession) => Object.values(activeSession.questionStateById).reduce((sum, item) => sum + safeElapsedMs(item.elapsedMs), 0);
@@ -104,9 +113,9 @@ const makePanelTop = ({ title, headingId, closeLabel, onClose }) => {
     heading.textContent = title;
     const close = document.createElement("button");
     close.type = "button";
-    close.className = "btn btn-ghost generation-pipeline-close";
+    close.className = "btn btn-icon generation-pipeline-close";
     close.setAttribute("aria-label", closeLabel);
-    close.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">close</span>';
+    close.append(icon("close"));
     close.addEventListener("click", onClose);
     top.append(heading, close);
     return top;
@@ -115,8 +124,10 @@ const makePanelTop = ({ title, headingId, closeLabel, onClose }) => {
 const makeNavigationFilterButton = (label, filterId, currentFilter, actions) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = filterId === currentFilter ? "btn btn-secondary" : "btn btn-ghost";
     button.textContent = label;
+    const selected = filterId === currentFilter;
+    if (selected) button.classList.add("is-selected");
+    button.setAttribute("aria-pressed", selected ? "true" : "false");
     button.addEventListener("click", () => actions.setNavigationFilter(filterId));
     return button;
 };
@@ -126,22 +137,25 @@ const makeQuestionNavItem = (record, activeSession, actions) => {
     const item = document.createElement("button");
     item.type = "button";
     item.className = "practice-question-nav-item";
-    if (index === activeSession.currentQuestionIndex) item.classList.add("is-current");
+    if (index === activeSession.currentQuestionIndex) {
+        item.classList.add("is-current");
+        item.setAttribute("aria-current", "step");
+    }
     if (state?.submitted) item.classList.add("is-submitted");
     else item.classList.add("is-incomplete");
     if (state?.flagged) item.classList.add("is-flagged");
     item.addEventListener("click", () => actions.goToQuestion(index));
-    const top = document.createElement("span");
-    top.className = "practice-question-nav-top";
-    const number = document.createElement("strong");
-    number.className = "practice-question-nav-number";
-    number.textContent = `Question ${index + 1}`;
+    const cell = document.createElement("span");
+    cell.className = "practice-question-nav-cell";
+    const hiddenLabel = document.createElement("span");
+    hiddenLabel.className = "visually-hidden";
+    hiddenLabel.textContent = "Question ";
+    cell.append(hiddenLabel, document.createTextNode(String(index + 1)));
     const statuses = document.createElement("span");
     statuses.className = "practice-question-nav-statuses";
     statuses.append(makePill(getQuestionStatusText(state), getQuestionStatusClass(state)));
     if (state?.flagged) statuses.append(makePill("Flagged", "is-flagged"));
-    top.append(number, statuses);
-    item.append(top);
+    item.append(cell, statuses);
     return item;
 };
 
@@ -155,13 +169,27 @@ const makeQuestionNavList = (activeSession, actions, { filter = "all" } = {}) =>
     });
     if (!records.length) {
         const empty = document.createElement("p");
-        empty.className = "muted-note practice-panel-empty";
+        empty.className = "practice-panel-empty";
         empty.textContent = "No questions match this view.";
         list.append(empty);
         return list;
     }
     records.forEach((record) => list.append(makeQuestionNavItem(record, activeSession, actions)));
     return list;
+};
+
+const makePanelLegend = () => {
+    const legend = document.createElement("p");
+    legend.className = "practice-panel-legend";
+    legend.setAttribute("aria-hidden", "true");
+    [["is-current", "Current"], ["is-submitted", "Submitted"], ["", "Incomplete"], ["is-flagged", "Flagged"]].forEach(([className, label]) => {
+        const item = document.createElement("span");
+        const swatch = document.createElement("i");
+        swatch.className = `legend-cell ${className}`.trim();
+        item.append(swatch, document.createTextNode(label));
+        legend.append(item);
+    });
+    return legend;
 };
 
 const makePracticePanelStats = (counts) => {
@@ -185,25 +213,30 @@ const makePracticePanelStats = (counts) => {
     return stats;
 };
 
-const makeNavigationPanel = (activeSession, actions) => {
-    if (!activeSession.navigationOpen) return null;
-    const counts = getPracticeCounts(activeSession);
-    const filter = activeSession.navigationFilter ?? "all";
+const makePanelOverlay = (actions) => {
     const overlay = document.createElement("section");
     overlay.className = "generation-pipeline-overlay practice-panel-overlay";
     overlay.setAttribute("role", "presentation");
     overlay.addEventListener("click", (event) => { if (event.target === overlay) actions.closePracticePanel(); });
+    return overlay;
+};
+
+const makeNavigationPanel = (activeSession, actions) => {
+    if (!activeSession.navigationOpen) return null;
+    const counts = getPracticeCounts(activeSession);
+    const filter = activeSession.navigationFilter ?? "all";
+    const overlay = makePanelOverlay(actions);
     const panel = document.createElement("section");
-    panel.className = "card card-pad generation-pipeline-panel practice-panel";
+    panel.className = "generation-pipeline-panel practice-panel";
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-modal", "true");
     panel.setAttribute("aria-labelledby", "practice-navigation-heading");
     panel.addEventListener("click", (event) => event.stopPropagation());
     const instructions = document.createElement("p");
-    instructions.className = "generation-pipeline-instructions practice-panel-instructions";
+    instructions.className = "practice-panel-instructions";
     instructions.textContent = "Jump to any question, review incomplete questions, or return to flagged questions.";
     const filters = document.createElement("div");
-    filters.className = "button-row practice-panel-filters";
+    filters.className = "segment practice-panel-filters";
     filters.append(
         makeNavigationFilterButton("All", "all", filter, actions),
         makeNavigationFilterButton("Incomplete", "incomplete", filter, actions),
@@ -214,7 +247,8 @@ const makeNavigationPanel = (activeSession, actions) => {
         instructions,
         makePracticePanelStats(counts),
         filters,
-        makeQuestionNavList(activeSession, actions, { filter })
+        makeQuestionNavList(activeSession, actions, { filter }),
+        makePanelLegend()
     );
     overlay.append(panel);
     return overlay;
@@ -223,21 +257,18 @@ const makeNavigationPanel = (activeSession, actions) => {
 const makeFinalReviewPanel = (activeSession, actions) => {
     if (!activeSession.finalReviewOpen) return null;
     const counts = getPracticeCounts(activeSession);
-    const overlay = document.createElement("section");
-    overlay.className = "generation-pipeline-overlay practice-panel-overlay";
-    overlay.setAttribute("role", "presentation");
-    overlay.addEventListener("click", (event) => { if (event.target === overlay) actions.closePracticePanel(); });
+    const overlay = makePanelOverlay(actions);
     const panel = document.createElement("section");
-    panel.className = "card card-pad generation-pipeline-panel practice-panel practice-review-panel";
+    panel.className = "generation-pipeline-panel practice-panel practice-review-panel";
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-modal", "true");
     panel.setAttribute("aria-labelledby", "practice-final-review-heading");
     panel.addEventListener("click", (event) => event.stopPropagation());
     const instructions = document.createElement("p");
-    instructions.className = "generation-pipeline-instructions practice-panel-instructions";
+    instructions.className = "practice-panel-instructions";
     instructions.textContent = "Review your submitted, incomplete, and flagged questions before ending this session.";
     const note = document.createElement("p");
-    note.className = counts.incomplete || counts.pending ? "warning-note practice-panel-note" : "muted-note practice-panel-note";
+    note.className = counts.incomplete || counts.pending ? "warning-note practice-panel-note" : "note practice-panel-note";
     if (counts.incomplete && counts.pending) note.textContent = "Incomplete questions and unsubmitted changes will not be saved as attempts or counted in analytics.";
     else if (counts.incomplete) note.textContent = "Incomplete questions will not be saved as attempts or counted in analytics.";
     else if (counts.pending) note.textContent = "Unsubmitted changes will not replace the last submitted answers.";
@@ -255,14 +286,7 @@ const makeFinalReviewPanel = (activeSession, actions) => {
     endButton.textContent = "End session";
     endButton.addEventListener("click", () => actions.finishSession());
     row.append(continueButton, endButton);
-    panel.append(
-        makePanelTop({ title: "Review", headingId: "practice-final-review-heading", closeLabel: "Close review", onClose: () => actions.closePracticePanel() }),
-        instructions,
-        makePracticePanelStats(counts),
-        note,
-        makeQuestionNavList(activeSession, actions),
-        row
-    );
+    panel.append(makePanelTop({ title: "Review", headingId: "practice-final-review-heading", closeLabel: "Close review", onClose: () => actions.closePracticePanel() }), instructions, makePracticePanelStats(counts), note, makeQuestionNavList(activeSession, actions), row);
     overlay.append(panel);
     return overlay;
 };
@@ -270,12 +294,11 @@ const makeFinalReviewPanel = (activeSession, actions) => {
 const appendChoiceExplanations = (panel, question) => {
     if (!question.choiceExplanations || typeof question.choiceExplanations !== "object") return;
     const list = document.createElement("ul");
-    list.style.display = "grid";
-    list.style.gap = "0.4rem";
+    list.className = "choice-explanations";
     ["A", "B", "C", "D"].forEach((id) => {
         const item = document.createElement("li");
         const label = document.createElement("strong");
-        label.textContent = `${id}: `;
+        label.textContent = id;
         const text = document.createElement("span");
         text.textContent = question.choiceExplanations[id] ?? "";
         item.append(label, text);
@@ -284,12 +307,78 @@ const appendChoiceExplanations = (panel, question) => {
     panel.append(list);
 };
 
+const makeKbd = (key) => {
+    const kbd = document.createElement("kbd");
+    kbd.textContent = key;
+    return kbd;
+};
+
+const makeToolButton = ({ label, key, onClick, pressed = null, title = "" }) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn btn-tool";
+    const text = document.createElement("span");
+    text.textContent = label;
+    const kbd = makeKbd(key);
+    kbd.setAttribute("aria-hidden", "true");
+    button.append(text, kbd);
+    if (pressed !== null) button.setAttribute("aria-pressed", pressed ? "true" : "false");
+    if (title) button.title = title;
+    button.addEventListener("click", onClick);
+    return button;
+};
+
+const makeShortcutLegend = (hasReachedReviewPoint) => {
+    const hint = document.createElement("p");
+    hint.className = "tiny practice-shortcuts";
+    const lead = document.createElement("span");
+    lead.textContent = "Shortcuts";
+    hint.append(lead);
+    const groups = [
+        [["A", "B", "C", "D"], "select"],
+        [["Enter"], "submit"],
+        [["←", "→"], "navigate"],
+        hasReachedReviewPoint ? [["R"], "review"] : [["N"], "navigation"],
+        [["F"], "flag"],
+        [["H"], "highlight"]
+    ];
+    groups.forEach(([keys, action]) => {
+        const group = document.createElement("span");
+        keys.forEach((key) => group.append(makeKbd(key)));
+        group.append(document.createTextNode(` ${action}`));
+        hint.append(group);
+    });
+    const spoken = document.createElement("span");
+    spoken.className = "visually-hidden";
+    spoken.textContent = hasReachedReviewPoint ? "Shortcuts: A/B/C/D select, Enter submit, Left/Right navigate, R review, F flag, H highlight." : "Shortcuts: A/B/C/D select, Enter submit, Left/Right navigate, N navigation, F flag, H highlight.";
+    Array.from(hint.children).forEach((child) => child.setAttribute("aria-hidden", "true"));
+    hint.append(spoken);
+    return hint;
+};
+
+const makeProgressText = (index, total, counts) => {
+    const text = document.createElement("p");
+    text.className = "tiny session-progress-text";
+    const current = document.createElement("strong");
+    current.textContent = String(index + 1);
+    const separator = () => {
+        const span = document.createElement("span");
+        span.className = "session-sep";
+        span.textContent = "|";
+        return span;
+    };
+    text.append("Question ", current, ` of ${total} `, separator(), ` ${counts.submitted} submitted `, separator(), ` ${counts.incomplete} incomplete `, separator(), ` ${counts.flagged} flagged`);
+    return text;
+};
+
 export const renderPracticeView = (state, actions, nowMs) => {
     const root = document.createElement("section");
+    root.className = "practice-page";
     const activeSession = state.activeSession;
     if (!activeSession) {
+        root.classList.remove("practice-page");
         const empty = document.createElement("section");
-        empty.className = "card card-pad";
+        empty.className = "empty-state practice-empty-state";
         const heading = document.createElement("h2");
         heading.textContent = "No active session";
         const text = document.createElement("p");
@@ -321,12 +410,15 @@ export const renderPracticeView = (state, actions, nowMs) => {
     const passageMetadata = passage ? passageMetadataById.get(passage.id) : null;
     const highlightRangesByTargetKey = activeSession.highlightRangesByTargetKey ?? {};
     const top = document.createElement("section");
-    top.className = "session-top card card-pad";
+    top.className = "session-top";
+    top.setAttribute("aria-label", "Session status");
+    const topRow = document.createElement("div");
+    topRow.className = "session-top-row";
+    const titleGroup = document.createElement("div");
+    titleGroup.className = "session-title-group";
     const title = document.createElement("h2");
     title.textContent = activeSession.generatedSession.session.title;
-    const progressText = document.createElement("p");
-    progressText.className = "tiny session-progress-text";
-    progressText.textContent = `Question ${index + 1} of ${questions.length} | ${counts.submitted} submitted | ${counts.incomplete} incomplete | ${counts.flagged} flagged`;
+    titleGroup.append(title, makeProgressText(index, questions.length, counts));
     const progress = createProgressBar(index + 1, questions.length, "Session progress");
     const startedAtMs = new Date(questionState.startedAt || Date.now()).getTime();
     const timingPaused = questionState.submitted || activeSession.navigationOpen || activeSession.finalReviewOpen;
@@ -346,49 +438,38 @@ export const renderPracticeView = (state, actions, nowMs) => {
     updatePracticeTimerElement(timer, nowMs);
     const actionRow = document.createElement("div");
     actionRow.className = "button-row session-top-actions";
-    const flagButton = document.createElement("button");
-    flagButton.type = "button";
-    flagButton.className = questionState.flagged ? "btn btn-secondary" : "btn btn-ghost";
-    flagButton.textContent = questionState.flagged ? "Unflag" : "Flag";
-    flagButton.addEventListener("click", () => actions.flagCurrentQuestion());
-    const highlightButton = document.createElement("button");
-    highlightButton.type = "button";
-    highlightButton.className = "btn btn-secondary";
-    highlightButton.textContent = "Highlight";
-    highlightButton.title = "Highlight selected passage or question text (H)";
+    const flagButton = makeToolButton({ label: questionState.flagged ? "Unflag" : "Flag", key: "F", pressed: Boolean(questionState.flagged), onClick: () => actions.flagCurrentQuestion() });
+    const highlightButton = makeToolButton({ label: "Highlight", key: "H", title: "Highlight selected passage or question text (H)", onClick: () => actions.toggleHighlightFromSelection() });
     highlightButton.addEventListener("pointerdown", (event) => event.preventDefault());
     highlightButton.addEventListener("mousedown", (event) => event.preventDefault());
-    highlightButton.addEventListener("click", () => actions.toggleHighlightFromSelection());
-    const navigationButton = document.createElement("button");
-    navigationButton.type = "button";
-    navigationButton.className = "btn btn-secondary";
-    navigationButton.textContent = "Navigation";
-    navigationButton.addEventListener("click", () => actions.openNavigationPanel());
-    const reviewButton = document.createElement("button");
-    reviewButton.type = "button";
-    reviewButton.className = "btn btn-primary";
-    reviewButton.textContent = "Review";
-    reviewButton.title = "Open final review before ending.";
-    reviewButton.addEventListener("click", () => actions.openFinalReviewPanel());
+    const navigationButton = makeToolButton({ label: "Navigation", key: "N", onClick: () => actions.openNavigationPanel() });
+    const reviewButton = makeToolButton({ label: "Review", key: "R", title: "Open final review before ending.", onClick: () => actions.openFinalReviewPanel() });
     if (hasReachedReviewPoint) actionRow.append(flagButton, highlightButton, reviewButton);
     else actionRow.append(flagButton, highlightButton, navigationButton);
     const timerRow = document.createElement("div");
     timerRow.className = "session-timer-row";
     timerRow.append(totalTimer, timer);
-    top.append(title, progressText, progress, timerRow, actionRow);
+    topRow.append(titleGroup, timerRow, actionRow);
+    top.append(topRow, progress);
     root.append(top);
     const grid = document.createElement("section");
     grid.className = "session-grid";
     if (!passage) grid.classList.add("is-single");
     if (passage) grid.append(createPassageCard(passage, { ...(passageMetadata ?? {}), highlightRangesByTargetKey }));
     const questionCard = document.createElement("article");
-    questionCard.className = "card card-pad question-card";
+    questionCard.className = "question-card";
+    questionCard.dataset.scrollKey = `practice-question:${question.id}`;
+    questionCard.setAttribute("aria-labelledby", "practice-question-heading");
+    const questionHeader = document.createElement("div");
+    questionHeader.className = "question-header";
     const questionHeading = document.createElement("h3");
+    questionHeading.id = "practice-question-heading";
     questionHeading.textContent = `Question ${index + 1}`;
     const statusRow = document.createElement("div");
     statusRow.className = "practice-status-row";
     statusRow.append(makePill(getQuestionStatusText(questionState), getQuestionStatusClass(questionState)));
     if (questionState.flagged) statusRow.append(makePill("Flagged", "is-flagged"));
+    questionHeader.append(questionHeading, statusRow);
     const questionHighlightKey = getQuestionStemHighlightKey(question.id);
     const stem = createHighlightableText({
         tagName: "p",
@@ -398,7 +479,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
         scopeKey: getQuestionHighlightScopeKey(question.id),
         ranges: highlightRangesByTargetKey[questionHighlightKey]
     });
-    questionCard.append(questionHeading, statusRow, stem);
+    questionCard.append(questionHeader, stem);
     appendStimulusContent(questionCard, question, {
         surface: "question",
         ownerId: question.id,
@@ -407,6 +488,8 @@ export const renderPracticeView = (state, actions, nowMs) => {
     });
     const choiceList = document.createElement("div");
     choiceList.className = "choice-list";
+    choiceList.setAttribute("role", "group");
+    choiceList.setAttribute("aria-label", "Answer choices");
     const controlsLocked = questionState.submitted && activeSession.config.reviewMode === "immediate";
     question.choices.forEach((choice) => {
         const choiceElement = createChoiceCard(choice, {
@@ -420,16 +503,21 @@ export const renderPracticeView = (state, actions, nowMs) => {
     });
     questionCard.append(choiceList);
     const confidence = document.createElement("fieldset");
-    confidence.className = "field practice-confidence";
+    confidence.className = "practice-confidence";
     const confidenceLegend = document.createElement("legend");
-    confidenceLegend.textContent = "Confidence (optional)";
+    const optional = document.createElement("span");
+    optional.className = "legend-optional";
+    optional.textContent = "(optional)";
+    confidenceLegend.append("Confidence ", optional);
     const confidenceSegment = document.createElement("div");
-    confidenceSegment.className = "segment";
+    confidenceSegment.className = "confidence-scale";
     for (let value = 1; value <= 5; value += 1) {
         const button = document.createElement("button");
         button.type = "button";
         button.textContent = String(value);
-        if (questionState.confidence === value) button.classList.add("is-selected");
+        const selected = questionState.confidence === value;
+        if (selected) button.classList.add("is-selected");
+        button.setAttribute("aria-pressed", selected ? "true" : "false");
         button.disabled = controlsLocked;
         if (!controlsLocked) button.addEventListener("click", () => actions.setConfidence(value));
         confidenceSegment.append(button);
@@ -441,9 +529,14 @@ export const renderPracticeView = (state, actions, nowMs) => {
     const previous = document.createElement("button");
     previous.type = "button";
     previous.className = "btn btn-ghost";
-    previous.textContent = "Previous";
+    const previousLabel = document.createElement("span");
+    previousLabel.className = "practice-nav-label";
+    previousLabel.textContent = "Previous";
+    previous.append(icon("arrow-left", { size: 14 }), previousLabel);
     previous.disabled = index === 0;
     previous.addEventListener("click", () => actions.previousQuestion());
+    const primaryActions = document.createElement("div");
+    primaryActions.className = "practice-primary-actions";
     const submit = document.createElement("button");
     submit.type = "button";
     submit.className = "btn btn-secondary";
@@ -454,29 +547,33 @@ export const renderPracticeView = (state, actions, nowMs) => {
     const next = document.createElement("button");
     next.type = "button";
     next.className = "btn btn-primary";
-    next.textContent = index + 1 === questions.length ? "Review" : "Next";
-    next.title = index + 1 === questions.length ? "Open final review before ending." : "Next question";
+    const isLast = index + 1 === questions.length;
+    const nextLabel = document.createElement("span");
+    nextLabel.textContent = isLast ? "Review" : "Next";
+    next.append(nextLabel);
+    if (!isLast) next.append(icon("arrow-right", { size: 14 }));
+    next.title = isLast ? "Open final review before ending." : "Next question";
     next.addEventListener("click", () => actions.nextQuestion());
-    controls.append(previous, submit, next);
+    primaryActions.append(submit, next);
+    controls.append(previous, primaryActions);
     questionCard.append(controls);
-    const shortcutHint = document.createElement("p");
-    shortcutHint.className = "tiny practice-shortcuts";
-    shortcutHint.textContent = hasReachedReviewPoint ? "Shortcuts: A/B/C/D select, Enter submit, Left/Right navigate, R review, F flag, H highlight." : "Shortcuts: A/B/C/D select, Enter submit, Left/Right navigate, N navigation, F flag, H highlight.";
-    questionCard.append(shortcutHint);
+    questionCard.append(makeShortcutLegend(hasReachedReviewPoint));
     if (showFeedback) {
-        const explanation = document.createElement("div");
-        explanation.className = "explanation-panel";
+        const explanation = document.createElement("section");
+        explanation.className = `explanation-panel ${questionState.isCorrect ? "is-correct" : "is-incorrect"}`;
+        explanation.setAttribute("aria-label", "Explanation");
         const verdict = document.createElement("p");
         verdict.className = questionState.isCorrect ? "status success" : "status error";
         verdict.textContent = questionState.isCorrect ? "Correct." : `Incorrect. Correct answer: ${question.correctChoiceId}.`;
         const explanationText = document.createElement("p");
+        explanationText.className = "explanation-text";
         explanationText.textContent = question.explanation;
         explanation.append(verdict, explanationText);
         appendChoiceExplanations(explanation, question);
         questionCard.append(explanation);
     }
     const disclaimer = document.createElement("p");
-    disclaimer.className = "muted-note practice-ai-note";
+    disclaimer.className = "practice-ai-note";
     disclaimer.textContent = "AI-generated. Use for drilling and review. Verify uncertain explanations.";
     questionCard.append(disclaimer);
     grid.append(questionCard);

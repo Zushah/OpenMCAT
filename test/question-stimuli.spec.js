@@ -154,7 +154,7 @@ const directChildOrder = (locator) => locator.evaluate((element) => Array.from(e
     if (child.matches(".table-wrap")) return "table";
     if (child.matches(".stimulus-chart")) return "chart";
     if (child.matches(".choice-list")) return "choices";
-    if (child.matches(".card") && child.querySelector('[data-highlight-target-key*=":figure:"]')) return "figure";
+    if (child.matches(".stimulus-figure-description") && child.querySelector('[data-highlight-target-key*=":figure:"]')) return "figure";
     if (child.matches("p.tiny") && child.textContent.startsWith("Selected:")) return "meta";
     return "other";
 }));
@@ -220,7 +220,7 @@ test("practice and review order, highlight, store, export, and import question s
     expect(reviewOrder.indexOf("stem")).toBeLessThan(reviewOrder.indexOf("table"));
     expect(reviewOrder.indexOf("table")).toBeLessThan(reviewOrder.indexOf("chart"));
     expect(reviewOrder.indexOf("chart")).toBeLessThan(reviewOrder.indexOf("figure"));
-    expect(reviewOrder.indexOf("figure")).toBeLessThan(reviewOrder.indexOf("meta"));
+    expect(reviewOrder.indexOf("meta")).toBeLessThan(reviewOrder.indexOf("stem"));
     for (const key of questionKeys) await expect(firstReview.locator(`[data-highlight-target-key="${key}"] mark`)).toHaveCount(1);
 
     const roundTrip = await page.evaluate(async () => {

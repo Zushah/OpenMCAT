@@ -1,11 +1,25 @@
 import { DIFFICULTIES, QUESTION_FORMATS, SECTIONS, getSkillsForSection, getTopicsBySection } from "../data/taxonomy.js";
 import { REVIEW_MODES, TIMING_MODES } from "../data/defaults.js";
+import { icon } from "../components/icons.js";
 
 const AI_CHAT_SHORTCUTS = [
     { name: "ChatGPT", href: "https://chatgpt.com/", icon: "./assets/images/chatgpt.svg" },
     { name: "Claude", href: "https://claude.ai/new", icon: "./assets/images/claude.svg" },
     { name: "DeepSeek", href: "https://chat.deepseek.com/", icon: "./assets/images/deepseek.svg" }
 ];
+
+const CHECK_GLYPH = '<svg width="10" height="8" viewBox="0 0 10 8" aria-hidden="true" focusable="false"><path d="M1 4l3 3 5-6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+
+const makeLabelledButton = (className, text, iconName, onClick) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = className;
+    const label = document.createElement("span");
+    label.textContent = text;
+    button.append(label, icon(iconName, { size: 14 }));
+    button.addEventListener("click", onClick);
+    return button;
+};
 
 const makeGeneratorHeader = (actions) => {
     const header = document.createElement("div");
@@ -15,96 +29,132 @@ const makeGeneratorHeader = (actions) => {
     const restore = document.createElement("button");
     restore.type = "button";
     restore.className = "btn btn-ghost generator-options-restore";
-    restore.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">sync</span> Restore default options';
+    const label = document.createElement("span");
+    label.textContent = "Restore default options";
+    restore.append(icon("restore", { size: 13 }), label);
     restore.addEventListener("click", () => actions.restoreDefaultGeneratorOptions());
     header.append(title, restore);
     return header;
 };
 
-const makeHero = () => {
+const makeHero = (actions) => {
     const hero = document.createElement("section");
-    hero.className = "hero";
+    hero.className = "hero generator-hero";
+    const copy = document.createElement("div");
+    copy.className = "hero-copy";
     const heading = document.createElement("h1");
     heading.textContent = "Practice";
     const sub = document.createElement("p");
     sub.textContent = "Generate targeted drills by section, topic, skill, difficulty, and format, or start immediately from the pregenerated question bank.";
-    hero.append(heading, sub);
+    copy.append(heading, sub);
+    hero.append(copy, makeQuestionBankCta(actions));
     return hero;
 };
 
 const makeQuestionBankCta = (actions) => {
-    const panel = document.createElement("section");
-    panel.className = "card card-pad generator-bank-cta";
-    const copy = document.createElement("div");
+    const panel = document.createElement("aside");
+    panel.className = "generator-bank-cta";
+    panel.setAttribute("aria-labelledby", "generator-bank-cta-heading");
     const title = document.createElement("h2");
+    title.id = "generator-bank-cta-heading";
     title.textContent = "Question bank";
     const text = document.createElement("p");
     text.textContent = "Use the pregenerated bank of 300 questions to start a session with zero setup friction.";
-    copy.append(title, text);
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "btn btn-secondary";
-    button.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">fact_check</span> Start session';
-    button.addEventListener("click", () => actions.navigate("bank"));
-    panel.append(copy, button);
+    const button = makeLabelledButton("btn btn-secondary", "Start session", "arrow-right", () => actions.navigate("bank"));
+    panel.append(title, text, button);
     return panel;
 };
 
-const makeSectionSelect = (config, actions) => {
-    const wrap = document.createElement("div");
-    wrap.className = "field";
-    const label = document.createElement("label");
-    label.htmlFor = "section-select";
-    label.textContent = "Section";
-    const select = document.createElement("select");
-    select.id = "section-select";
-    SECTIONS.forEach((section) => {
-        const option = document.createElement("option");
-        option.value = section.id;
-        option.textContent = `${section.shortName} - ${section.name}`;
-        if (config.sectionId === section.id) option.selected = true;
-        select.append(option);
-    });
-    select.addEventListener("change", () => actions.applySection(select.value));
-    wrap.append(label, select);
-    return wrap;
+const makeClause = (number, body, { extraClass = "" } = {}) => {
+    const clause = document.createElement("div");
+    clause.className = ["clause", extraClass].filter(Boolean).join(" ");
+    const numeral = document.createElement("span");
+    numeral.className = "clause-num";
+    numeral.setAttribute("aria-hidden", "true");
+    numeral.textContent = String(number);
+    clause.append(numeral, body);
+    return clause;
 };
 
-const makeChipSelector = ({ title, subtitle, selectedIds, options, onToggle, uniform = false }) => {
-    const wrap = document.createElement("fieldset");
-    wrap.className = "field";
+const makeClauseFieldset = (title, help = "") => {
+    const fieldset = document.createElement("fieldset");
+    fieldset.className = "clause-body";
     const legend = document.createElement("legend");
     legend.textContent = title;
-    const help = document.createElement("p");
-    help.className = "help";
-    help.textContent = subtitle;
+    fieldset.append(legend);
+    if (help) {
+        const note = document.createElement("p");
+        note.className = "clause-help";
+        note.textContent = help;
+        fieldset.append(note);
+    }
+    return fieldset;
+};
+
+const makeSectionPicker = (config, actions) => {
+    const fieldset = makeClauseFieldset("Section");
+    const picker = document.createElement("div");
+    picker.className = "section-picker";
+    SECTIONS.forEach((section) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "section-option";
+        button.dataset.sectionId = section.id;
+        const selected = config.sectionId === section.id;
+        button.setAttribute("aria-pressed", selected ? "true" : "false");
+        const abbreviation = document.createElement("span");
+        abbreviation.className = "section-option-abbr";
+        abbreviation.textContent = section.shortName;
+        const name = document.createElement("span");
+        name.className = "section-option-name";
+        name.textContent = section.name;
+        button.append(abbreviation, name);
+        button.addEventListener("click", () => { if (!selected) actions.applySection(section.id); });
+        picker.append(button);
+    });
+    fieldset.append(picker);
+    return makeClause(1, fieldset);
+};
+
+const makeChecklist = ({ title, subtitle, selectedIds, options, onToggle, number, twoColumn = false, showCount = false }) => {
+    const fieldset = makeClauseFieldset(title, subtitle);
     const list = document.createElement("div");
-    list.className = "chip-list";
-    if (uniform) list.classList.add("chip-list-uniform");
+    list.className = twoColumn ? "check-list is-two-column" : "check-list";
     options.forEach((option) => {
         const button = document.createElement("button");
         button.type = "button";
-        button.className = "chip";
-        if (selectedIds.includes(option.id)) {
-            button.classList.add("is-selected");
-            button.setAttribute("aria-pressed", "true");
-        } else button.setAttribute("aria-pressed", "false");
-        const label = option.shortName;
-        button.textContent = label;
+        button.className = "check-item";
+        const selected = selectedIds.includes(option.id);
+        button.setAttribute("aria-pressed", selected ? "true" : "false");
+        if (selected) button.classList.add("is-selected");
+        const box = document.createElement("span");
+        box.className = "check-box";
+        box.setAttribute("aria-hidden", "true");
+        box.innerHTML = CHECK_GLYPH;
+        const label = document.createElement("span");
+        label.textContent = option.shortName;
+        button.append(box, label);
         if (option.description) {
             button.title = option.description;
-            button.setAttribute("aria-label", `${label}. ${option.description}`);
+            button.setAttribute("aria-label", `${option.shortName}. ${option.description}`);
         }
         button.addEventListener("click", () => onToggle(option.id));
         list.append(button);
     });
-    wrap.append(legend, help, list);
-    return wrap;
+    fieldset.append(list);
+    const clause = makeClause(number, fieldset);
+    if (showCount) {
+        const count = document.createElement("p");
+        count.className = "clause-count";
+        count.textContent = `${selectedIds.filter((id) => options.some((option) => option.id === id)).length} of ${options.length} selected`;
+        clause.append(count);
+    }
+    return { clause, fieldset };
 };
 
 const makeSegmentControl = ({ title, options, selectedId, onChange }) => {
     const wrap = document.createElement("fieldset");
-    wrap.className = "field";
+    wrap.className = "clause-sub";
     const legend = document.createElement("legend");
     legend.textContent = title;
     const segment = document.createElement("div");
@@ -113,10 +163,9 @@ const makeSegmentControl = ({ title, options, selectedId, onChange }) => {
         const button = document.createElement("button");
         button.type = "button";
         button.textContent = option.label ?? option.name;
-        if (option.id === selectedId) {
-            button.classList.add("is-selected");
-            button.setAttribute("aria-pressed", "true");
-        }
+        const selected = option.id === selectedId;
+        if (selected) button.classList.add("is-selected");
+        button.setAttribute("aria-pressed", selected ? "true" : "false");
         button.addEventListener("click", () => onChange(option.id));
         segment.append(button);
     });
@@ -124,15 +173,24 @@ const makeSegmentControl = ({ title, options, selectedId, onChange }) => {
     return wrap;
 };
 
-const makeNumberField = ({ id, labelText, value, min, max, onChange }) => {
+const makeNumberField = ({ id, labelText, hint = "", value, min, max, onChange, className = "field" }) => {
     const wrap = document.createElement("div");
-    wrap.className = "field";
+    wrap.className = className;
     const label = document.createElement("label");
     label.htmlFor = id;
-    label.textContent = labelText;
+    label.className = "generator-field-label";
+    label.append(document.createTextNode(labelText));
+    if (hint) {
+        label.append(" ");
+        const caption = document.createElement("span");
+        caption.className = "field-hint";
+        caption.textContent = hint;
+        label.append(caption);
+    }
     const input = document.createElement("input");
     input.id = id;
     input.type = "number";
+    input.inputMode = "numeric";
     input.min = String(min);
     input.max = String(max);
     input.value = String(value);
@@ -146,6 +204,7 @@ const makeFormatSelect = (config, actions) => {
     wrap.className = "field";
     const label = document.createElement("label");
     label.htmlFor = "format-select";
+    label.className = "generator-field-label";
     label.textContent = "Question format";
     const select = document.createElement("select");
     select.id = "format-select";
@@ -161,6 +220,49 @@ const makeFormatSelect = (config, actions) => {
     return wrap;
 };
 
+const findLabel = (list, id, key = "name") => list.find((item) => item.id === id)?.[key] ?? id ?? "n/a";
+
+const makeSessionSummary = (state, actions, sectionTopics, sectionSkills) => {
+    const config = state.currentConfig;
+    const wrap = document.createElement("aside");
+    wrap.className = "generator-summary-wrap";
+    wrap.setAttribute("aria-labelledby", "generator-summary-heading");
+    const summary = document.createElement("div");
+    summary.className = "generator-summary";
+    const heading = document.createElement("h2");
+    heading.id = "generator-summary-heading";
+    heading.className = "label-caps";
+    heading.textContent = "This session";
+    const topicCount = config.topicIds.filter((id) => sectionTopics.some((topic) => topic.id === id)).length;
+    const skillCount = config.skillIds.filter((id) => sectionSkills.some((skill) => skill.id === id)).length;
+    const format = findLabel(QUESTION_FORMATS, config.questionFormat);
+    const timing = config.timingMode === "timed" ? `Timed · ${config.secondsPerQuestion ?? 95}s per question` : findLabel(TIMING_MODES, config.timingMode, "label");
+    const review = findLabel(REVIEW_MODES, config.reviewMode, "label").replace(/^Review\s+/i, "").replace(/^./, (character) => character.toUpperCase());
+    const rows = [
+        ["Section", findLabel(SECTIONS, config.sectionId, "shortName")],
+        ["Topics", topicCount ? `${topicCount} selected` : "All (none selected)"],
+        ["Skills", skillCount ? `${skillCount} selected` : "None selected"],
+        ["Difficulty", findLabel(DIFFICULTIES, config.difficulty)],
+        ["Format", `${format} · ${config.questionCount} ${config.questionCount === 1 ? "question" : "questions"}`],
+        ["Timing", timing],
+        ["Review", review]
+    ];
+    const list = document.createElement("dl");
+    list.className = "generator-summary-list";
+    rows.forEach(([term, value]) => {
+        const dt = document.createElement("dt");
+        dt.textContent = term;
+        const dd = document.createElement("dd");
+        dd.textContent = value;
+        list.append(dt, dd);
+    });
+    const generateButton = makeLabelledButton("btn btn-primary generator-submit-button", "Generate practice session", "arrow-right", () => actions.generateSession());
+    generateButton.disabled = state.generation.status === "compiling" || state.generation.status === "validating";
+    summary.append(heading, list, generateButton);
+    wrap.append(summary);
+    return wrap;
+};
+
 const makeGenerationPipelineModal = (state, actions) => {
     if (!state.generation.pipelineOpen || !state.generation.compiledPrompt) return null;
     const overlay = document.createElement("section");
@@ -168,7 +270,7 @@ const makeGenerationPipelineModal = (state, actions) => {
     overlay.setAttribute("role", "presentation");
     overlay.addEventListener("click", (event) => { if (event.target === overlay) actions.closeGenerationPipeline(); });
     const panel = document.createElement("section");
-    panel.className = "card card-pad generation-pipeline-panel";
+    panel.className = "generation-pipeline-panel dialog-centered";
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-modal", "true");
     panel.setAttribute("aria-labelledby", "generation-pipeline-heading");
@@ -180,9 +282,9 @@ const makeGenerationPipelineModal = (state, actions) => {
     heading.textContent = "Generation pipeline";
     const close = document.createElement("button");
     close.type = "button";
-    close.className = "btn btn-ghost generation-pipeline-close";
+    close.className = "btn btn-icon generation-pipeline-close";
     close.setAttribute("aria-label", "Close generation pipeline");
-    close.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">close</span>';
+    close.append(icon("close"));
     close.addEventListener("click", () => actions.closeGenerationPipeline());
     top.append(heading, close);
     panel.append(top);
@@ -196,14 +298,14 @@ const makeGenerationPipelineModal = (state, actions) => {
         link.target = "_blank";
         link.rel = "noopener";
         link.setAttribute("aria-label", `Open ${shortcut.name} in a new tab`);
-        const icon = document.createElement("img");
-        icon.className = "generation-pipeline-shortcut-icon";
-        icon.src = shortcut.icon;
-        icon.alt = "";
-        icon.setAttribute("aria-hidden", "true");
+        const shortcutIcon = document.createElement("img");
+        shortcutIcon.className = "generation-pipeline-shortcut-icon";
+        shortcutIcon.src = shortcut.icon;
+        shortcutIcon.alt = "";
+        shortcutIcon.setAttribute("aria-hidden", "true");
         const label = document.createElement("span");
         label.textContent = shortcut.name;
-        link.append(icon, label);
+        link.append(shortcutIcon, label);
         shortcuts.append(link);
     });
     panel.append(shortcuts);
@@ -222,7 +324,7 @@ const makeGenerationPipelineModal = (state, actions) => {
         try {
             await navigator.clipboard.writeText(text);
             copyButton.textContent = "Copied";
-        } catch { 
+        } catch {
             copyButton.textContent = "Copy failed";
         }
         setTimeout(() => { copyButton.textContent = "Copy prompt"; }, 1200);
@@ -230,8 +332,11 @@ const makeGenerationPipelineModal = (state, actions) => {
     const outputInput = document.createElement("textarea");
     outputInput.className = "generation-pipeline-output";
     outputInput.placeholder = "Paste output";
-    outputInput.rows = 6;
+    outputInput.setAttribute("aria-label", "Paste output");
+    outputInput.rows = 1;
+    outputInput.spellcheck = false;
     outputInput.value = state.generation.manualInput ?? "";
+    if (state.generation.error) outputInput.setAttribute("aria-invalid", "true");
     controls.append(copyButton, outputInput);
     panel.append(controls);
     const startRow = document.createElement("div");
@@ -239,15 +344,20 @@ const makeGenerationPipelineModal = (state, actions) => {
     const start = document.createElement("button");
     start.type = "button";
     start.className = `btn ${state.generation.repairPrompt ? "btn-secondary" : "btn-primary"}`;
-    start.textContent = "Start session";
+    const startLabel = document.createElement("span");
+    startLabel.textContent = "Start session";
+    start.append(startLabel, icon("arrow-right", { size: 14 }));
     start.disabled = state.generation.status === "validating";
     start.addEventListener("click", () => actions.submitManualJson(outputInput.value));
     startRow.append(start);
     panel.append(startRow);
     if (state.generation.error) {
         const error = document.createElement("p");
+        error.id = "generation-pipeline-error";
         error.className = "danger-note generation-pipeline-error";
+        error.setAttribute("role", "alert");
         error.textContent = state.generation.error;
+        outputInput.setAttribute("aria-describedby", error.id);
         panel.append(error);
     }
     if (state.generation.repairPrompt) {
@@ -275,104 +385,94 @@ const makeGenerationPipelineModal = (state, actions) => {
 
 export const renderGeneratorView = (state, actions) => {
     const root = document.createElement("section");
-    root.append(makeHero(), makeQuestionBankCta(actions));
+    root.className = "generator-page";
+    root.append(makeHero(actions));
+    const config = state.currentConfig;
+    const sectionTopics = getTopicsBySection(config.sectionId);
+    const sectionSkills = getSkillsForSection(config.sectionId);
     const layout = document.createElement("div");
     layout.className = "generator-layout";
     const primary = document.createElement("section");
-    primary.className = "card card-pad";
-    primary.append(makeGeneratorHeader(actions));
-    const sectionTopics = getTopicsBySection(state.currentConfig.sectionId);
-    const sectionSkills = getSkillsForSection(state.currentConfig.sectionId);
-    primary.append(makeSectionSelect(state.currentConfig, actions));
-    primary.append(makeChipSelector({
+    primary.className = "generator-main";
+    primary.setAttribute("aria-label", "Session generator options");
+    primary.append(makeGeneratorHeader(actions), makeSectionPicker(config, actions));
+    const topics = makeChecklist({
         title: "Topics",
         subtitle: "Select one or more topics. If none are selected, then all will be used.",
-        selectedIds: state.currentConfig.topicIds,
+        selectedIds: config.topicIds,
         options: sectionTopics,
-        onToggle: (topicId) => actions.toggleMultiValue("topicIds", topicId)
-    }));
-    if (!state.currentConfig.topicIds.length) {
+        onToggle: (topicId) => actions.toggleMultiValue("topicIds", topicId),
+        number: 2,
+        showCount: true
+    });
+    if (!config.topicIds.length) {
         const warning = document.createElement("p");
         warning.className = "warning-note";
         warning.textContent = "No topics selected, so all will be used, but targeted practice is recommended.";
-        primary.append(warning);
+        topics.fieldset.append(warning);
     }
-    const sessionGrid = document.createElement("div");
-    sessionGrid.className = "generator-session-grid";
-    const leftColumn = document.createElement("div");
-    leftColumn.className = "generator-session-column";
-    const rightColumn = document.createElement("div");
-    rightColumn.className = "generator-session-column";
-    leftColumn.append(makeChipSelector({
+    primary.append(topics.clause);
+    const skills = makeChecklist({
         title: "Skills",
         subtitle: "Select one or more skills for this session.",
-        selectedIds: state.currentConfig.skillIds,
+        selectedIds: config.skillIds,
         options: sectionSkills,
-        uniform: true,
-        onToggle: (skillId) => actions.toggleMultiValue("skillIds", skillId)
-    }));
-    leftColumn.append(makeSegmentControl({
+        onToggle: (skillId) => actions.toggleMultiValue("skillIds", skillId),
+        number: 3,
+        twoColumn: true
+    });
+    primary.append(skills.clause);
+    const difficultySplit = document.createElement("div");
+    difficultySplit.className = "clause-split";
+    difficultySplit.append(makeSegmentControl({
         title: "Difficulty",
-        options: DIFFICULTIES.map((difficulty) => ({
-            id: difficulty.id,
-            label: difficulty.name
-        })),
-        selectedId: state.currentConfig.difficulty,
+        options: DIFFICULTIES.map((difficulty) => ({ id: difficulty.id, label: difficulty.name })),
+        selectedId: config.difficulty,
         onChange: (difficulty) => actions.updateConfig({ difficulty })
     }));
     const formatCountRow = document.createElement("div");
     formatCountRow.className = "generator-compact-row";
-    formatCountRow.append(makeFormatSelect(state.currentConfig, actions));
-    formatCountRow.append(makeNumberField({
+    formatCountRow.append(makeFormatSelect(config, actions), makeNumberField({
         id: "question-count",
-        labelText: "Question count (1-59)",
-        value: state.currentConfig.questionCount,
+        labelText: "Question count",
+        hint: "(1-59)",
+        value: config.questionCount,
         min: 1,
         max: 59,
         onChange: (questionCount) => actions.updateConfig({ questionCount })
     }));
-    rightColumn.append(formatCountRow);
-    rightColumn.append(makeSegmentControl({
+    difficultySplit.append(formatCountRow);
+    primary.append(makeClause(4, difficultySplit));
+    const timingSplit = document.createElement("div");
+    timingSplit.className = "clause-split";
+    const timingColumn = document.createElement("div");
+    timingColumn.className = "clause-sub";
+    timingColumn.append(makeSegmentControl({
         title: "Timing mode",
         options: TIMING_MODES,
-        selectedId: state.currentConfig.timingMode,
+        selectedId: config.timingMode,
         onChange: (timingMode) => actions.updateConfig({ timingMode })
     }));
-    if (state.currentConfig.timingMode === "timed") {
-        rightColumn.append(makeNumberField({
+    if (config.timingMode === "timed") {
+        timingColumn.append(makeNumberField({
             id: "seconds-per-question",
             labelText: "Seconds per question",
-            value: state.currentConfig.secondsPerQuestion ?? 95,
+            value: config.secondsPerQuestion ?? 95,
             min: 30,
             max: 240,
-            onChange: (secondsPerQuestion) => actions.updateConfig({ secondsPerQuestion })
+            onChange: (secondsPerQuestion) => actions.updateConfig({ secondsPerQuestion }),
+            className: "field generator-timing-extra"
         }));
     }
-    rightColumn.append(makeSegmentControl({
+    timingSplit.append(timingColumn, makeSegmentControl({
         title: "Review mode",
         options: REVIEW_MODES,
-        selectedId: state.currentConfig.reviewMode,
+        selectedId: config.reviewMode,
         onChange: (reviewMode) => actions.updateConfig({ reviewMode })
     }));
-    sessionGrid.append(leftColumn, rightColumn);
-    primary.append(sessionGrid);
-    layout.append(primary);
+    primary.append(makeClause(5, timingSplit));
+    layout.append(primary, makeSessionSummary(state, actions, sectionTopics, sectionSkills));
     root.append(layout);
-    const generatePanel = document.createElement("section");
-    generatePanel.className = "card card-pad generator-submit-panel";
-    const generateRow = document.createElement("div");
-    generateRow.className = "question-actions generator-submit-row";
-    const generateButton = document.createElement("button");
-    generateButton.type = "button";
-    generateButton.className = "btn btn-primary";
-    generateButton.textContent = "Generate practice session";
-    generateButton.disabled =
-    state.generation.status === "compiling" ||
-    state.generation.status === "validating";
-    generateButton.addEventListener("click", () => actions.generateSession());
-    generateRow.append(generateButton);
-    generatePanel.append(generateRow);
-    root.append(generatePanel);
     const modal = makeGenerationPipelineModal(state, actions);
     if (modal) root.append(modal);
     return root;

@@ -2,8 +2,11 @@
 
 All committed changes to the [`Zushah/OpenMCAT`](https://github.com/Zushah/OpenMCAT) code repository are recorded here.
 
+## 33. [`v1.10.0`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-09-30&until=2026-09-30) 2026-09-30
+- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Redesign the aesthetics of the website
+
 ## 32. [`v1.9.0`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-09-12&until=2026-09-12) 2026-09-12
-- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Bump Chalkboard from v3.0.4 to v3.0.5
+- [`653095d`](https://github.com/Zushah/OpenMCAT/commit/653095d) Bump Chalkboard from v3.0.4 to v3.0.5
 - [`0a71738`](https://github.com/Zushah/OpenMCAT/commit/0a71738) Update core question banks with richer stimuli
 - [`b85a062`](https://github.com/Zushah/OpenMCAT/commit/b85a062) Add tables and figure descriptions for questions
 - [`56632a3`](https://github.com/Zushah/OpenMCAT/commit/56632a3) Add custom GitHub Pages workflow

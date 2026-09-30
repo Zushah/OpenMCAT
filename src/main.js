@@ -1,7 +1,8 @@
 import { state } from "./app.js";
 import { createActions } from "./events.js";
 import { getRouteFromHash, isRouteHash } from "./router.js";
-import { destroyCharts } from "./components/charts.js";
+import { destroyCharts, setChartAnimationEnabled } from "./components/charts.js";
+import { enhanceScrollWrappers } from "./components/overflow.js";
 import { subscribeToDataChanges } from "./storage/db.js";
 import { renderAboutView } from "./views/about.js";
 import { renderDashboardView } from "./views/dashboard.js";
@@ -25,17 +26,52 @@ const applyTheme = (theme = "system") => { document.documentElement.setAttribute
 
 const updateActiveNav = (route) => {
     const activeRoute = route === "practice" || route === "review" || route === "bank" ? "generator" : route;
+    const nav = document.querySelector(".nav-links");
     const links = document.querySelectorAll(".nav-links a[data-route]");
+    let activeLink = null;
     links.forEach((link) => {
         const routeId = link.getAttribute("data-route");
-        if (routeId === activeRoute) link.classList.add("is-active"); else link.classList.remove("is-active");
+        if (routeId === activeRoute) {
+            link.classList.add("is-active");
+            link.setAttribute("aria-current", "page");
+            activeLink = link;
+        } else {
+            link.classList.remove("is-active");
+            link.removeAttribute("aria-current");
+        }
+    });
+    if (nav && activeLink && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = Math.max(0, activeLink.offsetLeft - (nav.clientWidth - activeLink.offsetWidth) / 2);
+};
+
+let lastRenderedRoute = null;
+
+const captureScrollPositions = () => new Map(Array.from(mainElement.querySelectorAll("[data-scroll-key]")).map((element) => [element.dataset.scrollKey, { top: element.scrollTop, left: element.scrollLeft }]));
+
+const restoreScrollPositions = (positions) => {
+    if (!positions.size) return;
+    mainElement.querySelectorAll("[data-scroll-key]").forEach((element) => {
+        const position = positions.get(element.dataset.scrollKey);
+        if (!position) return;
+        element.scrollTop = position.top;
+        element.scrollLeft = position.left;
     });
 };
 
 const render = () => {
+    const routeKey = state.storageError ? "error" : state.route;
+    const routeChanged = routeKey !== lastRenderedRoute;
+    lastRenderedRoute = routeKey;
     destroyCharts();
+    setChartAnimationEnabled(routeChanged);
+    document.body.dataset.route = routeKey;
     updateActiveNav(state.route);
+    const scrollPositions = routeChanged ? new Map() : captureScrollPositions();
     mainElement.replaceChildren();
+    if (routeChanged) {
+        mainElement.classList.remove("is-entering");
+        void mainElement.offsetWidth;
+        mainElement.classList.add("is-entering");
+    }
     let view;
     if (state.storageError) view = renderStorageErrorView(state.storageError, actions);
     else if (state.route === "landing") view = renderLandingView(actions);
@@ -47,6 +83,8 @@ const render = () => {
     else if (state.route === "settings") view = renderSettingsView(state, actions);
     else view = renderAboutView();
     mainElement.append(view);
+    restoreScrollPositions(scrollPositions);
+    enhanceScrollWrappers(mainElement);
     actions.refreshVisibleBackupDataSize();
 };
 
@@ -139,6 +177,13 @@ const setupNavHandlers = () => {
         });
     });
 };
+
+mainElement.addEventListener("toggle", () => enhanceScrollWrappers(mainElement), true);
+let scrollWrapperResizeFrame = 0;
+window.addEventListener("resize", () => {
+    cancelAnimationFrame(scrollWrapperResizeFrame);
+    scrollWrapperResizeFrame = requestAnimationFrame(() => { enhanceScrollWrappers(mainElement); updateActiveNav(state.route); });
+});
 
 window.addEventListener("popstate", handleBrowserRouteChange);
 window.addEventListener("hashchange", handleBrowserRouteChange);

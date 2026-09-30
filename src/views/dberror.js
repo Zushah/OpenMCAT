@@ -1,14 +1,15 @@
 export const renderStorageErrorView = (message, actions) => {
     const root = document.createElement("section");
+    root.className = "storage-error-page";
     const header = document.createElement("section");
-    header.className = "hero";
+    header.className = "storage-error";
+    const kicker = document.createElement("p");
+    kicker.className = "storage-error-kicker";
+    kicker.textContent = "Storage unavailable";
     const heading = document.createElement("h1");
     heading.textContent = "Browser storage unavailable";
     const description = document.createElement("p");
     description.textContent = "OpenMCAT could not safely access its private database in your web browser. Existing OpenMCAT data has not been deleted.";
-    header.append(heading, description);
-    const card = document.createElement("section");
-    card.className = "card card-pad empty-state";
     const detail = document.createElement("p");
     detail.className = "danger-note";
     detail.textContent = message;
@@ -16,7 +17,7 @@ export const renderStorageErrorView = (message, actions) => {
     guidance.className = "muted-note";
     guidance.textContent = "Close other OpenMCAT tabs, confirm that this web browser allows site storage, and then try again.";
     const controls = document.createElement("div");
-    controls.className = "button-row dashboard-empty-actions";
+    controls.className = "button-row";
     const retry = document.createElement("button");
     retry.type = "button";
     retry.className = "btn btn-primary";
@@ -28,7 +29,7 @@ export const renderStorageErrorView = (message, actions) => {
     reload.textContent = "Reload OpenMCAT";
     reload.addEventListener("click", () => location.reload());
     controls.append(retry, reload);
-    card.append(detail, guidance, controls);
-    root.append(header, card);
+    header.append(kicker, heading, description, detail, guidance, controls);
+    root.append(header);
     return root;
 };

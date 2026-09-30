@@ -1,13 +1,15 @@
 const TOAST_LIFETIME_MS = 3600;
+const TOAST_EXIT_MS = 120;
 
 export const showToast = (message, type = "info") => {
     const root = document.getElementById("toast-root");
     if (!root) return;
     const toast = document.createElement("div");
-    toast.className = "toast";
-    if (type === "error") toast.style.borderColor = "color-mix(in srgb, var(--danger), transparent 45%)";
-    if (type === "success") toast.style.borderColor = "color-mix(in srgb, var(--success), transparent 45%)";
+    toast.className = `toast is-${type === "error" || type === "success" ? type : "info"}`;
     toast.textContent = message;
     root.appendChild(toast);
-    setTimeout(() => { toast.remove(); }, TOAST_LIFETIME_MS);
+    setTimeout(() => {
+        toast.classList.add("is-leaving");
+        setTimeout(() => { toast.remove(); }, TOAST_EXIT_MS);
+    }, TOAST_LIFETIME_MS - TOAST_EXIT_MS);
 };

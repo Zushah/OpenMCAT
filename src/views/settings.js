@@ -1,3 +1,5 @@
+import { icon } from "../components/icons.js";
+
 const makeField = (labelText, input) => {
     const wrap = document.createElement("div");
     wrap.className = "field";
@@ -33,12 +35,25 @@ const BACKUP_REMINDER_TIMING_OPTIONS = [
 const makeDataGroup = (title, description) => {
     const group = document.createElement("section");
     group.className = "settings-data-group";
+    const copy = document.createElement("div");
+    copy.className = "settings-data-group-copy";
     const heading = document.createElement("h2");
     heading.textContent = title;
     const help = document.createElement("p");
     help.className = "tiny";
     help.textContent = description;
-    group.append(heading, help);
+    copy.append(heading, help);
+    group.append(copy);
+    return group;
+};
+
+const makeSettingsGroup = (label) => {
+    const group = document.createElement("section");
+    group.className = "settings-group";
+    const heading = document.createElement("h2");
+    heading.className = "settings-group-label";
+    heading.textContent = label;
+    group.append(heading);
     return group;
 };
 
@@ -66,7 +81,7 @@ const renderDataConfirmationModal = (state, actions) => {
     overlay.setAttribute("role", "presentation");
     overlay.addEventListener("click", (event) => { if (event.target === overlay) actions.closeSettingsDataConfirmation(); });
     const panel = document.createElement("section");
-    panel.className = "card card-pad generation-pipeline-panel settings-data-confirmation-panel";
+    panel.className = "generation-pipeline-panel dialog-centered settings-data-confirmation-panel";
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-modal", "true");
     panel.setAttribute("aria-labelledby", "settings-data-confirmation-heading");
@@ -79,14 +94,14 @@ const renderDataConfirmationModal = (state, actions) => {
     heading.textContent = DATA_ACTION_TITLES[confirmation.action] ?? "Change data";
     const close = document.createElement("button");
     close.type = "button";
-    close.className = "btn btn-ghost generation-pipeline-close";
+    close.className = "btn btn-icon generation-pipeline-close";
     close.setAttribute("aria-label", "Deny data action and close confirmation");
-    close.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">close</span>';
+    close.append(icon("close"));
     close.addEventListener("click", () => actions.closeSettingsDataConfirmation());
     top.append(heading, close);
     const description = document.createElement("p");
     description.id = "settings-data-confirmation-description";
-    description.className = "muted-note settings-data-confirmation-description";
+    description.className = "settings-data-confirmation-description";
     description.textContent = confirmation.description;
     const metadata = document.createElement("dl");
     metadata.className = "settings-data-confirmation-metadata";
@@ -126,7 +141,7 @@ const renderDataConfirmationModal = (state, actions) => {
     controls.className = "button-row settings-data-confirmation-actions";
     const confirmButton = document.createElement("button");
     confirmButton.type = "button";
-    confirmButton.className = "btn btn-secondary";
+    confirmButton.className = confirmation.action === "delete" || confirmation.action === "restore" ? "btn btn-danger-solid" : "btn btn-primary";
     confirmButton.textContent = "Confirm";
     confirmButton.addEventListener("click", () => actions.confirmSettingsDataAction());
     const denyButton = document.createElement("button");
@@ -134,7 +149,7 @@ const renderDataConfirmationModal = (state, actions) => {
     denyButton.className = "btn btn-secondary";
     denyButton.textContent = "Deny";
     denyButton.addEventListener("click", () => actions.closeSettingsDataConfirmation());
-    controls.append(confirmButton, denyButton);
+    controls.append(denyButton, confirmButton);
     panel.append(top, description);
     if (confirmation.metadata.length) panel.append(metadata);
     panel.append(comparison, controls);
@@ -144,6 +159,7 @@ const renderDataConfirmationModal = (state, actions) => {
 
 export const renderSettingsView = (state, actions) => {
     const root = document.createElement("section");
+    root.className = "settings-page";
     const header = document.createElement("section");
     header.className = "hero";
     const heading = document.createElement("h1");
@@ -154,12 +170,17 @@ export const renderSettingsView = (state, actions) => {
     root.append(header);
     const layout = document.createElement("div");
     layout.className = "settings-grid";
-    const appearanceCard = document.createElement("section");
-    appearanceCard.className = "card card-pad";
+    const preferences = document.createElement("section");
+    preferences.className = "settings-preferences";
+    preferences.setAttribute("aria-label", "Preferences");
+    const appearanceGroup = makeSettingsGroup("Appearance");
     const themeSelect = createSelect("settings-theme", [{ value: "system", label: "System" }, { value: "dark", label: "Dark" }, { value: "light", label: "Light" }], state.settings.theme);
-    appearanceCard.append(makeField("Theme", themeSelect));
+    appearanceGroup.append(makeField("Theme", themeSelect));
+    const reminderGroup = makeSettingsGroup("Backup reminders");
     const snoozedTimingSelect = createSelect("settings-backup-snoozed-timing", BACKUP_REMINDER_TIMING_OPTIONS, state.settings.backupReminderSnoozedTiming);
     const completedTimingSelect = createSelect("settings-backup-completed-timing", BACKUP_REMINDER_TIMING_OPTIONS, state.settings.backupReminderCompletedTiming);
+    reminderGroup.append(makeField("Data backup reminder when snoozed", snoozedTimingSelect), makeField("Data backup reminder when completed", completedTimingSelect));
+    const storageGroup = makeSettingsGroup("Storage");
     const persistence = state.storagePersistence ?? {};
     const persistenceSelect = createSelect("settings-persistent-storage", [
         { value: "enabled", label: "Enabled" },
@@ -168,12 +189,16 @@ export const renderSettingsView = (state, actions) => {
     persistenceSelect.disabled = persistence.persisted || !persistence.canRequest;
     const persistenceField = makeField("Persistent browser storage", persistenceSelect);
     const persistenceHelp = document.createElement("p");
-    persistenceHelp.className = "tiny settings-preference-help";
+    persistenceHelp.id = "settings-persistent-storage-help";
+    persistenceHelp.className = `settings-preference-help ${persistence.persisted ? "note" : persistence.canRequest ? "note" : "warning-note"}`;
     if (persistence.persisted) persistenceHelp.textContent = "Your web browser protects the current OpenMCAT data from automated deletions. Websites (including OpenMCAT) cannot revoke this protection after it is granted. OpenMCAT data backups are still recommended.";
     else if (persistence.canRequest) persistenceHelp.textContent = "When enabled, your web browser is asked to protect the current OpenMCAT data from automated deletions. Your web browser ultimately decides whether to grant the request. OpenMCAT data backups are still recommended.";
     else persistenceHelp.textContent = "Your web browser cannot protect the current OpenMCAT data from automated deletions. The current OpenMCAT data will continue to work normally. OpenMCAT data backups are still recommended.";
+    persistenceSelect.setAttribute("aria-describedby", persistenceHelp.id);
     persistenceField.append(persistenceHelp);
-    appearanceCard.append(makeField("Data backup reminder when snoozed", snoozedTimingSelect), makeField("Data backup reminder when completed", completedTimingSelect), persistenceField);
+    storageGroup.append(persistenceField);
+    const saveRow = document.createElement("div");
+    saveRow.className = "settings-save-row";
     const saveButton = document.createElement("button");
     saveButton.className = "btn btn-primary";
     saveButton.textContent = "Save settings";
@@ -190,9 +215,13 @@ export const renderSettingsView = (state, actions) => {
             }
         );
     });
-    appearanceCard.append(saveButton);
+    saveRow.append(saveButton);
+    preferences.append(appearanceGroup, reminderGroup, storageGroup, saveRow);
     const dataCard = document.createElement("section");
-    dataCard.className = "card card-pad settings-data-card";
+    dataCard.className = "settings-data-card";
+    dataCard.setAttribute("aria-label", "Data");
+    const dataIntro = makeSettingsGroup("Data");
+    dataIntro.classList.add("settings-data-intro");
     const dataHelp = document.createElement("p");
     dataHelp.className = "muted-note";
     dataHelp.textContent = "OpenMCAT stores no data on any server. All of the current OpenMCAT data is privately located in your own web browser. Use the controls below to backup, share, restore, merge, or delete the current OpenMCAT data.";
@@ -201,11 +230,13 @@ export const renderSettingsView = (state, actions) => {
     dataSize.className = "settings-data-size";
     dataSize.textContent = backupStatus?.dataSizeMessage ?? "You have no current OpenMCAT data.";
     const status = document.createElement("p");
-    status.className = `settings-backup-status backup-status-note ${backupStatus?.hasChanges ? "warning-note" : "muted-note"}`;
+    status.className = `settings-backup-status backup-status-note ${backupStatus?.hasChanges ? "warning-note" : "note"}`;
     status.textContent = backupStatus?.message ?? "Backup status unavailable.";
-    dataCard.append(dataHelp, dataSize, status);
+    dataIntro.append(dataHelp, dataSize, status);
+    dataCard.append(dataIntro);
     const dataActions = document.createElement("div");
     dataActions.className = "settings-data-actions";
+    const backupGroup = makeDataGroup("Backup data", "Download a compressed copy of the current OpenMCAT data to your device.");
     const exportButton = document.createElement("button");
     exportButton.className = backupStatus?.hasChanges ? "btn btn-primary" : "btn btn-secondary";
     exportButton.textContent = "Backup data";
@@ -215,6 +246,8 @@ export const renderSettingsView = (state, actions) => {
         catch (error) { alert(`Backup failed: ${error.message}`); }
         finally { if (exportButton.isConnected) exportButton.disabled = false; }
     });
+    backupGroup.append(exportButton);
+    const shareGroup = makeDataGroup("Share data", "Send the same compressed backup to another app or device.");
     const shareButton = document.createElement("button");
     shareButton.className = "btn btn-secondary";
     shareButton.textContent = "Share data";
@@ -224,6 +257,7 @@ export const renderSettingsView = (state, actions) => {
         catch (error) { alert(`Share failed: ${error.message}`); }
         finally { if (shareButton.isConnected) shareButton.disabled = false; }
     });
+    shareGroup.append(shareButton);
     const restoreGroup = makeDataGroup("Restore data", "Replace the current OpenMCAT data with one backup from your device.");
     const importInput = document.createElement("input");
     importInput.id = "restore-file";
@@ -235,7 +269,7 @@ export const renderSettingsView = (state, actions) => {
     importPicker.htmlFor = importInput.id;
     importPicker.textContent = "Choose file";
     const importButton = document.createElement("button");
-    importButton.className = "btn btn-secondary";
+    importButton.className = "btn btn-danger";
     importButton.textContent = "Import data";
     importButton.disabled = true;
     importInput.addEventListener("change", () => {
@@ -285,15 +319,15 @@ export const renderSettingsView = (state, actions) => {
     combineGroup.append(combineRow);
     const deleteGroup = makeDataGroup("Delete data", "Delete the current OpenMCAT data. This action cannot be undone, unless you have a backup on your device.");
     const deleteButton = document.createElement("button");
-    deleteButton.className = "btn btn-ghost settings-delete-button";
+    deleteButton.className = "btn btn-danger settings-delete-button";
     deleteButton.textContent = "Delete data";
     deleteButton.addEventListener("click", () => actions.openSettingsDataConfirmation("delete"));
     deleteGroup.append(deleteButton);
-    dataActions.append(exportButton);
-    if (state.backupSharingSupported) dataActions.append(shareButton);
+    dataActions.append(backupGroup);
+    if (state.backupSharingSupported) dataActions.append(shareGroup);
     dataActions.append(restoreGroup, combineGroup, deleteGroup);
     dataCard.append(dataActions);
-    layout.append(appearanceCard, dataCard);
+    layout.append(preferences, dataCard);
     root.append(layout);
     const confirmationModal = renderDataConfirmationModal(state, actions);
     if (confirmationModal) root.append(confirmationModal);

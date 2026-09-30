@@ -1,5 +1,6 @@
 import { DIFFICULTIES, SCIENCE_SKILLS, SECTIONS, TOPICS } from "../data/taxonomy.js";
-import { createAccessibleDataTable, createChartShell, destroyCharts, getChartTheme, getDefaultChartOptions, hasChartRuntime, queueChartRender } from "../components/charts.js";
+import { chartAxis, createAccessibleDataTable, createBarValueLabelsPlugin, createChartDataDetails, createChartLegend, createChartShell, createDoughnutTotalPlugin, createPolarRankLabelsPlugin, createRadarValueLabelsPlugin, destroyCharts, getChartTheme, getDefaultChartOptions, hasChartRuntime, insertChartLegend, legendItemsFromDatasets, queueChartRender, toggleChartSeries } from "../components/charts.js";
+import { icon } from "../components/icons.js";
 import { createStatCard } from "../components/stats.js";
 import { formatDurationMs } from "../components/timer.js";
 import { applyMistakeTypeToDrillConfig } from "../analytics/recommendations.js";
@@ -177,14 +178,14 @@ const getPaginatedRows = (rows, pages, key, pageSize = DEFAULT_PAGE_SIZE) => {
     return { rows: allRows.slice(start, end), totalItems, page, pageCount, start, end, pageSize: size };
 };
 
-const createPaginationButton = (icon, label, disabled, onClick) => {
+const createPaginationButton = (iconName, label, disabled, onClick) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "dashboard-page-button";
     button.disabled = disabled;
     button.title = label;
     button.setAttribute("aria-label", label);
-    button.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${icon}</span>`;
+    button.append(icon(iconName, { size: 14 }));
     button.addEventListener("click", onClick);
     return button;
 };
@@ -192,9 +193,11 @@ const createPaginationButton = (icon, label, disabled, onClick) => {
 const createPaginationControls = ({ key, pageInfo, actions }) => {
     if (!pageInfo || pageInfo.totalItems <= pageInfo.pageSize) return null;
     const controls = createElement("div", "dashboard-card-pagination");
+    controls.setAttribute("role", "group");
+    controls.setAttribute("aria-label", "Pagination");
     const range = createElement("span", "dashboard-page-range", `${pageInfo.start + 1}-${pageInfo.end} of ${pageInfo.totalItems}`);
-    const previous = createPaginationButton("chevron_left", "Previous page", pageInfo.page <= 0, () => actions.setDashboardPage(key, pageInfo.page - 1, pageInfo.pageCount));
-    const next = createPaginationButton("chevron_right", "Next page", pageInfo.page >= pageInfo.pageCount - 1, () => actions.setDashboardPage(key, pageInfo.page + 1, pageInfo.pageCount));
+    const previous = createPaginationButton("chevron-left", "Previous page", pageInfo.page <= 0, () => actions.setDashboardPage(key, pageInfo.page - 1, pageInfo.pageCount));
+    const next = createPaginationButton("chevron-right", "Next page", pageInfo.page >= pageInfo.pageCount - 1, () => actions.setDashboardPage(key, pageInfo.page + 1, pageInfo.pageCount));
     controls.append(range, previous, next);
     return controls;
 };
@@ -284,16 +287,16 @@ const createSelectControl = ({ label, value, options, onChange }) => {
 };
 
 const renderFilterBar = (filters, actions) => {
-    const panel = createElement("section", "card card-pad dashboard-filters");
-    const header = createElement("div", "dashboard-section-header");
-    const titleWrap = createElement("div");
-    appendText(titleWrap, "h2", "", "Filters");
+    const panel = createElement("section", "dashboard-filters");
+    panel.setAttribute("aria-labelledby", "dashboard-filters-heading");
+    const inner = createElement("div", "dashboard-filters-inner frame");
+    const title = createElement("h2", "dashboard-filters-title", "Filters");
+    title.id = "dashboard-filters-heading";
     const reset = document.createElement("button");
     reset.type = "button";
-    reset.className = "btn btn-ghost btn-compact";
+    reset.className = "btn btn-ghost dashboard-filters-reset";
     reset.textContent = "Reset";
     reset.addEventListener("click", () => actions.resetDashboardFilters());
-    header.append(titleWrap, reset);
     const controls = createElement("div", "dashboard-filter-grid");
     controls.append(
         createSelectControl({
@@ -340,20 +343,21 @@ const renderFilterBar = (filters, actions) => {
             onChange: (minAttempts) => actions.updateDashboardFilters({ minAttempts: Number(minAttempts) })
         })
     );
-    panel.append(header, controls);
+    inner.append(title, controls, reset);
+    panel.append(inner);
     return panel;
 };
 
 const renderDashboardHero = (metrics, actions) => {
-    const header = createElement("section", "hero dashboard-hero");
-    const copy = createElement("div", "dashboard-hero-copy");
+    const header = createElement("section", "hero hero-with-actions dashboard-hero frame");
+    const copy = createElement("div", "hero-copy dashboard-hero-copy");
     appendText(copy, "h1", "", "Analytics dashboard");
     appendText(copy, "p", "", "Use your practice history to identify content gaps, skill vulnerabilities, timing pressure, confidence calibration, and more. Then get recommendations for the next drill to run.");
-    const actionsWrap = createElement("div", "dashboard-hero-actions");
+    const actionsWrap = createElement("div", "hero-actions dashboard-hero-actions");
     const button = document.createElement("button");
     button.type = "button";
     button.className = "btn btn-primary dashboard-ai-button";
-    button.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">auto_awesome</span><span>Evaluate with AI</span>';
+    button.append(icon("plus", { size: 14 }), createElement("span", "", "Evaluate with AI"));
     const answeredCount = safeNumber(metrics?.totals?.totalQuestionsAnswered, 0);
     const storedCount = safeNumber(metrics?.totals?.totalAttemptsStored, 0);
     button.disabled = answeredCount <= 0;
@@ -363,6 +367,16 @@ const renderDashboardHero = (metrics, actions) => {
     actionsWrap.append(button);
     header.append(copy, actionsWrap);
     return header;
+};
+
+const createDialogClose = (label, onClick) => {
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "btn btn-icon generation-pipeline-close";
+    close.setAttribute("aria-label", label);
+    close.append(icon("close"));
+    close.addEventListener("click", onClick);
+    return close;
 };
 
 const renderAiAnalysisModal = (state, actions) => {
@@ -376,7 +390,7 @@ const renderAiAnalysisModal = (state, actions) => {
     const overlay = createElement("section", "generation-pipeline-overlay analytics-prompt-overlay");
     overlay.setAttribute("role", "presentation");
     overlay.addEventListener("click", (event) => { if (event.target === overlay) actions.closeDashboardAiAnalysis(); });
-    const panel = createElement("section", "card card-pad generation-pipeline-panel analytics-prompt-panel");
+    const panel = createElement("section", "generation-pipeline-panel dialog-centered analytics-prompt-panel");
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-modal", "true");
     panel.setAttribute("aria-labelledby", "analytics-prompt-heading");
@@ -384,16 +398,10 @@ const renderAiAnalysisModal = (state, actions) => {
     const top = createElement("div", "generation-pipeline-top");
     const heading = createElement("h2", "", "Evaluate with AI");
     heading.id = "analytics-prompt-heading";
-    const close = document.createElement("button");
-    close.type = "button";
-    close.className = "btn btn-ghost generation-pipeline-close";
-    close.setAttribute("aria-label", "Close");
-    close.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">close</span>';
-    close.addEventListener("click", () => actions.closeDashboardAiAnalysis());
-    top.append(heading, close);
+    top.append(heading, createDialogClose("Close", () => actions.closeDashboardAiAnalysis()));
     const instructions = createElement("p", "generation-pipeline-instructions analytics-prompt-instructions", "Copy prompt → Paste into your AI's chat:");
     const note = createElement("p", "tiny analytics-prompt-note", `The prompt is ${promptText.length.toLocaleString()} characters long and only includes aggregate analytics with no details about individual sessions or questions.`);
-    const controls = createElement("div", "generation-pipeline-row analytics-prompt-row");
+    const controls = createElement("div", "analytics-prompt-row");
     const copyButton = document.createElement("button");
     copyButton.type = "button";
     copyButton.className = "btn btn-primary";
@@ -418,7 +426,7 @@ const renderModelCorrectionModal = (state, actions) => {
     const overlay = createElement("section", "generation-pipeline-overlay model-correction-overlay");
     overlay.setAttribute("role", "presentation");
     overlay.addEventListener("click", (event) => { if (event.target === overlay) actions.closeDashboardModelCorrection(); });
-    const panel = createElement("section", "card card-pad generation-pipeline-panel model-correction-panel");
+    const panel = createElement("section", "generation-pipeline-panel model-correction-panel");
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-modal", "true");
     panel.setAttribute("aria-labelledby", "model-correction-heading");
@@ -426,14 +434,8 @@ const renderModelCorrectionModal = (state, actions) => {
     const top = createElement("div", "generation-pipeline-top");
     const heading = createElement("h2", "", "Edit AI model name");
     heading.id = "model-correction-heading";
-    const close = document.createElement("button");
-    close.type = "button";
-    close.className = "btn btn-ghost generation-pipeline-close";
-    close.setAttribute("aria-label", "Close AI model correction");
-    close.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">close</span>';
-    close.addEventListener("click", () => actions.closeDashboardModelCorrection());
-    top.append(heading, close);
-    const description = createElement("p", "generation-pipeline-instructions model-correction-description", "Choose the correct model and the sessions it applies to. Original model names stay in your data.");
+    top.append(heading, createDialogClose("Close AI model correction", () => actions.closeDashboardModelCorrection()));
+    const description = createElement("p", "model-correction-description", "Choose the correct model and the sessions it applies to. Original model names stay in your data.");
     const form = createElement("form", "model-correction-form");
     const modelGrid = createElement("div", "model-correction-model-grid");
     const currentField = createElement("div", "field model-correction-field");
@@ -555,7 +557,7 @@ const renderModelCorrectionModal = (state, actions) => {
         try { await actions.restoreDashboardAiModel(selectedIds()); }
         finally { if (document.body.contains(panel)) setBusy(false); }
     });
-    controls.append(apply, cancel, restore);
+    controls.append(restore, cancel, apply);
     form.append(modelGrid, customField, sessionSection, controls);
     panel.append(top, description, form);
     overlay.append(panel);
@@ -568,7 +570,7 @@ const renderBackupReminderModal = (state, actions) => {
     const overlay = createElement("section", "generation-pipeline-overlay backup-reminder-overlay");
     overlay.setAttribute("role", "presentation");
     overlay.addEventListener("click", (event) => { if (event.target === overlay) actions.closeDashboardBackupReminder(); });
-    const panel = createElement("section", "card card-pad generation-pipeline-panel backup-reminder-panel");
+    const panel = createElement("section", "generation-pipeline-panel dialog-centered backup-reminder-panel");
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-modal", "true");
     panel.setAttribute("aria-labelledby", "backup-reminder-heading");
@@ -576,17 +578,11 @@ const renderBackupReminderModal = (state, actions) => {
     const top = createElement("div", "generation-pipeline-top");
     const heading = createElement("h2", "", "Data backup reminder");
     heading.id = "backup-reminder-heading";
-    const close = document.createElement("button");
-    close.type = "button";
-    close.className = "btn btn-ghost generation-pipeline-close";
-    close.setAttribute("aria-label", "Close data backup reminder");
-    close.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">close</span>';
-    close.addEventListener("click", () => actions.closeDashboardBackupReminder());
-    top.append(heading, close);
+    top.append(heading, createDialogClose("Close data backup reminder", () => actions.closeDashboardBackupReminder()));
     const backupStatus = state.analytics?.backupStatus;
     const size = createElement("p", "backup-reminder-size", backupStatus?.dataSizeMessage ?? "You have no current OpenMCAT data.");
-    const status = createElement("p", `backup-status-note ${backupStatus?.hasChanges ? "warning-note" : "muted-note"}`, backupStatus?.message ?? "Backup status unavailable.");
-    const description = createElement("p", "generation-pipeline-instructions backup-reminder-description", "The current OpenMCAT data stays completely private in this web browser. Download or share it regularly so that it can be restored if this browser's data is ever haphazardly cleared or if OpenMCAT is used on another device.");
+    const status = createElement("p", `backup-status-note ${backupStatus?.hasChanges ? "warning-note" : "note"}`, backupStatus?.message ?? "Backup status unavailable.");
+    const description = createElement("p", "backup-reminder-description", "The current OpenMCAT data stays completely private in this web browser. Download or share it regularly so that it can be restored if this browser's data is ever haphazardly cleared or if OpenMCAT is used on another device.");
     const controls = createElement("div", "button-row backup-reminder-actions");
     const backupButton = document.createElement("button");
     backupButton.type = "button";
@@ -626,7 +622,7 @@ const appendDashboardModals = (root, state, actions) => {
 };
 
 const renderEmptyState = (actions, filtersActive) => {
-    const empty = createElement("section", "card card-pad empty-state dashboard-empty");
+    const empty = createElement("section", "empty-state dashboard-empty frame");
     const heading = createElement("h2", "", filtersActive ? "No data matches these filters" : "No data yet");
     const message = createElement("p", "", filtersActive ? "Reset filters or complete more practice to populate this slice of the dashboard." : "Complete a practice session to unlock trends, heatmaps, timing analysis, confidence calibration, and drill recommendations.");
     const row = createElement("div", "button-row dashboard-empty-actions");
@@ -660,11 +656,20 @@ const renderSummaryGrid = (metrics, recommendation) => {
     const totalTopicCount = totals.totalTopicCount ?? TOPICS.length;
     const recentTrend = getRecentTrend(metrics.filteredAttempts);
     const grid = createElement("section", "dashboard-grid dashboard-summary-grid");
-    grid.append(
+    grid.setAttribute("aria-label", "Summary metrics");
+    const primary = createElement("div", "dashboard-metrics-primary");
+    const trendCard = createStatCard("Recent trend", recentTrend.value, `${recentTrend.last}\n${recentTrend.prev}`);
+    const trendValue = Number.parseFloat(recentTrend.value);
+    if (Number.isFinite(trendValue) && trendValue > 0) trendCard.classList.add("is-positive");
+    else if (Number.isFinite(trendValue) && trendValue < 0) trendCard.classList.add("is-negative");
+    primary.append(
         createStatCard("Questions answered", `${totals.totalQuestionsAnswered}`, `${totals.totalCorrect} correct in the active filter`),
         createStatCard("Overall accuracy", pct(totals.overallAccuracy), `Smoothed: ${pct(totals.smoothedAccuracy)}`),
         createStatCard("Mastery estimate", `${score(totals.mastery)}/100`, "Overall"),
-        createStatCard("Recent trend", recentTrend.value, `${recentTrend.last}\n${recentTrend.prev}`),
+        trendCard
+    );
+    const secondary = createElement("div", "dashboard-metrics-secondary");
+    secondary.append(
         createStatCard("Average time per question", formatDurationMs(totals.averageElapsedMs), `Target: ${seconds(totals.averageTargetTimeMs)}`),
         createStatCard("Completion rate", pct(totals.completionRate), `${totals.totalCompletedSessions} completed sessions stored`),
         createStatCard("Timed vs untimed", typeof totals.timedUntimedGap === "number" ? pctPoints(Math.abs(totals.timedUntimedGap)) : "n/a", gapHint),
@@ -674,11 +679,12 @@ const renderSummaryGrid = (metrics, recommendation) => {
         createStatCard("Topic coverage", pct(totals.topicCoverageRate), `${coveredTopicCount}/${totalTopicCount} topics attempted`),
         createStatCard("Completed sessions", `${totals.recentSessionsCount}`, "matching current filters")
     );
+    grid.append(primary, secondary);
     return grid;
 };
 
 const renderEvidenceChips = (evidence = {}) => {
-    const chips = createElement("div", "evidence-chip-list");
+    const chips = createElement("dl", "evidence-chip-list");
     const mistakeFocusLabel = evidence.mistakeFocusLabel ? `${evidence.mistakeFocusLabel}${Number.isFinite(evidence.mistakeFocusTaggedMisses) ? ` (${pluralText(evidence.mistakeFocusTaggedMisses, "tagged miss", "tagged misses")})` : ""}` : null;
     const entries = [
         ["Attempts", evidence.attempts !== undefined ? attemptCount(evidence.attempts) : null],
@@ -691,8 +697,9 @@ const renderEvidenceChips = (evidence = {}) => {
         ["Signal", evidence.signalStrength ?? null]
     ].filter(([, value]) => value !== null && value !== undefined);
     entries.forEach(([label, value]) => {
-        const chip = createElement("span", "evidence-chip");
-        chip.textContent = `${label}: ${value}`;
+        const chip = createElement("div", "evidence-chip");
+        appendText(chip, "dt", "", label);
+        appendText(chip, "dd", "", String(value));
         chips.append(chip);
     });
     return chips;
@@ -703,7 +710,7 @@ const getMistakeFocusLabel = (mistakeFocus = {}) => mistakeFocus.label ?? "Tagge
 const renderMistakeFocusCard = (mistakeFocus) => {
     if (!mistakeFocus?.label) return null;
     const panel = createElement("section", "recommendation-mistake-focus");
-    appendText(panel, "p", "dashboard-eyebrow recommendation-mistake-eyebrow", "Mistake focus");
+    appendText(panel, "p", "label-caps recommendation-mistake-eyebrow", "Mistake focus");
     const heading = createElement("h3", "", mistakeFocus.strategyLabel ? `${getMistakeFocusLabel(mistakeFocus)} · ${mistakeFocus.strategyLabel}` : getMistakeFocusLabel(mistakeFocus));
     const basis = `${pluralText(safeNumber(mistakeFocus.taggedIncorrectAttemptCount, 0), "tagged miss", "tagged misses")} in ${mistakeFocus.scopeLabel ?? "the active filter"}`;
     panel.append(heading);
@@ -715,7 +722,7 @@ const renderMistakeFocusCard = (mistakeFocus) => {
     if (rows.length) {
         const chipList = createElement("div", "recommendation-mistake-chip-list");
         rows.forEach((row) => {
-            const chip = createElement("span", `evidence-chip recommendation-mistake-chip${row.id === (mistakeFocus.actionableMistakeTypeId ?? mistakeFocus.dominantMistakeTypeId) && mistakeFocus.isDrillSteering ? " is-actionable" : ""}`);
+            const chip = createElement("span", `recommendation-mistake-chip${row.id === (mistakeFocus.actionableMistakeTypeId ?? mistakeFocus.dominantMistakeTypeId) && mistakeFocus.isDrillSteering ? " is-actionable" : ""}`);
             chip.textContent = `${row.label}: ${safeNumber(row.count, 0)}`;
             chipList.append(chip);
         });
@@ -725,11 +732,13 @@ const renderMistakeFocusCard = (mistakeFocus) => {
 };
 
 const renderRecommendationCard = (recommendation, actions) => {
-    const card = createElement("section", "card card-pad dashboard-recommendation");
+    const card = createElement("section", "dashboard-recommendation");
+    card.setAttribute("aria-labelledby", "dashboard-next-drill-heading");
     const content = createElement("div", "dashboard-recommendation-content");
-    appendText(content, "p", "dashboard-eyebrow", "Recommended");
-    appendText(content, "h2", "", "Next drill");
-    appendText(content, "p", "", recommendation?.body ?? "Complete more questions to generate a recommendation.");
+    appendText(content, "p", "fig-label dashboard-eyebrow", "Recommended");
+    const heading = appendText(content, "h2", "", "Next drill");
+    heading.id = "dashboard-next-drill-heading";
+    appendText(content, "p", "recommendation-body", recommendation?.body ?? "Complete more questions to generate a recommendation.");
     if (recommendation?.evidence) content.append(renderEvidenceChips(recommendation.evidence));
     const mistakeFocus = renderMistakeFocusCard(recommendation?.mistakeFocus);
     if (mistakeFocus) content.append(mistakeFocus);
@@ -741,9 +750,13 @@ const renderRecommendationCard = (recommendation, actions) => {
     const alternatives = recommendation?.alternatives ?? [];
     if (alternatives.length) {
         const alternativeWrap = createElement("div", "recommendation-alternatives");
-        appendText(alternativeWrap, "p", "tiny", "Other high-priority drills");
+        appendText(alternativeWrap, "p", "label-caps", "Other high-priority drills");
         const alternativeList = createElement("div", "recommendation-alternative-list");
-        alternatives.forEach((alternative) => { alternativeList.append(createActionButton(alternative.label, alternative.config, actions, "btn btn-ghost btn-compact recommendation-chip-button")); });
+        alternatives.forEach((alternative) => {
+            const button = createActionButton(alternative.label, alternative.config, actions, "btn btn-link recommendation-chip-button");
+            button.replaceChildren(createElement("span", "", alternative.label), icon("arrow-right", { size: 13 }));
+            alternativeList.append(button);
+        });
         alternativeWrap.append(alternativeList);
         content.append(alternativeWrap);
     }
@@ -758,22 +771,6 @@ const renderRecommendationCard = (recommendation, actions) => {
     return card;
 };
 
-const renderInsights = (metrics) => {
-    const card = createElement("section", "card card-pad dashboard-insights");
-    appendText(card, "h2", "", "Insights");
-    if (!metrics.insights.length) { appendText(card, "p", "tiny", "No notable patterns yet. Keep practicing to build stronger signal."); return card; }
-    const list = createElement("div", "insight-list");
-    metrics.insights.forEach((insight) => {
-        const item = createElement("article", `insight-item is-${insight.severity ?? "info"}`);
-        const body = insight.type === "weak_pair" && insight.topicId && insight.skillId ? `${rowNameFromId("topic", insight.topicId)} with ${rowNameFromId("skill", insight.skillId)} has a ${score(insight.priorityScore)} priority score across ${attemptCount(insight.attempts)} weighted attempts.` : insight.body;
-        appendText(item, "h3", "", insight.title);
-        appendText(item, "p", "tiny", body);
-        list.append(item);
-    });
-    card.append(list);
-    return card;
-};
-
 const renderChartPanel = ({ title, subtitle, canvasLabel, tableColumns, tableRows, config, headerAction = null }) => {
     const table = createAccessibleDataTable(tableColumns, tableRows);
     const { card, canvas } = createChartShell({ title, subtitle, canvasLabel, table });
@@ -781,6 +778,11 @@ const renderChartPanel = ({ title, subtitle, canvasLabel, tableColumns, tableRow
         const header = card.querySelector(".chart-card-header");
         header?.classList.add("chart-card-header-with-action");
         header?.append(headerAction);
+    }
+    const legendOptions = config.options?.plugins?.legend;
+    if (legendOptions && legendOptions.display !== false) {
+        insertChartLegend(card, canvas, createChartLegend(canvas, legendItemsFromDatasets(config.data.datasets)));
+        legendOptions.display = false;
     }
     queueChartRender(canvas, config);
     return card;
@@ -810,18 +812,19 @@ const renderTrendChart = (metrics) => {
                     data: accuracyData,
                     borderColor: theme.accent,
                     backgroundColor: theme.accent,
-                    tension: 0.28,
-                    pointRadius: 3
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.25,
+                    pointRadius: (context) => context.dataIndex === accuracyData.length - 1 ? 3.5 : 0,
+                    pointHoverRadius: 4,
+                    pointBackgroundColor: theme.accent,
+                    pointBorderWidth: 0
                 }]
             },
             options: getDefaultChartOptions({
                 scales: {
-                    y: {
-                        min: 0,
-                        max: 100,
-                        ticks: { color: theme.textMuted, callback: (value) => `${value}%` },
-                        grid: { color: theme.border }
-                    }
+                    x: chartAxis(theme, { grid: { display: false }, ticks: { maxRotation: 0, autoSkipPadding: 16 } }),
+                    y: chartAxis(theme, { min: 0, max: 100, ticks: { stepSize: 25, callback: (value) => `${value}%` } })
                 }
             })
         }
@@ -831,7 +834,8 @@ const renderTrendChart = (metrics) => {
 const renderSectionMasteryChart = (metrics) => {
     const theme = getChartTheme();
     const rows = makeCompleteRows(SECTIONS, metrics.rows.bySection, makeEmptySectionRow).sort((a, b) => (sectionOrder[a.id] ?? 99) - (sectionOrder[b.id] ?? 99));
-    return renderChartPanel({
+    const valueLabels = rows.map((row) => masteryLabel(row));
+    const card = renderChartPanel({
         title: "Section mastery",
         subtitle: "Mastery is adjusted for accuracy, volume, timing, and topic coverage for each section.",
         canvasLabel: "Section mastery radar chart",
@@ -845,13 +849,17 @@ const renderSectionMasteryChart = (metrics) => {
                     label: "Mastery",
                     data: rows.map((row) => metricValue(row, row.mastery)),
                     borderColor: theme.accent,
-                    backgroundColor: "rgba(143, 248, 188, 0.16)",
+                    backgroundColor: chartColorWithAlpha(theme.accent, 0.16),
+                    borderWidth: 1.5,
+                    pointRadius: 2.5,
+                    pointHoverRadius: 4,
                     pointBackgroundColor: theme.accent,
                     pointBorderColor: theme.accent
                 }]
             },
             options: getDefaultChartOptions({
                 replaceScales: true,
+                layout: { padding: { top: 4, bottom: 4 } },
                 plugins: {
                     tooltip: {
                         callbacks: {
@@ -865,12 +873,29 @@ const renderSectionMasteryChart = (metrics) => {
                         max: 100,
                         angleLines: { color: theme.border },
                         grid: { color: theme.border },
-                        pointLabels: { color: theme.textSecondary, font: { size: 12, weight: "650" } },
-                        ticks: { color: theme.textMuted, backdropColor: "transparent", callback: (value) => `${value}` }
+                        pointLabels: {
+                            color: theme.textPrimary,
+                            padding: 6,
+                            font: { family: theme.fontSerif, size: 15, weight: "400", lineHeight: 1.2 },
+                            callback: (label) => [label, " "]
+                        },
+                        ticks: { display: false, stepSize: 25 }
                     }
                 }
-            })
+            }),
+            plugins: [createRadarValueLabelsPlugin({ values: valueLabels, theme })]
         }
+    });
+    return card;
+};
+
+const getModelColors = (rows, theme) => {
+    let modelIndex = 0;
+    return rows.map((row) => {
+        if (row?.model === "unknown") return theme.palette[10];
+        const color = theme.palette[modelIndex % 8];
+        modelIndex += 1;
+        return color;
     });
 };
 
@@ -884,14 +909,14 @@ const renderModelUsageLegend = (pageInfo, colors, actions) => {
         const colorIndex = pageInfo.start + index;
         const item = createElement("div", "model-usage-legend-item");
         const swatch = createElement("span", "model-usage-swatch");
-        swatch.style.backgroundColor = colors[colorIndex % colors.length];
+        swatch.style.backgroundColor = colors[colorIndex] ?? colors[colorIndex % colors.length];
         const body = createElement("div", "model-usage-legend-body");
         appendText(body, "strong", "", row.model);
         appendText(body, "span", "tiny", `${row.generatedQuestionCount} generated questions · ${row.sessionCount} sessions`);
         const correct = document.createElement("button");
         correct.type = "button";
-        correct.className = "btn btn-ghost model-usage-correct";
-        correct.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">edit</span>';
+        correct.className = "btn btn-icon model-usage-correct";
+        correct.append(icon("pencil", { size: 14 }));
         correct.setAttribute("aria-label", `Edit ${row.model} model name`);
         correct.title = "Edit model name";
         correct.addEventListener("click", () => actions.openDashboardModelCorrection(row.model));
@@ -906,16 +931,16 @@ const renderModelUsageChart = (metrics, actions, pages) => {
     const rows = metrics.models?.rows ?? [];
     const pageInfo = getPaginatedRows(rows, pages, "modelUsageLegend", MODEL_USAGE_LEGEND_PAGE_SIZE);
     const pagination = createPaginationControls({ key: "modelUsageLegend", pageInfo, actions });
-    const colors = [theme.accent, theme.accentTwo, theme.success, theme.warning, theme.danger, theme.textMuted, theme.border];
+    const colors = getModelColors(rows, theme);
     const table = createAccessibleDataTable(
         ["Model", "Sessions", "Generated", "Answered", "Accuracy"],
         rows.map((row) => [row.model, `${row.sessionCount}`, `${row.generatedQuestionCount}`, `${row.answeredAttempts}`, row.answeredAttempts ? pct(row.accuracy) : "n/a"])
     );
-    const card = createElement("article", "card card-pad chart-card dashboard-model-card");
+    const card = createElement("article", "chart-card dashboard-model-card");
     const header = createElement("div", "chart-card-header");
     const titleWrap = createElement("div", "chart-card-title");
     appendText(titleWrap, "h2", "", "AI model mix");
-    appendText(titleWrap, "p", "tiny", "Generated questions by recorded or corrected AI model metadata for sessions in the active dashboard slice.");
+    appendText(titleWrap, "p", "", "Generated questions by recorded or corrected AI model metadata for sessions in the active dashboard slice.");
     header.append(titleWrap);
     const body = createElement("div", "dashboard-model-card-body");
     const canvasWrap = createElement("div", "chart-canvas-wrap dashboard-model-canvas-wrap");
@@ -930,20 +955,16 @@ const renderModelUsageChart = (metrics, actions, pages) => {
     if (pagination) legendHeader.append(pagination);
     legendWrap.append(legendHeader, renderModelUsageLegend(pageInfo, colors, actions));
     side.append(legendWrap);
-    const details = document.createElement("details");
-    details.className = "chart-data-details model-usage-data-details";
-    const summary = document.createElement("summary");
-    summary.textContent = "View chart data";
-    details.append(summary, table);
-    side.append(details);
     body.append(canvasWrap, side);
     card.append(header, body);
     if (!hasChartRuntime()) {
         const fallback = document.createElement("p");
-        fallback.className = "chart-fallback tiny";
+        fallback.className = "chart-fallback";
         fallback.textContent = "Chart.js did not load. The data table is still available.";
         card.append(fallback);
     }
+    card.append(createChartDataDetails(table, "model-usage-data-details"));
+    const total = rows.reduce((sum, row) => sum + safeNumber(row.generatedQuestionCount, 0), 0);
     queueChartRender(canvas, {
         type: "doughnut",
         data: {
@@ -951,15 +972,17 @@ const renderModelUsageChart = (metrics, actions, pages) => {
             datasets: [{
                 label: "Generated questions",
                 data: rows.map((row) => row.generatedQuestionCount),
-                backgroundColor: rows.map((_, index) => colors[index % colors.length]),
-                borderColor: theme.tooltipBackground,
-                borderWidth: 2,
-                hoverOffset: 4
+                backgroundColor: colors,
+                borderColor: theme.page,
+                borderWidth: 3,
+                hoverOffset: 0,
+                hoverBorderColor: theme.page
             }]
         },
         options: getDefaultChartOptions({
             replaceScales: true,
-            cutout: "62%",
+            cutout: "72%",
+            interaction: { intersect: true, mode: "nearest" },
             plugins: {
                 legend: { display: false },
                 tooltip: {
@@ -968,7 +991,8 @@ const renderModelUsageChart = (metrics, actions, pages) => {
                     }
                 }
             }
-        })
+        }),
+        plugins: [createDoughnutTotalPlugin({ total, theme })]
     });
     return card;
 };
@@ -989,15 +1013,17 @@ const renderTopicWeaknessChart = (metrics, actions, pages) => {
         config: {
             type: "bar",
             data: {
-                labels: rows.map((row) => chartLabel(rowNameFromId("topic", row.id), 14, 3)),
-                datasets: [{ label: "Priority", data: rows.map((row) => row.priorityScore), backgroundColor: theme.warning }]
+                labels: rows.map((row) => chartLabel(rowNameFromId("topic", row.id), 16, 4)),
+                datasets: [{ label: "Priority", data: rows.map((row) => row.priorityScore), backgroundColor: theme.warning, borderWidth: 0, maxBarThickness: 56, categoryPercentage: 0.7, barPercentage: 0.9 }]
             },
             options: getDefaultChartOptions({
+                layout: { padding: { top: 16 } },
                 scales: {
-                    x: { ticks: { color: theme.textMuted, autoSkip: false, maxRotation: 0, minRotation: 0 }, grid: { color: theme.border } },
-                    y: { min: 0, max: 100, ticks: { color: theme.textMuted }, grid: { color: theme.border } }
+                    x: chartAxis(theme, { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0, minRotation: 0 } }),
+                    y: chartAxis(theme, { min: 0, max: 100, ticks: { stepSize: 25 } })
                 }
-            })
+            }),
+            plugins: [createBarValueLabelsPlugin({ theme, format: (value) => score(value) })]
         }
     });
 };
@@ -1020,14 +1046,14 @@ const renderSkillPerformanceChart = (metrics, actions, pages) => {
             data: {
                 labels: rows.map((row) => chartLabel(rowNameFromId("skill", row.id), 18, 3)),
                 datasets: [
-                    { label: "Accuracy", data: rows.map((row) => metricValue(row, cb.numb.roundTo(row.accuracy * 100, 0.1))), backgroundColor: theme.accent },
-                    { label: "Mastery", data: rows.map((row) => metricValue(row, row.mastery)), backgroundColor: theme.accentTwo }
+                    { label: "Accuracy", data: rows.map((row) => metricValue(row, cb.numb.roundTo(row.accuracy * 100, 0.1))), backgroundColor: theme.palette[10], borderWidth: 0, maxBarThickness: 40, categoryPercentage: 0.66, barPercentage: 0.88 },
+                    { label: "Mastery", data: rows.map((row) => metricValue(row, row.mastery)), backgroundColor: theme.accent, borderWidth: 0, maxBarThickness: 40, categoryPercentage: 0.66, barPercentage: 0.88 }
                 ]
             },
             options: getDefaultChartOptions({
                 scales: {
-                    x: { ticks: { color: theme.textMuted, autoSkip: false, maxRotation: 0, minRotation: 0 }, grid: { color: theme.border } },
-                    y: { min: 0, max: 100, ticks: { color: theme.textMuted, callback: (value) => `${value}%` }, grid: { color: theme.border } }
+                    x: chartAxis(theme, { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0, minRotation: 0 } }),
+                    y: chartAxis(theme, { min: 0, max: 100, ticks: { stepSize: 25, callback: (value) => `${value}%` } })
                 }
             })
         }
@@ -1048,17 +1074,26 @@ const renderConfidenceChart = (metrics) => {
             data: {
                 labels: rows.map((row) => row.id),
                 datasets: [
-                    { label: "Actual accuracy", data: rows.map((row) => row.attempts ? cb.numb.roundTo(row.accuracy * 100, 0.1) : null), borderColor: theme.accent, backgroundColor: theme.accent, tension: 0.2, pointRadius: 4 },
-                    { label: "Reference", data: rows.map((row) => cb.numb.roundTo(row.expectedAccuracy * 100, 0.1)), borderColor: theme.textMuted, backgroundColor: theme.textMuted, borderDash: [5, 5], tension: 0.2, pointRadius: 2 }
+                    { label: "Actual accuracy", data: rows.map((row) => row.attempts ? cb.numb.roundTo(row.accuracy * 100, 0.1) : null), borderColor: theme.accent, backgroundColor: theme.accent, borderWidth: 2, tension: 0.2, pointRadius: 3.5, pointHoverRadius: 4.5, pointBorderWidth: 0 },
+                    { label: "Reference", data: rows.map((row) => cb.numb.roundTo(row.expectedAccuracy * 100, 0.1)), borderColor: theme.textMuted, backgroundColor: theme.textMuted, borderWidth: 1.25, borderDash: [5, 5], tension: 0, pointRadius: 0, pointHoverRadius: 0 }
                 ]
             },
             options: getDefaultChartOptions({
                 scales: {
-                    y: { min: 0, max: 100, ticks: { color: theme.textMuted, callback: (value) => `${value}%` }, grid: { color: theme.border } }
+                    x: chartAxis(theme, { grid: { display: false } }),
+                    y: chartAxis(theme, { min: 0, max: 100, ticks: { stepSize: 25, callback: (value) => `${value}%` } })
                 }
             })
         }
     });
+};
+
+const getMistakeTypeColors = (metrics, theme) => {
+    const ids = [];
+    const addId = (id) => { if (id && !ids.includes(id)) ids.push(id); };
+    (metrics.mistakes?.trend?.activeMistakeTypes ?? []).filter((type) => safeNumber(type.count, 0) > 0).forEach((type) => addId(type.id));
+    (metrics.mistakes?.rows ?? []).filter((row) => safeNumber(row.count, 0) > 0).forEach((row) => addId(row.id));
+    return new Map(ids.map((id, index) => [id, theme.palette[index % theme.palette.length]]));
 };
 
 const renderMistakeTypeChart = (metrics) => {
@@ -1080,7 +1115,7 @@ const renderMistakeTypeChart = (metrics) => {
         table
     });
     if (!rows.length) {
-        const empty = createElement("p", "chart-empty-message tiny", incorrectCount ? "No mistake types have been tagged in the active dashboard slice yet." : "No incorrect questions match the active dashboard filters yet.");
+        const empty = createElement("p", "chart-empty-message", incorrectCount ? "No mistake types have been tagged in the active dashboard slice yet." : "No incorrect questions match the active dashboard filters yet.");
         const wrap = canvas.closest(".chart-canvas-wrap");
         if (wrap) {
             wrap.classList.add("chart-empty-wrap");
@@ -1088,7 +1123,35 @@ const renderMistakeTypeChart = (metrics) => {
         } else canvas.replaceWith(empty);
         return card;
     }
-    const colors = [theme.danger, theme.warning, theme.accentTwo, theme.accent, theme.success, theme.textMuted, theme.border];
+    const ranks = rows.map((_, index) => index + 1);
+    const colorsById = getMistakeTypeColors(metrics, theme);
+    const colors = rows.map((row, index) => colorsById.get(row.id) ?? theme.palette[index % theme.palette.length]);
+    const wrap = canvas.closest(".chart-canvas-wrap");
+    const rankList = createElement("ol", "mistake-rank-list");
+    rankList.setAttribute("aria-label", "Mistake types by rank");
+    rows.forEach((row, index) => {
+        const item = document.createElement("li");
+        const toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "mistake-rank-toggle";
+        toggle.setAttribute("aria-pressed", "true");
+        toggle.title = `Show or hide ${row.label}`;
+        appendText(toggle, "span", "rank", String(ranks[index]));
+        const swatch = createElement("span", "chart-legend-swatch");
+        swatch.style.setProperty("--swatch", colors[index]);
+        swatch.setAttribute("aria-hidden", "true");
+        toggle.append(swatch);
+        appendText(toggle, "span", "", row.label);
+        appendText(toggle, "span", "count", attemptCount(safeNumber(row.count, 0)));
+        toggle.addEventListener("click", () => toggleChartSeries(canvas, index, "data", toggle));
+        item.append(toggle);
+        rankList.append(item);
+    });
+    if (wrap) {
+        const body = createElement("div", "mistake-type-chart-body");
+        wrap.replaceWith(body);
+        body.append(wrap, rankList);
+    }
     queueChartRender(canvas, {
         type: "polarArea",
         data: {
@@ -1096,16 +1159,17 @@ const renderMistakeTypeChart = (metrics) => {
             datasets: [{
                 label: "Selections",
                 data: rows.map((row) => row.count),
-                backgroundColor: rows.map((_, index) => colors[index % colors.length]),
-                borderColor: theme.tooltipBackground,
-                borderWidth: 2
+                backgroundColor: colors.map((color) => chartColorWithAlpha(color, 0.85)),
+                borderColor: theme.page,
+                borderWidth: 1.5,
+                hoverBorderColor: theme.page
             }]
         },
         options: getDefaultChartOptions({
             replaceScales: true,
             interaction: { intersect: true, mode: "nearest" },
             plugins: {
-                legend: { position: "bottom" },
+                legend: { display: false },
                 tooltip: {
                     callbacks: {
                         label: (context) => {
@@ -1117,12 +1181,13 @@ const renderMistakeTypeChart = (metrics) => {
             },
             scales: {
                 r: {
-                    ticks: { color: theme.textMuted, backdropColor: "transparent", precision: 0 },
+                    ticks: { display: false, precision: 0 },
                     grid: { color: theme.border },
-                    angleLines: { color: theme.border }
+                    angleLines: { display: false }
                 }
             }
-        })
+        }),
+        plugins: [createPolarRankLabelsPlugin({ ranks, colors, theme })]
     });
     return card;
 };
@@ -1141,8 +1206,8 @@ const renderTimingChart = (metrics) => {
             data: {
                 labels: rows.map((row) => rowNameFromId("difficulty", row.id)),
                 datasets: [
-                    { label: "Average seconds", data: rows.map((row) => metricValue(row, cb.numb.roundTo(row.averageElapsedMs / 1000, 0.1))), backgroundColor: theme.accentTwo, yAxisID: "seconds" },
-                    { label: "Accuracy", data: rows.map((row) => metricValue(row, cb.numb.roundTo(row.accuracy * 100, 0.1))), backgroundColor: theme.accent, yAxisID: "accuracy" }
+                    { label: "Average seconds", data: rows.map((row) => metricValue(row, cb.numb.roundTo(row.averageElapsedMs / 1000, 0.1))), backgroundColor: theme.accentTwo, borderWidth: 0, maxBarThickness: 40, categoryPercentage: 0.6, barPercentage: 0.88, yAxisID: "seconds" },
+                    { label: "Accuracy", data: rows.map((row) => metricValue(row, cb.numb.roundTo(row.accuracy * 100, 0.1))), backgroundColor: theme.accent, borderWidth: 0, maxBarThickness: 40, categoryPercentage: 0.6, barPercentage: 0.88, yAxisID: "accuracy" }
                 ]
             },
             options: getDefaultChartOptions({
@@ -1154,22 +1219,9 @@ const renderTimingChart = (metrics) => {
                     }
                 },
                 scales: {
-                    seconds: {
-                        type: "linear",
-                        position: "left",
-                        min: 0,
-                        ticks: { color: theme.textMuted, callback: (value) => `${value}s` },
-                        grid: { color: theme.border }
-                    },
-                    accuracy: {
-                        type: "linear",
-                        position: "right",
-                        min: 0,
-                        max: 100,
-                        ticks: { color: theme.textMuted, callback: (value) => `${value}%` },
-                        grid: { drawOnChartArea: false }
-                    },
-                    x: { ticks: { color: theme.textMuted }, grid: { color: theme.border } },
+                    seconds: chartAxis(theme, { type: "linear", position: "left", min: 0, ticks: { callback: (value) => `${value}s` } }),
+                    accuracy: chartAxis(theme, { type: "linear", position: "right", min: 0, max: 100, ticks: { callback: (value) => `${value}%` }, grid: { drawOnChartArea: false } }),
+                    x: chartAxis(theme, { grid: { display: false } }),
                     y: { display: false, grid: { display: false } }
                 }
             })
@@ -1203,7 +1255,7 @@ const renderMistakeTypeTrendChart = (metrics) => {
         table
     });
     if (!rows.length || !activeMistakeTypes.length || !totalSelections) {
-        const empty = createElement("p", "chart-empty-message tiny", incorrectCount ? "No mistake types have been tagged in the active dashboard slice yet." : "No incorrect questions match the active dashboard filters yet.");
+        const empty = createElement("p", "chart-empty-message", incorrectCount ? "No mistake types have been tagged in the active dashboard slice yet." : "No incorrect questions match the active dashboard filters yet.");
         const wrap = canvas.closest(".chart-canvas-wrap");
         if (wrap) {
             wrap.classList.add("chart-empty-wrap");
@@ -1211,8 +1263,10 @@ const renderMistakeTypeTrendChart = (metrics) => {
         } else canvas.replaceWith(empty);
         return card;
     }
-    const colors = [theme.danger, theme.warning, theme.accentTwo, theme.accent, theme.success, "#c084fc", "#60a5fa", "#f97316", "#fb7185", theme.textMuted, theme.border];
+    const colorsById = getMistakeTypeColors(metrics, theme);
+    const colors = activeMistakeTypes.map((type, index) => colorsById.get(type.id) ?? theme.palette[index % theme.palette.length]);
     const labels = rows.map((row) => row.label ?? row.date);
+    insertChartLegend(card, canvas, createChartLegend(canvas, activeMistakeTypes.map((type, index) => ({ label: type.label, color: colors[index] }))));
     queueChartRender(canvas, {
         type: "line",
         data: {
@@ -1222,13 +1276,14 @@ const renderMistakeTypeTrendChart = (metrics) => {
                 return {
                     label: type.label,
                     data: rows.map((row) => safeNumber(row.countsByType?.[type.id], 0)),
-                    borderColor: color,
-                    backgroundColor: chartColorWithAlpha(color, 0.22),
-                    fill: true,
+                    borderColor: theme.page,
+                    backgroundColor: chartColorWithAlpha(color, 0.85),
+                    fill: index === 0 ? "origin" : "-1",
                     tension: 0.28,
-                    pointRadius: rows.length > 14 ? 2 : 3,
-                    pointHoverRadius: 5,
-                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 3,
+                    pointHoverBackgroundColor: color,
+                    borderWidth: 1,
                     stack: "mistake-types"
                 };
             })
@@ -1236,7 +1291,7 @@ const renderMistakeTypeTrendChart = (metrics) => {
         options: getDefaultChartOptions({
             interaction: { intersect: false, mode: "index" },
             plugins: {
-                legend: { position: "bottom" },
+                legend: { display: false },
                 tooltip: {
                     callbacks: {
                         label: (context) => `${context.dataset.label}: ${attemptCount(context.raw)} selection${safeNumber(context.raw, 0) === 1 ? "" : "s"}`,
@@ -1249,18 +1304,8 @@ const renderMistakeTypeTrendChart = (metrics) => {
                 }
             },
             scales: {
-                x: {
-                    stacked: true,
-                    ticks: { color: theme.textMuted, maxRotation: 0, minRotation: 0 },
-                    grid: { color: theme.border }
-                },
-                y: {
-                    stacked: true,
-                    min: 0,
-                    title: { display: true, text: "Selected mistake tags", color: theme.textSecondary },
-                    ticks: { color: theme.textMuted, precision: 0 },
-                    grid: { color: theme.border }
-                }
+                x: chartAxis(theme, { stacked: true, grid: { display: false }, ticks: { maxRotation: 0, minRotation: 0, autoSkipPadding: 16 } }),
+                y: chartAxis(theme, { stacked: true, min: 0, title: { display: true, text: "Selected mistake tags", color: theme.textSecondary, font: { family: theme.fontSans, size: 11 } }, ticks: { precision: 0 } })
             }
         })
     });
@@ -1299,30 +1344,53 @@ const getMatrixSkills = (metrics) => {
     return SCIENCE_SKILLS.filter((skill) => usedIds.has(skill.id));
 };
 
+const createTableHeader = ({ title, subtitle = "", pagination = null }) => {
+    const header = createElement("div", "dashboard-section-header");
+    const titleWrap = createElement("div", "dashboard-table-title");
+    appendText(titleWrap, "h2", "", title);
+    if (subtitle) appendText(titleWrap, "p", "", subtitle);
+    header.append(titleWrap);
+    if (pagination) header.append(pagination);
+    return header;
+};
+
+const appendCell = (row, text, className = "") => appendText(row, "td", className, text);
+
+const appendHeaderCells = (row, columns) => {
+    columns.forEach(([label, className = ""]) => {
+        const th = createElement("th", className);
+        th.scope = "col";
+        if (className.includes("table-action")) appendText(th, "span", "visually-hidden", label);
+        else th.textContent = label;
+        row.append(th);
+    });
+};
+
+const sectionAbbreviation = (sectionId) => createElement("span", "table-section-abbr", rowNameFromId("section", sectionId));
+
 const renderHeatmap = (metrics, actions, pages) => {
     const matrixSections = getMatrixSections(metrics);
     const skills = getMatrixSkills(metrics);
     const allRows = matrixSections.filter((matrix) => metrics.filters.sectionId === "all" || matrix.sectionId === metrics.filters.sectionId).flatMap((matrix) => (matrix.rows ?? []).map((row) => ({ ...row, matrixSkills: matrix.skills ?? [] })));
     const pageInfo = getPaginatedRows(allRows, pages, "heatmap", COMPACT_PAGE_SIZE);
     const rows = pageInfo.rows;
-    const card = createElement("section", "card card-pad dashboard-heatmap-card");
-    const header = createElement("div", "dashboard-section-header");
-    const titleWrap = createElement("div");
-    appendText(titleWrap, "h2", "", "Topic-skill heatmap");
-    appendText(titleWrap, "p", "tiny", "Each cell is a drillable topic-skill pair. Darker cells have higher weakness priority. Low sample cells are marked as early signal.");
+    const card = createElement("section", "dashboard-heatmap-card");
     const pagination = createPaginationControls({ key: "heatmap", pageInfo, actions });
-    header.append(titleWrap);
-    if (pagination) header.append(pagination);
-    card.append(header);
+    card.append(createTableHeader({ title: "Topic-skill heatmap", subtitle: "Each cell is a drillable topic-skill pair. Darker cells have higher weakness priority. Low sample cells are marked as early signal.", pagination }));
     if (!rows.length || !skills.length) { appendText(card, "p", "tiny", "No topic-skill pairs match the active filters yet."); return card; }
+    const priorities = allRows.flatMap((row) => (row.cells ?? []).filter(Boolean).map((cell) => safeNumber(cell.priorityScore, 0)));
+    const minPriority = priorities.length ? Math.min(...priorities) : 0;
+    const maxPriority = priorities.length ? Math.max(...priorities) : 0;
+    const normalize = (value) => maxPriority > minPriority ? (safeNumber(value, 0) - minPriority) / (maxPriority - minPriority) : 0.5;
     const wrap = createElement("div", "table-wrap heatmap-wrap");
     const table = document.createElement("table");
     table.className = "heatmap-table";
     const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
-    appendText(headerRow, "th", "", "Topic");
+    appendText(headerRow, "th", "", "Topic").scope = "col";
     skills.forEach((skill) => {
         const th = createElement("th", "heatmap-skill-header");
+        th.scope = "col";
         appendWrappedLabel(th, skill.shortName, 28);
         headerRow.append(th);
     });
@@ -1333,13 +1401,13 @@ const renderHeatmap = (metrics, actions, pages) => {
         const tr = document.createElement("tr");
         const topicCell = document.createElement("th");
         topicCell.scope = "row";
-        topicCell.textContent = topicLabelWithSection(row.topicId, row.sectionId);
+        topicCell.append(sectionAbbreviation(row.sectionId ?? topicSectionId(row.topicId)), document.createTextNode(rowNameFromId("topic", row.topicId)));
         tr.append(topicCell);
         skills.forEach((skill) => {
             const td = document.createElement("td");
             const cell = row.cells.find((item) => item?.skillId === skill.id) ?? null;
             if (!cell) {
-                const empty = createElement("span", "heatmap-empty", "");
+                const empty = createElement("span", "heatmap-empty", "No attempts");
                 td.append(empty);
             } else {
                 const sectionId = cell.sectionId ?? topicSectionId(row.topicId);
@@ -1350,6 +1418,9 @@ const renderHeatmap = (metrics, actions, pages) => {
                 if (cell.priorityScore >= 62) button.classList.add("is-hot");
                 else if (cell.priorityScore >= 42) button.classList.add("is-warm");
                 else button.classList.add("is-cool");
+                const intensity = cb.numb.constrain(normalize(cell.priorityScore), [0, 1]);
+                button.style.setProperty("--heat-alpha", String(cb.numb.roundTo(0.1 + 0.78 * intensity, 0.01)));
+                if (intensity > 0.6) button.classList.add("is-strong");
                 button.setAttribute("aria-label", `Drill ${rowNameFromId("topic", row.topicId)} with ${skill.shortName}`);
                 const value = createElement("strong", "", score(cell.priorityScore));
                 const meta = createElement("span", "", `${attemptCount(cell.attempts)} attempts · ${pct(cell.accuracy)}`);
@@ -1376,17 +1447,11 @@ const renderHeatmap = (metrics, actions, pages) => {
 };
 
 const renderWeakPairTable = (metrics, actions, pages) => {
-    const card = createElement("section", "card card-pad dashboard-table-card");
-    const header = createElement("div", "dashboard-section-header");
-    const titleWrap = createElement("div");
-    appendText(titleWrap, "h2", "", "Weakest topic-skill pairs");
-    appendText(titleWrap, "p", "tiny", "Ranked by priority score. Use Drill to turn a weakness into a prefilled practice generation.");
+    const card = createElement("section", "dashboard-table-card");
     const allPairs = metrics.weakness.topicSkillPairs;
     const pageInfo = getPaginatedRows(allPairs, pages, "weakPairs");
     const pagination = createPaginationControls({ key: "weakPairs", pageInfo, actions });
-    header.append(titleWrap);
-    if (pagination) header.append(pagination);
-    card.append(header);
+    card.append(createTableHeader({ title: "Weakest topic-skill pairs", subtitle: "Ranked by priority score. Use Drill to turn a weakness into a prefilled practice generation.", pagination }));
     const pairs = pageInfo.rows;
     if (!allPairs.length) { appendText(card, "p", "tiny", "Not enough paired topic-skill data yet."); return card; }
     const wrap = createElement("div", "table-wrap");
@@ -1394,7 +1459,7 @@ const renderWeakPairTable = (metrics, actions, pages) => {
     table.className = "weak-pairs-table";
     const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
-    ["Section", "Topic", "Skill", "Attempts", "Accuracy", "Mastery", "Time", "Signal", "Action"].forEach((label) => appendText(headerRow, "th", "", label));
+    appendHeaderCells(headerRow, [["Section"], ["Topic"], ["Skill"], ["Attempts", "table-num"], ["Accuracy", "table-num"], ["Mastery", "table-num"], ["Time", "table-num"], ["Signal"], ["Action", "table-action"]]);
     thead.append(headerRow);
     table.append(thead);
     const tbody = document.createElement("tbody");
@@ -1402,18 +1467,15 @@ const renderWeakPairTable = (metrics, actions, pages) => {
         const row = document.createElement("tr");
         const sectionId = pair.sectionId ?? topicSectionId(pair.topicId);
         const timed = pair.timeRatio > 1.12;
-        const values = [
-            rowNameFromId("section", sectionId),
-            rowNameFromId("topic", pair.topicId),
-            rowNameFromId("skill", pair.skillId),
-            attemptCount(pair.attempts),
-            pct(pair.accuracy),
-            `${score(pair.mastery)}/100`,
-            seconds(pair.averageElapsedMs),
-            pair.signalStrength
-        ];
-        values.forEach((value) => appendText(row, "td", "", value));
-        const action = document.createElement("td");
+        appendCell(row, rowNameFromId("section", sectionId));
+        appendCell(row, rowNameFromId("topic", pair.topicId), "table-name");
+        appendCell(row, rowNameFromId("skill", pair.skillId), "table-meta");
+        appendCell(row, attemptCount(pair.attempts), "table-num");
+        appendCell(row, pct(pair.accuracy), "table-num");
+        appendCell(row, `${score(pair.mastery)}/100`, "table-num");
+        appendCell(row, seconds(pair.averageElapsedMs), "table-num");
+        appendCell(row, pair.signalStrength, "table-meta");
+        const action = createElement("td", "table-action");
         action.append(createActionButton("Drill", createDrillConfig({ sectionId, topicId: pair.topicId, skillId: pair.skillId, timed }), actions));
         row.append(action);
         tbody.append(row);
@@ -1425,16 +1487,11 @@ const renderWeakPairTable = (metrics, actions, pages) => {
 };
 
 const renderRecentMisses = (metrics, actions, pages) => {
-    const card = createElement("section", "card card-pad dashboard-table-card");
-    const header = createElement("div", "dashboard-section-header");
-    const titleWrap = createElement("div");
-    appendText(titleWrap, "h2", "", "Recent missed questions");
+    const card = createElement("section", "dashboard-table-card");
     const allMisses = metrics.recent.misses;
     const pageInfo = getPaginatedRows(allMisses, pages, "recentMisses");
     const pagination = createPaginationControls({ key: "recentMisses", pageInfo, actions });
-    header.append(titleWrap);
-    if (pagination) header.append(pagination);
-    card.append(header);
+    card.append(createTableHeader({ title: "Recent missed questions", pagination }));
     const misses = pageInfo.rows;
     if (!allMisses.length) { appendText(card, "p", "tiny", "No missed questions match the active filters."); return card; }
     const wrap = createElement("div", "table-wrap recent-misses-wrap");
@@ -1442,7 +1499,7 @@ const renderRecentMisses = (metrics, actions, pages) => {
     table.className = "recent-misses-table";
     const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
-    ["When", "Section", "Topic", "Skill", "Confidence", "Time", "Action"].forEach((label) => appendText(headerRow, "th", "", label));
+    appendHeaderCells(headerRow, [["When"], ["Section"], ["Topic"], ["Skill"], ["Confidence", "table-num"], ["Time", "table-num"], ["Action", "table-action"]]);
     thead.append(headerRow);
     table.append(thead);
     const tbody = document.createElement("tbody");
@@ -1452,16 +1509,13 @@ const renderRecentMisses = (metrics, actions, pages) => {
         const firstSkill = attempt.skillIds?.[0];
         const sectionId = attempt.sectionId ?? topicSectionId(firstTopic);
         const timed = attempt.timeRatio > 1.12 || attempt.timingMode === "timed";
-        const cells = [
-            attempt.answeredAt ? new Date(attempt.answeredAt).toLocaleDateString() : "n/a",
-            rowNameFromId("section", sectionId),
-            rowNameFromId("topic", firstTopic),
-            rowNameFromId("skill", firstSkill),
-            typeof attempt.confidence === "number" ? `${attempt.confidence}/5` : "n/a",
-            formatDurationMs(attempt.elapsedMs)
-        ];
-        cells.forEach((text) => appendText(row, "td", "", text));
-        const action = document.createElement("td");
+        appendCell(row, attempt.answeredAt ? new Date(attempt.answeredAt).toLocaleDateString() : "n/a", "table-meta");
+        appendCell(row, rowNameFromId("section", sectionId));
+        appendCell(row, rowNameFromId("topic", firstTopic), "table-name");
+        appendCell(row, rowNameFromId("skill", firstSkill), "table-meta");
+        appendCell(row, typeof attempt.confidence === "number" ? `${attempt.confidence}/5` : "n/a", "table-num");
+        appendCell(row, formatDurationMs(attempt.elapsedMs), "table-num");
+        const action = createElement("td", "table-action");
         action.append(createActionButton("Drill", createDrillConfig({ sectionId, topicId: firstTopic, skillId: firstSkill, timed }), actions));
         row.append(action);
         tbody.append(row);
@@ -1473,16 +1527,11 @@ const renderRecentMisses = (metrics, actions, pages) => {
 };
 
 const renderRecentSessions = (metrics, actions, pages) => {
-    const card = createElement("section", "card card-pad dashboard-table-card dashboard-recent-sessions-card");
-    const header = createElement("div", "dashboard-section-header");
-    const titleWrap = createElement("div");
-    appendText(titleWrap, "h2", "", "Recent sessions");
+    const card = createElement("section", "dashboard-table-card dashboard-recent-sessions-card");
     const allSessions = metrics.recent.sessions;
     const pageInfo = getPaginatedRows(allSessions, pages, "recentSessions");
     const pagination = createPaginationControls({ key: "recentSessions", pageInfo, actions });
-    header.append(titleWrap);
-    if (pagination) header.append(pagination);
-    card.append(header);
+    card.append(createTableHeader({ title: "Recent sessions", pagination }));
     const sessions = pageInfo.rows;
     if (!allSessions.length) { appendText(card, "p", "tiny", "No completed or attempted sessions match the active filters."); return card; }
     const wrap = createElement("div", "table-wrap recent-sessions-wrap");
@@ -1490,21 +1539,19 @@ const renderRecentSessions = (metrics, actions, pages) => {
     table.className = "recent-sessions-table";
     const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
-    ["When", "Section", "Mode", "Answered", "Accuracy", "Avg time", "Action"].forEach((label) => appendText(headerRow, "th", "", label));
+    appendHeaderCells(headerRow, [["When"], ["Section"], ["Mode"], ["Answered", "table-num"], ["Accuracy", "table-num"], ["Avg time", "table-num"], ["Action", "table-action"]]);
     thead.append(headerRow);
     table.append(thead);
     const tbody = document.createElement("tbody");
     sessions.forEach((session) => {
         const row = document.createElement("tr");
-        [
-            session.completedAt || session.createdAt ? new Date(session.completedAt ?? session.createdAt).toLocaleDateString() : "n/a",
-            rowNameFromId("section", session.sectionId),
-            session.timingMode,
-            `${session.attempts}/${session.generatedQuestionCount || session.attempts}`,
-            pct(session.accuracy),
-            formatDurationMs(session.averageElapsedMs)
-        ].forEach((value) => appendText(row, "td", "", value));
-        const action = document.createElement("td");
+        appendCell(row, session.completedAt || session.createdAt ? new Date(session.completedAt ?? session.createdAt).toLocaleDateString() : "n/a", "table-meta");
+        appendCell(row, rowNameFromId("section", session.sectionId));
+        appendCell(row, session.timingMode, "table-meta");
+        appendCell(row, `${session.attempts}/${session.generatedQuestionCount || session.attempts}`, "table-num");
+        appendCell(row, pct(session.accuracy), "table-num");
+        appendCell(row, formatDurationMs(session.averageElapsedMs), "table-num");
+        const action = createElement("td", "table-action");
         action.append(createActionButton("Drill", createSessionDrillConfig(session), actions));
         row.append(action);
         tbody.append(row);
@@ -1519,7 +1566,7 @@ const createMistakeMix = (rows = []) => {
     const list = createElement("div", "mistake-breakdown-chip-list");
     const activeRows = (Array.isArray(rows) ? rows : []).filter((row) => safeNumber(row.count, 0) > 0).slice(0, 3);
     if (!activeRows.length) { appendText(list, "span", "tiny", "No tagged mix yet"); return list; }
-    activeRows.forEach((row) => { const chip = createElement("span", "evidence-chip mistake-breakdown-chip", `${row.label ?? row.id} ${attemptCount(row.count)}`); list.append(chip); });
+    activeRows.forEach((row) => { const chip = createElement("span", "mistake-breakdown-chip", `${row.label ?? row.id} ${attemptCount(row.count)}`); list.append(chip); });
     return list;
 };
 
@@ -1530,8 +1577,10 @@ const renderMistakeBreakdownTable = ({ rows, type, metrics, actions }) => {
     const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
     [type === "topic" ? "Topic" : "Skill", "Tagged / missed", "Dominant mistake", "Top mistake mix", "Action"].forEach((label, index) => {
-        if (index !== 1) { appendText(headerRow, "th", "", label); return; }
-        const countHeader = createElement("th", "mistake-breakdown-count-header");
+        if (index === 4) { const th = createElement("th", "table-action"); th.scope = "col"; appendText(th, "span", "visually-hidden", label); headerRow.append(th); return; }
+        if (index !== 1) { const th = appendText(headerRow, "th", "", label); th.scope = "col"; return; }
+        const countHeader = createElement("th", "mistake-breakdown-count-header table-num");
+        countHeader.scope = "col";
         appendText(countHeader, "span", "", "Tagged /");
         appendText(countHeader, "span", "", "Missed");
         headerRow.append(countHeader);
@@ -1543,13 +1592,13 @@ const renderMistakeBreakdownTable = ({ rows, type, metrics, actions }) => {
         const tr = document.createElement("tr");
         const label = type === "topic" ? topicLabelWithSection(row.topicId ?? row.id, row.sectionId) : rowNameFromId("skill", row.skillId ?? row.id);
         appendText(tr, "th", "", label).scope = "row";
-        appendText(tr, "td", "", `${attemptCount(row.taggedIncorrectAttemptCount)} / ${attemptCount(row.incorrectAttemptCount)}`);
+        appendText(tr, "td", "table-num", `${attemptCount(row.taggedIncorrectAttemptCount)} / ${attemptCount(row.incorrectAttemptCount)}`);
         const dominant = row.dominantMistakeTypeLabel ? `${row.dominantMistakeTypeLabel} · ${pct(row.dominantMistakeRate)}` : "n/a";
         appendText(tr, "td", "", dominant);
         const mixCell = document.createElement("td");
         mixCell.append(createMistakeMix(row.rows));
         tr.append(mixCell);
-        const action = document.createElement("td");
+        const action = createElement("td", "table-action");
         action.append(createActionButton("Drill", createMistakeBreakdownDrillConfig({ row, type, metrics }), actions));
         tr.append(action);
         tbody.append(tr);
@@ -1573,13 +1622,8 @@ const renderMistakeBreakdownPanel = ({ title, rows, pageKey, type, metrics, acti
 };
 
 const renderMistakeBreakdown = (metrics, actions, pages) => {
-    const card = createElement("section", "card card-pad dashboard-mistake-breakdown-card");
-    const header = createElement("div", "dashboard-section-header");
-    const titleWrap = createElement("div");
-    appendText(titleWrap, "h2", "", "Mistake patterns by topic and skill");
-    appendText(titleWrap, "p", "tiny", "Shows where optional self-reported mistake tags concentrate inside the active dashboard filters. Counts can be fractional when one question tests multiple topics or skills.");
-    header.append(titleWrap);
-    card.append(header);
+    const card = createElement("section", "dashboard-mistake-breakdown-card");
+    card.append(createTableHeader({ title: "Mistake patterns by topic and skill", subtitle: "Shows where optional self-reported mistake tags concentrate inside the active dashboard filters. Counts can be fractional when one question tests multiple topics or skills." }));
     const topics = metrics.mistakes?.byTopic ?? [];
     const skills = metrics.mistakes?.bySkill ?? [];
     if (!topics.length && !skills.length) { appendText(card, "p", "tiny mistake-breakdown-empty", "Tag incorrect questions on the Review page to see topic and skill mistake patterns here."); return card; }
@@ -1610,18 +1654,14 @@ const renderMistakeBreakdown = (metrics, actions, pages) => {
     return card;
 };
 
-const renderTables = (metrics, actions, pages) => {
-    const grid = createElement("section", "dashboard-detail-grid");
-    grid.append(renderWeakPairTable(metrics, actions, pages), renderRecentMisses(metrics, actions, pages), renderRecentSessions(metrics, actions, pages));
-    return grid;
-};
+const renderTables = (metrics, actions, pages) => [renderWeakPairTable(metrics, actions, pages), renderRecentMisses(metrics, actions, pages)];
 
 const filtersAreActive = (filters) => filters.range !== "all" || filters.sectionId !== "all" || filters.timingMode !== "all" || filters.reviewMode !== "all";
 
 export const renderDashboardView = (state, actions) => {
     destroyCharts();
     const root = document.createElement("section");
-    root.className = "dashboard-page";
+    root.className = "dashboard-page is-bleed";
     const analytics = state.analytics;
     const metrics = analytics?.metrics;
     const filters = metrics?.filters ?? state.dashboard.filters;
@@ -1630,16 +1670,21 @@ export const renderDashboardView = (state, actions) => {
     if (!metrics || !metrics.totals.totalAttemptsStored) { root.append(renderEmptyState(actions, false)); appendDashboardModals(root, state, actions); return root; }
     root.append(renderFilterBar(filters, actions));
     if (!metrics.totals.totalQuestionsAnswered) { root.append(renderEmptyState(actions, filtersAreActive(filters))); appendDashboardModals(root, state, actions); return root; }
-    root.append(
+    const body = createElement("div", "dashboard-body frame");
+    const topRow = createElement("div", "dashboard-top-row");
+    topRow.append(renderRecommendationCard(analytics.recommendation, actions));
+    const bottomRow = createElement("div", "dashboard-bottom-row");
+    bottomRow.append(renderRecentSessions(metrics, actions, pages), renderModelUsageChart(metrics, actions, pages));
+    body.append(
         renderSummaryGrid(metrics, analytics.recommendation),
-        renderRecommendationCard(analytics.recommendation, actions),
-        renderInsights(metrics),
+        topRow,
         renderChartGrid(metrics, actions, pages),
         renderHeatmap(metrics, actions, pages),
         renderMistakeBreakdown(metrics, actions, pages),
-        renderTables(metrics, actions, pages),
-        renderModelUsageChart(metrics, actions, pages)
+        ...renderTables(metrics, actions, pages),
+        bottomRow
     );
+    root.append(body);
     appendDashboardModals(root, state, actions);
     return root;
 };

@@ -1,6 +1,7 @@
 import { createProgressBar } from "../components/progress.js";
 import { QUESTION_BANKS } from "../data/bank/catalog.js";
 import { SCIENCE_SKILLS, TOPICS } from "../data/taxonomy.js";
+import { icon } from "../components/icons.js";
 
 const cb = Chalkboard;
 const topicsById = Object.fromEntries(TOPICS.map((topic) => [topic.id, topic]));
@@ -22,11 +23,7 @@ const makeMetric = (label, value, hint = "") => {
     return item;
 };
 
-const formatTopicPreview = (topicIds = []) => {
-    const labels = topicIds.map((topicId) => topicsById[topicId]?.shortName ?? topicsById[topicId]?.name ?? topicId).filter(Boolean);
-    if (labels.length <= 5) return labels.join(", ");
-    return `${labels.slice(0, 5).join(", ")}, +${labels.length - 5} more.`;
-};
+const formatTopicPreview = (topicIds = []) => topicIds.map((topicId) => topicsById[topicId]?.shortName ?? topicsById[topicId]?.name ?? topicId).filter(Boolean).join(", ") + ".";
 
 const formatSkillPreview = (skillIds = []) => skillIds.map((skillId) => skillsById[skillId]?.shortName ?? skillId).join(", ") + ".";
 
@@ -55,14 +52,24 @@ const renderBankMessage = (entry) => {
     return null;
 };
 
-const renderBankCard = ({ catalog, entry, selectedCount, actions }) => {
-    const card = createElement("article", "card card-pad question-bank-card");
+const appendScopeLine = (parent, label, text) => {
+    const line = createElement("p", "tiny");
+    const strong = createElement("strong", "", `${label}:`);
+    line.append(strong, ` ${text}`);
+    parent.append(line);
+};
+
+const renderBankCard = ({ catalog, entry, selectedCount, actions, number }) => {
+    const card = createElement("article", "question-bank-card");
+    const numeral = createElement("span", "question-bank-num", String(number));
+    numeral.setAttribute("aria-hidden", "true");
+    const main = createElement("div", "question-bank-card-main");
     const header = createElement("div", "question-bank-card-header");
     const titleWrap = createElement("div");
     appendText(titleWrap, "h2", "", catalog.title);
     appendText(titleWrap, "p", "", catalog.description);
     header.append(titleWrap);
-    card.append(header);
+    main.append(header);
     const progress = entry?.progress ?? {
         targetQuestionCount: catalog.targetQuestionCount,
         loadedQuestionCount: 0,
@@ -72,46 +79,50 @@ const renderBankCard = ({ catalog, entry, selectedCount, actions }) => {
         accuracy: null,
         lastPracticedAt: null
     };
+    const progressWrap = createElement("div", "question-bank-progress");
     const progressLabel = createElement("p", "tiny question-bank-progress-label", `${progress.answeredCount} of ${progress.loadedQuestionCount || progress.targetQuestionCount} answered`);
-    card.append(progressLabel, createProgressBar(progress.answeredCount, progress.loadedQuestionCount || progress.targetQuestionCount, `${catalog.shortName} question bank progress`));
+    progressWrap.append(progressLabel, createProgressBar(progress.answeredCount, progress.loadedQuestionCount || progress.targetQuestionCount, `${catalog.shortName} question bank progress`));
+    main.append(progressWrap);
     const metrics = createElement("div", "question-bank-metrics");
     metrics.append(
         makeMetric("Remaining", `${progress.remainingCount}`),
         makeMetric("Accuracy", pct(progress.accuracy), `${progress.correctCount} correct`),
         makeMetric("Last practiced", formatDate(progress.lastPracticedAt))
     );
-    card.append(metrics);
+    main.append(metrics);
     const scope = createElement("div", "question-bank-scope");
-    appendText(scope, "p", "tiny", `Topics: ${formatTopicPreview(catalog.topicIds)}`);
-    appendText(scope, "p", "tiny", `Skills: ${formatSkillPreview(catalog.skillIds)}`);
-    card.append(scope);
+    appendScopeLine(scope, "Topics", formatTopicPreview(catalog.topicIds));
+    appendScopeLine(scope, "Skills", formatSkillPreview(catalog.skillIds));
+    main.append(scope);
     const message = renderBankMessage(entry);
-    if (message) card.append(message);
+    if (message) main.append(message);
     const controls = createElement("div", "question-bank-actions");
     const canStart = entry?.status === "ready" && progress.remainingCount > 0;
     controls.append(makeQuestionCountSelect({ catalog, value: selectedCount, disabled: !canStart, actions }));
     const start = document.createElement("button");
     start.type = "button";
-    start.className = "btn btn-primary";
-    start.textContent = progress.remainingCount > 0 ? `Start next ${selectedCount}` : "All answered";
+    start.className = "btn btn-secondary question-bank-start";
+    const startLabel = createElement("span", "", progress.remainingCount > 0 ? `Start next ${selectedCount}` : "All answered");
+    start.append(startLabel);
+    if (progress.remainingCount > 0) start.append(icon("arrow-right", { size: 14 }));
     start.disabled = !canStart;
     start.addEventListener("click", () => actions.startQuestionBankSession({ sectionId: catalog.sectionId, questionCount: selectedCount }));
     controls.append(start);
-    card.append(controls);
+    card.append(numeral, main, controls);
     return card;
 };
 
 const renderHero = (actions, loading) => {
-    const hero = createElement("section", "hero question-bank-hero");
-    const copy = createElement("div", "question-bank-hero-copy");
+    const hero = createElement("section", "hero hero-with-actions question-bank-hero");
+    const copy = createElement("div", "hero-copy question-bank-hero-copy");
     appendText(copy, "h1", "", "Question bank");
     appendText(copy, "p", "", "Start practicing immediately with 300 pregenerated questions. No payment required.");
-    const actionsWrap = createElement("div", "question-bank-hero-actions button-row");
+    const actionsWrap = createElement("div", "hero-actions question-bank-hero-actions");
     const refresh = document.createElement("button");
     refresh.type = "button";
     refresh.className = "btn btn-ghost";
     refresh.disabled = loading;
-    refresh.innerHTML = '<span class="material-symbols-outlined" aria-hidden="true">sync</span> Refresh';
+    refresh.append(icon("restore", { size: 14 }), createElement("span", "", "Refresh"));
     refresh.addEventListener("click", () => actions.refreshQuestionBank({ clearCache: true }));
     const generate = document.createElement("button");
     generate.type = "button";
@@ -129,10 +140,11 @@ export const renderQuestionBankView = (state, actions) => {
     root.append(renderHero(actions, Boolean(bankState.loading)));
     if (bankState.error) root.append(createElement("p", "danger-note question-bank-global-error", bankState.error));
     const grid = createElement("section", "question-bank-grid");
-    QUESTION_BANKS.forEach((catalog) => {
+    grid.setAttribute("aria-label", "Question banks");
+    QUESTION_BANKS.forEach((catalog, index) => {
         const selectedCount = bankState.selectedCounts?.[catalog.sectionId] ?? catalog.defaultQuestionCount;
         const entry = bankState.entries?.[catalog.sectionId] ?? (bankState.loading ? { status: "loading", catalog } : null);
-        grid.append(renderBankCard({ catalog, entry, selectedCount, actions }));
+        grid.append(renderBankCard({ catalog, entry, selectedCount, actions, number: index + 1 }));
     });
     root.append(grid);
     return root;

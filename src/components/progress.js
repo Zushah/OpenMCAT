@@ -1,8 +1,8 @@
 const cb = Chalkboard;
 
-export const createProgressBar = (value, max, label = "Progress") => {
+export const createProgressBar = (value, max, label = "Progress", { className = "" } = {}) => {
     const wrapper = document.createElement("div");
-    wrapper.className = "progress-wrap";
+    wrapper.className = ["progress-wrap", className].filter(Boolean).join(" ");
     wrapper.setAttribute("role", "progressbar");
     wrapper.setAttribute("aria-label", label);
     wrapper.setAttribute("aria-valuemin", "0");
