@@ -1,6 +1,6 @@
 {
   "name": "@zushah/openmcat",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "author": "Zushah",
   "license": "AGPL-3.0",
   "description": "Free precise practice and actionable analytics for the MCAT powered by your AI chat.",
@@ -8,6 +8,7 @@
   "type": "module",
   "scripts": {
     "start": "node test/server.js",
+    "sync:logo": "python scripts/sync_logo.py",
     "test": "playwright test",
     "test:chromium": "playwright test --project=chromium",
     "test:firefox": "playwright test --project=firefox",

@@ -1,7 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 132 132" role="img" aria-labelledby="t">
-    <title id="t">OpenMCAT</title>
-    <circle cx="66" cy="66" r="63" fill="none" stroke="#4B483E" stroke-width="1.2"/>
-    <circle cx="66" cy="66" r="58" fill="none" stroke="#4B483E" stroke-width="0.8"/>
-    <circle cx="66" cy="66" r="44" fill="none" stroke="#9DC9A9" stroke-width="12" stroke-linecap="round" stroke-dasharray="227.4 49" transform="rotate(-20 66 66)"/>
-    <circle cx="66" cy="66" r="12" fill="#EEE7D6"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-labelledby="openmcat-logo-title">
+    <title id="openmcat-logo-title">OpenMCAT</title>
+    <style>
+        .openmcat-logo-shackle, .openmcat-logo-body { stroke: #9DC9A9; }
+        .openmcat-logo-check { fill: #EEE7D6; }
+        @media (prefers-color-scheme: light) {
+            .openmcat-logo-shackle, .openmcat-logo-body { stroke: #2E6A48; }
+            .openmcat-logo-check { fill: #1F1B14; }
+        }
+    </style>
+    <g id="openmcat-logo">
+        <path class="openmcat-logo-shackle" d="M10.5 15V8.75a5.5 5.5 0 0 1 11 0v1.5" fill="none" stroke-width="2.5" stroke-linecap="round"/>
+        <rect class="openmcat-logo-body" x="3.25" y="15" width="25.5" height="13.5" rx="3.5" fill="none" stroke-width="2.5"/>
+        <path class="openmcat-logo-check" d="M10.45 20.75C11.8 20.95 12.9 22.1 13.7 23.3C14.75 20.45 17.35 17.45 21.95 16.9C22.7 16.85 22.8 17.75 22.15 18C19.15 18.9 16.9 21.75 15.4 25.5C14.9 26.75 13.5 26.75 12.9 25.6C12.1 24.1 11.3 23.05 10.15 22.75C9.15 22.5 9.3 20.65 10.45 20.75Z"/>
+    </g>
 </svg>

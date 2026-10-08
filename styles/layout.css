@@ -53,15 +53,11 @@
     overflow: visible;
 }
 
-.brand-ring {
-    fill: none;
+.openmcat-logo-shackle, .openmcat-logo-body {
     stroke: var(--accent);
-    stroke-width: 3.2;
-    stroke-linecap: round;
-    stroke-dasharray: 59.5 12.8;
 }
 
-.brand-dot {
+.openmcat-logo-check {
     fill: var(--ink);
 }
 

@@ -1,3 +1,5 @@
+import { LOGO_SHAPES, LOGO_VIEW_BOX } from "../components/logo.js";
+
 const createExternalLink = (href, text) => {
     const link = document.createElement("a");
     link.href = href;
@@ -24,23 +26,9 @@ const createList = (lines, className = "about-list") => {
 };
 
 const createLogo = () => {
-    const namespace = "http://www.w3.org/2000/svg";
-    const svg = document.createElementNS(namespace, "svg");
-    svg.setAttribute("class", "about-logo");
-    svg.setAttribute("viewBox", "0 0 132 132");
-    svg.setAttribute("aria-hidden", "true");
-    svg.setAttribute("focusable", "false");
-    [
-        { tag: "circle", attributes: { class: "seal", cx: 66, cy: 66, r: 63, "stroke-width": 1.2 } },
-        { tag: "circle", attributes: { class: "seal", cx: 66, cy: 66, r: 58, "stroke-width": 0.8 } },
-        { tag: "circle", attributes: { class: "ring", cx: 66, cy: 66, r: 44, transform: "rotate(-20 66 66)" } },
-        { tag: "circle", attributes: { class: "dot", cx: 66, cy: 66, r: 12 } }
-    ].forEach(({ tag, attributes }) => {
-        const element = document.createElementNS(namespace, tag);
-        Object.entries(attributes).forEach(([name, value]) => element.setAttribute(name, String(value)));
-        svg.append(element);
-    });
-    return svg;
+    const template = document.createElement("template");
+    template.innerHTML = `<svg class="about-logo" viewBox="${LOGO_VIEW_BOX}" aria-hidden="true" focusable="false">${LOGO_SHAPES}</svg>`;
+    return template.content.firstElementChild;
 };
 
 export const renderAboutView = () => {

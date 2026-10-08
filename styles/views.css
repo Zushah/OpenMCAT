@@ -3099,23 +3099,6 @@
     height: 120px;
 }
 
-.about-logo .seal {
-    fill: none;
-    stroke: var(--rule-2);
-}
-
-.about-logo .ring {
-    fill: none;
-    stroke: var(--accent);
-    stroke-width: 12;
-    stroke-linecap: round;
-    stroke-dasharray: 227.4 49;
-}
-
-.about-logo .dot {
-    fill: var(--ink);
-}
-
 .about-section {
     display: flex;
     flex-direction: column;
