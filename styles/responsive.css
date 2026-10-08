@@ -276,7 +276,7 @@
         --t-choice: 17px;
     }
 
-    .hero, .page-header {
+    .hero {
         padding-block: 26px 22px;
     }
 
@@ -290,7 +290,7 @@
         justify-content: flex-start;
     }
 
-    .hero p, .page-header p, .lede {
+    .hero p {
         line-height: 1.5;
     }
 

@@ -3,7 +3,8 @@
 All committed changes to the [`Zushah/OpenMCAT`](https://github.com/Zushah/OpenMCAT) code repository are recorded here.
 
 ## 34. [`v1.10.1`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-10-08&until=2026-10-08) 2026-10-08
-- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Update catalog for AI model names
+- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Clean styling
+- [`49c7732`](https://github.com/Zushah/OpenMCAT/commit/49c7732) Update catalog for AI model names
 - [`25df748`](https://github.com/Zushah/OpenMCAT/commit/25df748) Redesign the logo
 
 ## 33. [`v1.10.0`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-09-30&until=2026-09-30) 2026-09-30

@@ -120,7 +120,7 @@ img, svg, canvas {
     vertical-align: -0.15em;
 }
 
-.num, time, .tabular {
+time {
     font-variant-numeric: tabular-nums lining-nums;
 }
 

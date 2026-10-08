@@ -1,11 +1,11 @@
-.hero, .page-header {
+.hero {
     display: flex;
     flex-direction: column;
     gap: 12px;
     padding-block: 52px 36px;
 }
 
-.hero h1, .page-header h1 {
+.hero h1 {
     font-size: var(--t-h1);
     line-height: 1;
     letter-spacing: -0.022em;
@@ -18,7 +18,7 @@
     min-width: 0;
 }
 
-.hero p, .page-header p, .lede {
+.hero p {
     max-width: 780px;
     font-family: var(--font-serif);
     font-size: var(--t-lede);
@@ -89,7 +89,7 @@
     min-width: 0;
 }
 
-.clause-label, .clause-body > legend {
+.clause-body > legend {
     float: none;
     padding: 0;
     font-family: var(--font-serif);
@@ -140,7 +140,7 @@
     min-width: 0;
 }
 
-.clause-sub > legend, .clause-sub-label {
+.clause-sub > legend {
     padding: 0;
     margin-bottom: 12px;
     font-family: var(--font-serif);
@@ -200,11 +200,6 @@
 @keyframes reveal {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: none; }
-}
-
-.inline-code {
-    font-family: var(--font-mono);
-    font-size: 0.88em;
 }
 
 .landing-hero {
@@ -1841,7 +1836,7 @@
     border-top: 1px solid var(--rule-2);
 }
 
-.review-empty, .practice-empty {
+.review-empty {
     padding: 28px 0;
     font-size: 15px;
     color: var(--muted);

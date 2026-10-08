@@ -92,7 +92,7 @@
     color: var(--page);
 }
 
-.btn-compact, .btn-small {
+.btn-compact {
     position: relative;
     min-height: 28px;
     height: 28px;
@@ -103,16 +103,16 @@
     font-weight: 700;
 }
 
-.btn-compact.btn-ghost, .btn-small.btn-ghost {
+.btn-compact.btn-ghost {
     border-color: transparent;
 }
 
-.btn-compact:hover:not(:disabled), .btn-small:hover:not(:disabled) {
+.btn-compact:hover:not(:disabled) {
     border-color: var(--accent);
 }
 
 @media (pointer: coarse) {
-    .btn-compact::after, .btn-small::after {
+    .btn-compact::after {
         content: "";
         position: absolute;
         inset: -8px -4px;
@@ -167,7 +167,7 @@ kbd {
     min-width: 0;
 }
 
-.field > label, .field-label {
+.field > label {
     font-family: var(--font-sans);
     font-size: 15px;
     font-weight: 500;
@@ -303,7 +303,7 @@ input[type="checkbox"]:indeterminate::before {
     color: var(--muted);
 }
 
-.note, .warning-note, .danger-note, .info-note {
+.note, .warning-note, .danger-note {
     padding: 2px 0 2px 16px;
     border-left: 2px solid var(--accent);
     font-size: var(--t-small);
@@ -318,13 +318,6 @@ input[type="checkbox"]:indeterminate::before {
 .danger-note {
     border-left-color: var(--danger);
     color: var(--danger);
-}
-
-.note-title {
-    font-family: var(--font-serif);
-    font-size: 18px;
-    line-height: 1.3;
-    color: var(--ink);
 }
 
 .status {
@@ -680,14 +673,6 @@ tbody th[scope="row"] {
     border-bottom: 1px solid var(--rule);
 }
 
-.dialog-heading-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    min-width: 0;
-    flex: 1 1 auto;
-}
-
 .generation-pipeline-top h2 {
     flex: 1 1 auto;
     min-width: 0;
@@ -695,14 +680,6 @@ tbody th[scope="row"] {
     font-size: var(--t-h2-sm);
     line-height: 1.1;
     letter-spacing: -0.01em;
-}
-
-.dialog-kicker {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--muted);
 }
 
 .generation-pipeline-close {
@@ -852,10 +829,6 @@ tbody th[scope="row"] {
     transition: width 200ms ease-out;
 }
 
-.progress-wrap.is-answered .progress-fill {
-    background: var(--ink-2);
-}
-
 .choice-list {
     display: flex;
     flex-direction: column;
@@ -958,49 +931,6 @@ button.choice-card:disabled {
 
 .choice-card.is-incorrect .choice-tag {
     color: var(--danger);
-}
-
-.codeblock {
-    max-width: 100%;
-    max-height: 340px;
-    margin: 0;
-    padding: 14px 16px;
-    overflow: auto;
-    border: 1px solid var(--rule);
-    background: var(--sunken);
-}
-
-.codeblock-code {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    line-height: 1.55;
-    color: var(--codeblock-text);
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-}
-
-.json-token.key {
-    color: var(--json-key);
-}
-
-.json-token.string {
-    color: var(--json-string);
-}
-
-.json-token.number {
-    color: var(--json-number);
-}
-
-.json-token.boolean {
-    color: var(--json-boolean);
-}
-
-.json-token.null {
-    color: var(--json-null);
-}
-
-.json-token.punctuation {
-    color: var(--json-punctuation);
 }
 
 .stat-card {
