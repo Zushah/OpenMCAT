@@ -321,6 +321,19 @@
         padding-top: 28px;
     }
 
+    .resume-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+        margin-bottom: 28px;
+        padding: 16px 16px 16px 18px;
+    }
+
+    .resume-card-actions .btn {
+        flex: 1 1 0;
+        justify-content: center;
+    }
+
     .site-footer {
         margin-top: 48px;
     }

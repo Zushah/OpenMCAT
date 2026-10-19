@@ -96,6 +96,7 @@ const handleRouteFromLocation = () => {
     if (state.route === nextRoute) return false;
     if (nextRoute !== "dashboard") { state.dashboard.aiAnalysisOpen = false; state.dashboard.backupReminderOpen = false; }
     if (nextRoute !== "settings") state.settingsDataConfirmation = null;
+    actions.syncTimerForRouteChange(state.route, nextRoute);
     state.route = nextRoute;
     return true;
 };
@@ -193,6 +194,8 @@ const refreshExternalData = () => {
     if (state.route === "bank") actions.refreshQuestionBank();
 };
 window.addEventListener("storage", refreshExternalData);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") actions.flushProgressSave(); });
+window.addEventListener("pagehide", () => { actions.flushProgressSave(); });
 subscribeToDataChanges(() => { if (state.route === "settings") state.settingsDataConfirmation = null; refreshExternalData(); });
 
 handleRouteFromLocation();

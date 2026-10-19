@@ -1,6 +1,8 @@
 import { DIFFICULTIES, QUESTION_FORMATS, SECTIONS, getSkillsForSection, getTopicsBySection } from "../data/taxonomy.js";
 import { REVIEW_MODES, TIMING_MODES } from "../data/defaults.js";
 import { icon } from "../components/icons.js";
+import { createResumeCard } from "../components/resume.js";
+import { getResumableInfo } from "../storage/progress.js";
 
 const AI_CHAT_SHORTCUTS = [
     { name: "ChatGPT", href: "https://chatgpt.com/", icon: "./assets/images/chatgpt.svg" },
@@ -387,6 +389,8 @@ export const renderGeneratorView = (state, actions) => {
     const root = document.createElement("section");
     root.className = "generator-page";
     root.append(makeHero(actions));
+    const resumableInfo = getResumableInfo(state);
+    if (resumableInfo) root.append(createResumeCard(resumableInfo, actions));
     const config = state.currentConfig;
     const sectionTopics = getTopicsBySection(config.sectionId);
     const sectionSkills = getSkillsForSection(config.sectionId);

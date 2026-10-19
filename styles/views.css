@@ -380,6 +380,50 @@
     font-size: 14px;
 }
 
+.resume-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 36px;
+    padding: 18px 22px;
+    border-left: 2px solid var(--accent);
+    background: var(--accent-wash);
+}
+
+.resume-card:first-child {
+    margin-top: 36px;
+}
+
+.resume-card-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.resume-card-copy h2 {
+    font-size: 22px;
+    font-weight: 500;
+}
+
+.resume-card-body {
+    font-size: var(--t-small);
+    line-height: 1.45;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+}
+
+.resume-card-actions {
+    flex: 0 0 auto;
+}
+
+.resume-card-actions .btn {
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 14px;
+}
+
 .generator-layout {
     display: grid;
     grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
@@ -2427,6 +2471,10 @@
     width: 1%;
     text-align: right;
     white-space: nowrap;
+}
+
+.table-action .btn + .btn {
+    margin-left: 6px;
 }
 
 .table-section-abbr {

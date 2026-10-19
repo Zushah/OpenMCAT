@@ -3,6 +3,8 @@ import { createHighlightableText, getQuestionHighlightScopeKey, getQuestionStemH
 import { appendStimulusContent, createChoiceCard, createPassageCard, createPassageMetadataById } from "../components/questions.js";
 import { formatDurationMs } from "../components/timer.js";
 import { icon } from "../components/icons.js";
+import { createResumeCard } from "../components/resume.js";
+import { getResumableInfo } from "../storage/progress.js";
 
 const cb = Chalkboard;
 
@@ -377,6 +379,8 @@ export const renderPracticeView = (state, actions, nowMs) => {
     const activeSession = state.activeSession;
     if (!activeSession) {
         root.classList.remove("practice-page");
+        const resumableInfo = getResumableInfo(state);
+        if (resumableInfo) root.append(createResumeCard(resumableInfo, actions));
         const empty = document.createElement("section");
         empty.className = "empty-state practice-empty-state";
         const heading = document.createElement("h2");

@@ -195,7 +195,7 @@ const addRecord = async (storeName, record, label) => {
     } catch (error) { abortTransaction(transaction); await completed.catch(() => { }); throw error; }
 };
 
-const updateRecord = async (storeName, recordId, patch) => {
+const updateRecord = async (storeName, recordId, patch, { notify = true } = {}) => {
     if (typeof recordId !== "string" || !recordId) throw new TypeError("Record id must be a non-empty string.");
     if (!patch || typeof patch !== "object" || Array.isArray(patch)) throw new TypeError("Record patch must be an object.");
     const database = await initializeStorage();
@@ -207,7 +207,7 @@ const updateRecord = async (storeName, recordId, patch) => {
         if (!current) { await completed; return; }
         await requestResult(store.put({ ...current, ...patch, id: recordId }));
         await completed;
-        notifyDataChanged();
+        if (notify) notifyDataChanged();
     } catch (error) { abortTransaction(transaction); await completed.catch(() => { }); throw error; }
 };
 
@@ -215,13 +215,13 @@ export const getSessions = async () => getAllFromStore(STORE_NAMES.sessions);
 
 export const saveSession = async (sessionRecord) => addRecord(STORE_NAMES.sessions, sessionRecord, "Session");
 
-export const updateSession = async (sessionId, patch) => updateRecord(STORE_NAMES.sessions, sessionId, patch);
+export const updateSession = async (sessionId, patch, options) => updateRecord(STORE_NAMES.sessions, sessionId, patch, options);
 
 export const getAttempts = async () => getAllFromStore(STORE_NAMES.attempts);
 
 export const saveAttempt = async (attemptRecord) => addRecord(STORE_NAMES.attempts, attemptRecord, "Attempt");
 
-export const updateAttempt = async (attemptId, patch) => updateRecord(STORE_NAMES.attempts, attemptId, patch);
+export const updateAttempt = async (attemptId, patch, options) => updateRecord(STORE_NAMES.attempts, attemptId, patch, options);
 
 export const clearAllData = async () => {
     const database = await initializeStorage();

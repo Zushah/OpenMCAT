@@ -10,8 +10,9 @@ import { extractJsonObject } from "./schema/repair.js";
 import { validatePracticeSession } from "./schema/validators.js";
 import { setHashForRoute } from "./router.js";
 import { buildExportPayload, combineBackupPayloads, createBackupArtifact, createExportPayload, downloadExport, importPayload, parseImportFile, parseImportText, previewBackupCombination } from "./storage/exportimport.js";
-import { clearAllData, getAllData, initializeStorage, saveAttempt, saveSession, updateAttempt, updateSession } from "./storage/db.js";
+import { clearAllData, getAllData, getAttempts, getSessions, initializeStorage, saveAttempt, saveSession, updateAttempt, updateSession } from "./storage/db.js";
 import { normalizeGeneratorConfig, saveGeneratorOptions } from "./storage/generator.js";
+import { buildCompletionPatch, getMostRecentResumableSession, hydrateActiveSession, isResumableSession } from "./storage/progress.js";
 import { saveSettings as persistSettings } from "./storage/settings.js";
 import { formatBackupDataSize, formatCurrentDataSizeMessage, getBackupStatus, isBackupReminderDue, markBackupCompleted, scheduleBackupReminder } from "./storage/backup.js";
 import { checkPersistentStorage, requestPersistentStorage } from "./storage/persistence.js";
@@ -23,6 +24,8 @@ import { getSelectionHighlightRanges, toggleHighlightRange } from "./components/
 import { showToast } from "./components/toast.js";
 
 const cb = Chalkboard;
+
+const PROGRESS_SAVE_DEBOUNCE_MS = 400;
 
 const id = (prefix) => `${prefix}_${Date.now()}_${cb.numb.random(0, 1).toString(36).slice(2, 8)}`;
 
@@ -82,6 +85,13 @@ const ensureQuestionStart = (activeSession, questionId, now = new Date()) => {
     return questionState.startedAt;
 };
 
+const buildProgressPatch = (activeSession, now = new Date()) => ({
+    questionStateById: Object.fromEntries(Object.entries(activeSession.questionStateById).map(([questionId, questionState]) => [questionId, { ...structuredClone(questionState), elapsedMs: getQuestionElapsedMs(questionState, now), startedAt: null }])),
+    highlightRangesByTargetKey: structuredClone(activeSession.highlightRangesByTargetKey ?? {}),
+    hasReachedFinalQuestion: activeSession.hasReachedFinalQuestion === true,
+    progress: { currentQuestionIndex: activeSession.currentQuestionIndex, savedAt: now.toISOString() }
+});
+
 const buildMaps = () => {
     const sectionsById = Object.fromEntries(SECTIONS.map((section) => [section.id, section]));
     const topicsById = Object.fromEntries(TOPICS.map((topic) => [topic.id, topic]));
@@ -91,6 +101,7 @@ const buildMaps = () => {
 
 export const createActions = ({ render, applyTheme }) => {
     let dataSizeCompression = null;
+    let progressSaveTimer = null;
 
     const isDataSizeVisible = () => state.route === "settings" || state.dashboard.backupReminderOpen;
 
@@ -181,7 +192,17 @@ export const createActions = ({ render, applyTheme }) => {
         finally { state.questionBank.loading = false; render(); }
     };
 
+    const syncTimerForRouteChange = (fromRoute, toRoute) => {
+        const active = state.activeSession;
+        if (fromRoute === toRoute || !active || active.completedAt) return;
+        const question = active.generatedSession?.questions?.[active.currentQuestionIndex];
+        if (!question) return;
+        if (fromRoute === "practice") pauseQuestionTimer(active, question.id);
+        if (toRoute === "practice" && !active.navigationOpen && !active.finalReviewOpen) ensureQuestionStart(active, question.id);
+    };
+
     const navigate = (route) => {
+        syncTimerForRouteChange(state.route, route);
         if (route !== "dashboard") { state.dashboard.aiAnalysisOpen = false; state.dashboard.backupReminderOpen = false; state.dashboard.modelCorrection = null; }
         if (route !== "settings") state.settingsDataConfirmation = null;
         state.route = route;
@@ -389,21 +410,45 @@ export const createActions = ({ render, applyTheme }) => {
         render();
     };
 
+    const flushProgressSave = async () => {
+        clearTimeout(progressSaveTimer);
+        progressSaveTimer = null;
+        const active = state.activeSession;
+        if (!active || active.completedAt) return;
+        try { await updateSession(active.id, buildProgressPatch(active), { notify: false }); }
+        catch (error) { console.warn("OpenMCAT: failed autosaving session progress.", error); }
+    };
+
+    const scheduleProgressSave = () => {
+        clearTimeout(progressSaveTimer);
+        progressSaveTimer = setTimeout(flushProgressSave, PROGRESS_SAVE_DEBOUNCE_MS);
+    };
+
+    const endOtherInterruptedSessions = async (newSessionId) => {
+        let ended = 0;
+        try {
+            const live = state.activeSession;
+            const liveId = live && !live.completedAt && live.id !== newSessionId ? live.id : null;
+            if (liveId) {
+                const question = getActiveQuestion();
+                if (question) pauseQuestionTimer(live, question.id);
+                live.completedAt = new Date().toISOString();
+                await updateSession(liveId, buildCompletionPatch(live, live.completedAt));
+                ended += 1;
+            }
+            const stored = (await getSessions()).filter((record) => record.id !== newSessionId && record.id !== liveId && isResumableSession(record));
+            for (const record of stored) {
+                await updateSession(record.id, buildCompletionPatch(record, record.progress.savedAt));
+                ended += 1;
+            }
+        } catch (error) { console.warn("OpenMCAT: failed ending the previous interrupted session.", error); }
+        if (ended) showToast("Ended your previous interrupted session.");
+    };
+
     const startPracticeSession = async (prepared, runtimeConfig, providerMeta = {}) => {
         const sessionId = id("session");
         const nowIso = new Date().toISOString();
         const normalizedProviderMeta = structuredClone(providerMeta ?? {});
-        const sessionRecord = {
-            id: sessionId,
-            createdAt: nowIso,
-            completedAt: null,
-            config: structuredClone(runtimeConfig),
-            generatedSession: prepared,
-            providerMeta: normalizedProviderMeta,
-            highlightRangesByTargetKey: {},
-            hasReachedFinalQuestion: prepared.questions.length <= 1
-        };
-        await saveSession(sessionRecord);
         const questionStateById = Object.fromEntries(prepared.questions.map((question) =>
             [
                 question.id,
@@ -425,10 +470,22 @@ export const createActions = ({ render, applyTheme }) => {
             ]
         ));
         const firstQuestionId = prepared.questions[0]?.id ?? null;
-        if (firstQuestionId) {
-            questionStateById[firstQuestionId].startedAt = nowIso;
-            questionStateById[firstQuestionId].firstStartedAt = nowIso;
-        }
+        if (firstQuestionId) questionStateById[firstQuestionId].firstStartedAt = nowIso;
+        const sessionRecord = {
+            id: sessionId,
+            createdAt: nowIso,
+            completedAt: null,
+            config: structuredClone(runtimeConfig),
+            generatedSession: prepared,
+            providerMeta: normalizedProviderMeta,
+            questionStateById: structuredClone(questionStateById),
+            highlightRangesByTargetKey: {},
+            hasReachedFinalQuestion: prepared.questions.length <= 1,
+            progress: { currentQuestionIndex: 0, savedAt: nowIso }
+        };
+        await saveSession(sessionRecord);
+        await endOtherInterruptedSessions(sessionId);
+        if (firstQuestionId) questionStateById[firstQuestionId].startedAt = nowIso;
         state.activeSession = {
             id: sessionId,
             createdAt: nowIso,
@@ -580,6 +637,7 @@ export const createActions = ({ render, applyTheme }) => {
         if (qState.submitted && active.config.reviewMode === "immediate") return;
         qState.selectedChoiceId = qState.selectedChoiceId === choiceId ? null : choiceId;
         render();
+        scheduleProgressSave();
     };
 
     const setConfidence = async (value) => {
@@ -590,6 +648,7 @@ export const createActions = ({ render, applyTheme }) => {
         if (qState.submitted && active.config.reviewMode === "immediate") return;
         qState.confidence = qState.confidence === value ? null : value;
         render();
+        scheduleProgressSave();
     };
 
     const flagCurrentQuestion = async () => {
@@ -599,6 +658,7 @@ export const createActions = ({ render, applyTheme }) => {
         const qState = active.questionStateById[question.id];
         qState.flagged = !qState.flagged;
         render();
+        scheduleProgressSave();
         showToast(qState.flagged ? "Question flagged." : "Flag removed.");
     };
 
@@ -616,6 +676,7 @@ export const createActions = ({ render, applyTheme }) => {
         });
         window.getSelection()?.removeAllRanges();
         render();
+        scheduleProgressSave();
     };
 
     const saveCurrentAnswer = async () => {
@@ -671,6 +732,7 @@ export const createActions = ({ render, applyTheme }) => {
             qState.attemptId = attempt.id;
             await saveAttempt(attempt);
         }
+        await flushProgressSave();
         return true;
     };
 
@@ -690,6 +752,7 @@ export const createActions = ({ render, applyTheme }) => {
         const previousQuestionId = active.generatedSession.questions[previousIndex].id;
         ensureQuestionStart(active, previousQuestionId);
         render();
+        scheduleProgressSave();
     };
 
     const nextQuestion = async () => {
@@ -707,6 +770,7 @@ export const createActions = ({ render, applyTheme }) => {
         const nextQuestionId = active.generatedSession.questions[nextIndex].id;
         ensureQuestionStart(active, nextQuestionId);
         render();
+        scheduleProgressSave();
     };
 
     const openNavigationPanel = (filterId = null) => {
@@ -765,41 +829,84 @@ export const createActions = ({ render, applyTheme }) => {
         active.navigationOpen = false;
         active.finalReviewOpen = false;
         render();
+        scheduleProgressSave();
     };
 
     const stopSessionEarly = async () => {
         openFinalReviewPanel();
     };
 
-    const finishSession = async (message = "Session complete. Review ready.") => {
+    const finishSession = async (message = "Session complete. Review ready.", { completedAt = new Date().toISOString() } = {}) => {
         const active = state.activeSession;
         const question = getActiveQuestion();
         if (!active) return;
         if (question) pauseQuestionTimer(active, question.id);
-        const completedAt = new Date().toISOString();
         active.completedAt = completedAt;
         active.navigationOpen = false;
         active.finalReviewOpen = false;
-        const records = active.generatedSession.questions.map((item) => active.questionStateById[item.id]);
-        const submitted = records.filter((item) => item?.submitted).length;
-        const flagged = records.filter((item) => item?.flagged).length;
-        await updateSession(active.id, {
-            completedAt,
-            questionStateById: structuredClone(active.questionStateById),
-            highlightRangesByTargetKey: structuredClone(active.highlightRangesByTargetKey ?? {}),
-            hasReachedFinalQuestion: active.hasReachedFinalQuestion === true,
-            summary: {
-                submitted,
-                incomplete: records.length - submitted,
-                flagged,
-                total: records.length
-            }
-        });
+        await updateSession(active.id, buildCompletionPatch(active, completedAt));
         await refreshAnalytics();
         state.route = "review";
         setHashForRoute("review");
         render();
         showToast(message, "success");
+    };
+
+    const reconcileOrphanedAttempts = async (active) => {
+        const attemptIdByQuestionId = new Map();
+        (await getAttempts()).forEach((attempt) => { if (attempt?.sessionId === active.id && typeof attempt.questionId === "string" && typeof attempt.id === "string") attemptIdByQuestionId.set(attempt.questionId, attempt.id); });
+        Object.entries(active.questionStateById).forEach(([questionId, questionState]) => { if (!questionState.attemptId && attemptIdByQuestionId.has(questionId)) questionState.attemptId = attemptIdByQuestionId.get(questionId); });
+    };
+
+    const loadResumableSession = async () => {
+        const record = getMostRecentResumableSession(await getSessions());
+        const active = hydrateActiveSession(record);
+        if (!active) return null;
+        await reconcileOrphanedAttempts(active);
+        return { record, active };
+    };
+
+    const resumeSession = async () => {
+        if (state.activeSession && !state.activeSession.completedAt) { navigate("practice"); return; }
+        try {
+            const resumable = await loadResumableSession();
+            if (!resumable) {
+                showToast("No interrupted session to resume.");
+                await refreshAnalytics();
+                render();
+                return;
+            }
+            const { active } = resumable;
+            const question = active.generatedSession.questions[active.currentQuestionIndex];
+            if (question) ensureQuestionStart(active, question.id);
+            state.activeSession = active;
+            state.route = "practice";
+            setHashForRoute("practice");
+            window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+            render();
+            showToast("Session resumed.", "success");
+        } catch (error) {
+            console.warn("OpenMCAT: failed resuming the interrupted session.", error);
+            showToast("The interrupted session could not be resumed.", "error");
+        }
+    };
+
+    const endInterruptedSession = async () => {
+        if (state.activeSession && !state.activeSession.completedAt) { await finishSession(); return; }
+        try {
+            const resumable = await loadResumableSession();
+            if (!resumable) {
+                showToast("No interrupted session to end.");
+                await refreshAnalytics();
+                render();
+                return;
+            }
+            state.activeSession = resumable.active;
+            await finishSession("Session ended. Review ready.", { completedAt: resumable.record.progress.savedAt });
+        } catch (error) {
+            console.warn("OpenMCAT: failed ending the interrupted session.", error);
+            showToast("The interrupted session could not be ended.", "error");
+        }
     };
 
     const setReviewFilter = (filterId) => {
@@ -1118,6 +1225,10 @@ export const createActions = ({ render, applyTheme }) => {
         openFinalReviewPanel,
         stopSessionEarly,
         finishSession,
+        resumeSession,
+        endInterruptedSession,
+        flushProgressSave,
+        syncTimerForRouteChange,
         setReviewFilter,
         setReviewQuestionIndex,
         toggleMistakeTypeForQuestion,

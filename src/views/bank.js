@@ -2,6 +2,8 @@ import { createProgressBar } from "../components/progress.js";
 import { QUESTION_BANKS } from "../data/bank/catalog.js";
 import { SCIENCE_SKILLS, TOPICS } from "../data/taxonomy.js";
 import { icon } from "../components/icons.js";
+import { createResumeCard } from "../components/resume.js";
+import { getResumableInfo } from "../storage/progress.js";
 
 const cb = Chalkboard;
 const topicsById = Object.fromEntries(TOPICS.map((topic) => [topic.id, topic]));
@@ -138,6 +140,8 @@ export const renderQuestionBankView = (state, actions) => {
     const root = createElement("section", "question-bank-page");
     const bankState = state.questionBank ?? {};
     root.append(renderHero(actions, Boolean(bankState.loading)));
+    const resumableInfo = getResumableInfo(state);
+    if (resumableInfo) root.append(createResumeCard(resumableInfo, actions));
     if (bankState.error) root.append(createElement("p", "danger-note question-bank-global-error", bankState.error));
     const grid = createElement("section", "question-bank-grid");
     grid.setAttribute("aria-label", "Question banks");
