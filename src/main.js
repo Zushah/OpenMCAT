@@ -1,6 +1,6 @@
 import { state } from "./app.js";
 import { createActions } from "./events.js";
-import { getRouteFromHash, isRouteHash } from "./router.js";
+import { getHashParams, getRouteFromHash, isRouteHash, matchesSessionToken } from "./router.js";
 import { destroyCharts, setChartAnimationEnabled } from "./components/charts.js";
 import { enhanceScrollWrappers } from "./components/overflow.js";
 import { subscribeToDataChanges } from "./storage/db.js";
@@ -93,7 +93,9 @@ const actions = createActions({ render, applyTheme });
 const handleRouteFromLocation = () => {
     if (!isRouteHash(location.hash)) return false;
     const nextRoute = getRouteFromHash(location.hash || "#/");
-    if (state.route === nextRoute) return false;
+    const reviewToken = nextRoute === "review" ? getHashParams(location.hash).get("session") : null;
+    const reviewSessionChanged = Boolean(reviewToken) && !(state.activeSession?.completedAt && matchesSessionToken(state.activeSession.id, reviewToken));
+    if (state.route === nextRoute && !reviewSessionChanged) return false;
     if (nextRoute !== "dashboard") { state.dashboard.aiAnalysisOpen = false; state.dashboard.backupReminderOpen = false; }
     if (nextRoute !== "settings") state.settingsDataConfirmation = null;
     actions.syncTimerForRouteChange(state.route, nextRoute);
@@ -101,10 +103,11 @@ const handleRouteFromLocation = () => {
     return true;
 };
 
-const handleBrowserRouteChange = () => {
+const handleBrowserRouteChange = async () => {
     if (!handleRouteFromLocation()) return;
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     if (state.route === "dashboard") actions.maybeOpenDashboardBackupReminder();
+    if (state.route === "review") await actions.openReviewFromHash();
     render();
     if (state.route === "bank") actions.refreshQuestionBank();
 };
@@ -118,7 +121,7 @@ const shouldIgnoreShortcut = (target) => {
 const setupKeyboardShortcuts = () => {
     window.addEventListener("keydown", (event) => {
         if (shouldIgnoreShortcut(event.target)) return;
-        if (state.route === "practice" && state.activeSession) {
+        if (state.route === "practice" && state.activeSession && !state.activeSession.completedAt) {
             if (state.activeSession.navigationOpen || state.activeSession.finalReviewOpen) {
                 if (event.key === "Escape") {
                     actions.closePracticePanel();

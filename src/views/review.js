@@ -5,6 +5,7 @@ import { MISTAKE_TYPES, normalizeMistakeTypeIds } from "../data/mistakes.js";
 import { formatDurationMs } from "../components/timer.js";
 import { icon } from "../components/icons.js";
 import { REVIEW_MODES, TIMING_MODES } from "../data/defaults.js";
+import { getHashParams } from "../router.js";
 
 const cb = Chalkboard;
 
@@ -218,7 +219,7 @@ export const renderReviewView = (state, actions) => {
         const heading = document.createElement("h2");
         heading.textContent = "No session to review";
         const text = document.createElement("p");
-        text.textContent = "Complete a practice session first, then return here for full review.";
+        text.textContent = getHashParams(location.hash).has("session") ? "That session was not found." : "Complete a practice session first, then return here for full review.";
         const button = document.createElement("button");
         button.className = "btn btn-primary";
         button.textContent = "Go to generator";

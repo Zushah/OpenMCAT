@@ -213,7 +213,7 @@ test("practice and review order, highlight, store, export, and import question s
     await page.getByRole("dialog", { name: "Navigation" }).getByRole("button", { name: /Question 5/ }).click();
     await page.locator(".session-top-actions").getByRole("button", { name: "Review", exact: true }).click();
     await page.getByRole("dialog", { name: "Review" }).getByRole("button", { name: "End session" }).click();
-    await expect(page).toHaveURL(/#\/review$/);
+    await expect(page).toHaveURL(/#\/review\?session=[\w-]+$/);
 
     const firstReview = page.locator(".review-question").first();
     const reviewOrder = await directChildOrder(firstReview);

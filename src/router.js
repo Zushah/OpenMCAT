@@ -31,7 +31,25 @@ export const getRouteFromHash = (hash) => {
     return HASH_TO_ROUTE[normalized] ?? "landing";
 };
 
-export const setHashForRoute = (route) => {
-    const target = ROUTE_TO_HASH[route] ?? ROUTE_TO_HASH.generator;
+export const getHashParams = (hash) => {
+    const value = String(hash ?? "").trim();
+    const path = (value.startsWith("#") ? value.slice(1) : value).split("#")[0];
+    const queryIndex = path.indexOf("?");
+    return new URLSearchParams(queryIndex === -1 ? "" : path.slice(queryIndex + 1));
+};
+
+export const getSessionToken = (id) => String(id ?? "").replace(/^session_/, "");
+
+export const matchesSessionToken = (id, token) => Boolean(token) && (id === token || id === `session_${token}`);
+
+export const findSessionByToken = (token, sessions) => {
+    if (!token || !Array.isArray(sessions)) return null;
+    return sessions.find((session) => session?.id === token) ?? sessions.find((session) => session?.id === `session_${token}`) ?? null;
+};
+
+export const setHashForRoute = (route, params = null) => {
+    const base = ROUTE_TO_HASH[route] ?? ROUTE_TO_HASH.generator;
+    const query = params ? new URLSearchParams(params).toString() : "";
+    const target = query ? `${base}?${query}` : base;
     if (location.hash !== target) history.pushState({}, "", target);
 };

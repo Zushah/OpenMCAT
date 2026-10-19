@@ -8,11 +8,11 @@ import { compilePracticePrompt } from "./prompts/compiler.js";
 import { buildRepairPrompt } from "./prompts/repair.js";
 import { extractJsonObject } from "./schema/repair.js";
 import { validatePracticeSession } from "./schema/validators.js";
-import { setHashForRoute } from "./router.js";
+import { findSessionByToken, getHashParams, getSessionToken, matchesSessionToken, setHashForRoute } from "./router.js";
 import { buildExportPayload, combineBackupPayloads, createBackupArtifact, createExportPayload, downloadExport, importPayload, parseImportFile, parseImportText, previewBackupCombination } from "./storage/exportimport.js";
 import { clearAllData, getAllData, getAttempts, getSessions, initializeStorage, saveAttempt, saveSession, updateAttempt, updateSession } from "./storage/db.js";
 import { normalizeGeneratorConfig, saveGeneratorOptions } from "./storage/generator.js";
-import { buildCompletionPatch, getMostRecentResumableSession, hydrateActiveSession, isResumableSession } from "./storage/progress.js";
+import { buildCompletionPatch, getMostRecentResumableSession, hydrateActiveSession, isResumableSession, isReviewableSession } from "./storage/progress.js";
 import { saveSettings as persistSettings } from "./storage/settings.js";
 import { formatBackupDataSize, formatCurrentDataSizeMessage, getBackupStatus, isBackupReminderDue, markBackupCompleted, scheduleBackupReminder } from "./storage/backup.js";
 import { checkPersistentStorage, requestPersistentStorage } from "./storage/persistence.js";
@@ -847,7 +847,7 @@ export const createActions = ({ render, applyTheme }) => {
         await updateSession(active.id, buildCompletionPatch(active, completedAt));
         await refreshAnalytics();
         state.route = "review";
-        setHashForRoute("review");
+        setHashForRoute("review", { session: getSessionToken(active.id) });
         render();
         showToast(message, "success");
     };
@@ -906,6 +906,47 @@ export const createActions = ({ render, applyTheme }) => {
         } catch (error) {
             console.warn("OpenMCAT: failed ending the interrupted session.", error);
             showToast("The interrupted session could not be ended.", "error");
+        }
+    };
+
+    const findReviewableRecord = async (idOrToken) => {
+        const record = findSessionByToken(idOrToken, await getSessions());
+        return isReviewableSession(record) ? record : null;
+    };
+
+    const openSessionReview = async (idOrToken) => {
+        syncTimerForRouteChange(state.route, "review");
+        const hadLiveSession = Boolean(state.activeSession) && !state.activeSession.completedAt;
+        if (hadLiveSession) await flushProgressSave();
+        let record = null;
+        try { record = await findReviewableRecord(idOrToken); }
+        catch (error) { console.warn("OpenMCAT: failed loading the session to review.", error); }
+        if (!record) { showToast("That session cannot be reviewed.", "error"); return; }
+        state.activeSession = hydrateActiveSession(record);
+        state.dashboard.aiAnalysisOpen = false;
+        state.dashboard.backupReminderOpen = false;
+        state.dashboard.modelCorrection = null;
+        state.route = "review";
+        setHashForRoute("review", { session: getSessionToken(record.id) });
+        await refreshAnalytics();
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        render();
+    };
+
+    const openReviewFromHash = async () => {
+        const token = getHashParams(location.hash).get("session");
+        if (!token) return;
+        const current = state.activeSession;
+        if (current?.completedAt && matchesSessionToken(current.id, token)) return;
+        const hadLiveSession = Boolean(current) && !current.completedAt;
+        try {
+            if (hadLiveSession) await flushProgressSave();
+            const record = await findReviewableRecord(token);
+            state.activeSession = record ? hydrateActiveSession(record) : null;
+            if (hadLiveSession) await refreshAnalytics();
+        } catch (error) {
+            console.warn("OpenMCAT: failed loading the session to review.", error);
+            state.activeSession = null;
         }
     };
 
@@ -1180,6 +1221,7 @@ export const createActions = ({ render, applyTheme }) => {
             await refreshAnalytics();
             state.backupSharingSupported = canShareBackup();
             await refreshStoragePersistence();
+            if (state.route === "review") await openReviewFromHash();
             if (state.route === "dashboard") maybeOpenDashboardBackupReminder();
             if (state.route === "bank") await refreshQuestionBank();
             else render();
@@ -1227,6 +1269,8 @@ export const createActions = ({ render, applyTheme }) => {
         finishSession,
         resumeSession,
         endInterruptedSession,
+        openSessionReview,
+        openReviewFromHash,
         flushProgressSave,
         syncTimerForRouteChange,
         setReviewFilter,

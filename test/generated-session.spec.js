@@ -145,7 +145,7 @@ test("the generated-session workflow reaches review, analytics, and a data backu
     await expect(endSession).toBeInViewport();
     await endSession.click();
 
-    await expect(page).toHaveURL(/#\/review$/);
+    await expect(page).toHaveURL(/#\/review\?session=[\w-]+$/);
     await expect(page.getByRole("heading", { level: 2, name: "Session review" })).toBeVisible();
     await expect(page.locator(".stat-card").filter({ hasText: "Score" })).toContainText("5/5");
     await expect(page.locator(".stat-card").filter({ hasText: "Accuracy" })).toContainText("100%");

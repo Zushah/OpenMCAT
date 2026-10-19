@@ -77,7 +77,7 @@ test("starting a new session ends the previous interrupted session", async ({ pa
     expect(ended.completedAt).toBe(ended.progress.savedAt);
     expect(ended.summary).toMatchObject({ total: 5 });
     await page.goto("/#/generate");
-    await expect(page.locator(".resume-card .resume-card-meta")).toContainText("in progress");
+    await expect(page.locator(".resume-card .resume-card-body.tiny")).toContainText("in progress");
     expect((await readSessions(page)).filter((record) => !record.completedAt)).toHaveLength(1);
 });
 
@@ -86,7 +86,7 @@ test("ending an interrupted session from its card opens the review", async ({ pa
     await page.reload();
     await page.locator(".resume-card").getByRole("button", { name: "End session" }).click();
 
-    await expect(page).toHaveURL(/#\/review$/);
+    await expect(page).toHaveURL(/#\/review\?session=[\w-]+$/);
     await expect(page.getByRole("heading", { level: 2, name: "Session review" })).toBeVisible();
     await expect(page.locator(".resume-card")).toHaveCount(0);
     const [record] = await readSessions(page);

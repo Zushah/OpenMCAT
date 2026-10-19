@@ -329,7 +329,7 @@ test("practice and review render static charts with a clean lifecycle and preser
     await page.getByRole("dialog", { name: "Navigation" }).getByRole("button", { name: /Question 5/ }).click();
     await page.locator(".session-top-actions").getByRole("button", { name: "Review", exact: true }).click();
     await page.getByRole("dialog", { name: "Review" }).getByRole("button", { name: "End session" }).click();
-    await expect(page).toHaveURL(/#\/review$/);
+    await expect(page).toHaveURL(/#\/review\?session=[\w-]+$/);
 
     await expect(page.locator(".review-list .stimulus-chart").filter({ hasText: scatterChart.caption })).toHaveCount(1);
     await expect(page.locator(".review-list .stimulus-chart").filter({ hasText: scatterChart.caption })).toHaveClass(/stimulus-chart--question/);

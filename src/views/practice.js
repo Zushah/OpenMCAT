@@ -377,7 +377,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
     const root = document.createElement("section");
     root.className = "practice-page";
     const activeSession = state.activeSession;
-    if (!activeSession) {
+    if (!activeSession || activeSession.completedAt) {
         root.classList.remove("practice-page");
         const resumableInfo = getResumableInfo(state);
         if (resumableInfo) root.append(createResumeCard(resumableInfo, actions));

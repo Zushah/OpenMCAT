@@ -6,7 +6,7 @@ import { formatDurationMs } from "../components/timer.js";
 import { applyMistakeTypeToDrillConfig } from "../analytics/recommendations.js";
 import { getEffectiveSessionAiModel, getRecordedSessionAiModel } from "../analytics/metrics.js";
 import { compileAnalyticsPrompt } from "../prompts/analytics.js";
-import { getResumableInfo } from "../storage/progress.js";
+import { getResumableInfo, isReviewableSession } from "../storage/progress.js";
 import { AI_MODEL_CATALOG, AI_MODEL_CATALOG_VALUES, CUSTOM_AI_MODEL_VALUE, MAX_AI_MODEL_NAME_LENGTH } from "../data/models.js";
 
 const cb = Chalkboard;
@@ -1527,7 +1527,7 @@ const renderRecentMisses = (metrics, actions, pages) => {
     return card;
 };
 
-const renderRecentSessions = (metrics, actions, pages, resumableSessionId = null) => {
+const renderRecentSessions = (metrics, actions, pages, resumableSessionId = null, reviewableSessionIds = new Set()) => {
     const card = createElement("section", "dashboard-table-card dashboard-recent-sessions-card");
     const allSessions = metrics.recent.sessions;
     const pageInfo = getPaginatedRows(allSessions, pages, "recentSessions");
@@ -1554,6 +1554,7 @@ const renderRecentSessions = (metrics, actions, pages, resumableSessionId = null
         appendCell(row, formatDurationMs(session.averageElapsedMs), "table-num");
         const action = createElement("td", "table-action");
         action.append(createActionButton("Drill", createSessionDrillConfig(session), actions));
+        if (reviewableSessionIds.has(session.id)) { const review = createElement("button", "btn btn-secondary btn-compact", "Review"); review.type = "button"; review.addEventListener("click", () => actions.openSessionReview(session.id)); action.append(review); }
         if (session.id === resumableSessionId) { const resume = createElement("button", "btn btn-secondary btn-compact", "Resume"); resume.type = "button"; resume.addEventListener("click", () => actions.resumeSession()); action.append(resume); }
         row.append(action);
         tbody.append(row);
@@ -1676,7 +1677,7 @@ export const renderDashboardView = (state, actions) => {
     const topRow = createElement("div", "dashboard-top-row");
     topRow.append(renderRecommendationCard(analytics.recommendation, actions));
     const bottomRow = createElement("div", "dashboard-bottom-row");
-    bottomRow.append(renderRecentSessions(metrics, actions, pages, getResumableInfo(state)?.id ?? null), renderModelUsageChart(metrics, actions, pages));
+    bottomRow.append(renderRecentSessions(metrics, actions, pages, getResumableInfo(state)?.id ?? null, new Set((analytics.sessions ?? []).filter(isReviewableSession).map((session) => session.id))), renderModelUsageChart(metrics, actions, pages));
     body.append(
         renderSummaryGrid(metrics, analytics.recommendation),
         topRow,
