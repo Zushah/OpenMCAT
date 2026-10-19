@@ -3,7 +3,8 @@
 All committed changes to the [`Zushah/OpenMCAT`](https://github.com/Zushah/OpenMCAT) code repository are recorded here.
 
 ## 35. [`v1.11.0`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-10-18&until=2026-10-18) 2026-10-18
-- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Add past session reviews
+- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Fix navigation timers and question bank limits
+- [`5ea997f`](https://github.com/Zushah/OpenMCAT/commit/5ea997f) Add past session reviews
 - [`002d036`](https://github.com/Zushah/OpenMCAT/commit/002d036) Add session autosave and resume
 
 ## 34. [`v1.10.1`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-10-08&until=2026-10-08) 2026-10-08

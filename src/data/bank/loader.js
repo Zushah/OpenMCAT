@@ -1,7 +1,7 @@
 import { SCIENCE_SKILLS, TOPICS } from "../taxonomy.js";
 import { PRACTICE_SCHEMA_VERSION } from "../../schema/practice.js";
 import { validatePracticeSession } from "../../schema/validators.js";
-import { DEFAULT_QUESTION_BANK_COUNT, QUESTION_BANK_MODEL, QUESTION_BANK_PROVIDER_ID, QUESTION_BANK_SKILL_IDS, QUESTION_BANKS, getQuestionBankCatalogEntry } from "./catalog.js";
+import { DEFAULT_QUESTION_BANK_COUNT, QUESTION_BANK_MAX_COUNT, QUESTION_BANK_MODEL, QUESTION_BANK_PROVIDER_ID, QUESTION_BANK_SKILL_IDS, QUESTION_BANKS, getQuestionBankCatalogEntry } from "./catalog.js";
 
 const cache = new Map();
 const validSkillIds = SCIENCE_SKILLS.map((skill) => skill.id);
@@ -23,7 +23,7 @@ const safeDateMs = (value) => {
 
 const clampQuestionCount = (value, fallback = DEFAULT_QUESTION_BANK_COUNT) => {
     const number = Math.floor(Number(value) || fallback);
-    return Math.max(1, Math.min(number, 50));
+    return Math.max(1, Math.min(number, QUESTION_BANK_MAX_COUNT));
 };
 
 const getValidTopicIdsForSection = (sectionId) => TOPICS.filter((topic) => topic.sectionId === sectionId).map((topic) => topic.id);

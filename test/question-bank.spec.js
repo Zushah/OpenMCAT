@@ -106,3 +106,16 @@ test("a question-bank session loads and records an answered question", async ({ 
     await page.getByRole("button", { name: "Next" }).click();
     await expect(page.getByRole("heading", { level: 3, name: "Question 2" })).toBeVisible();
 });
+
+test("the question bank page derives its counts and options from the catalog", async ({ page }) => {
+    await page.goto("/#/generate");
+    await expect(page.locator(".generator-bank-cta")).toContainText("pregenerated bank of 300 questions");
+    await page.goto("/#/bank");
+    await expect(page.locator(".question-bank-hero")).toContainText("300 pregenerated questions");
+    const cards = page.locator(".question-bank-card");
+    await expect(cards).toHaveCount(3);
+    await expect(cards.first().locator(".question-bank-card-header p")).toHaveText(/^100 pregenerated /);
+    for (let index = 0; index < 3; index += 1) {
+        await expect(cards.nth(index).getByLabel("Session size").locator("option")).toHaveText(["5 questions", "10 questions", "20 questions", "25 questions", "50 questions"]);
+    }
+});

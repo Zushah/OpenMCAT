@@ -425,7 +425,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
     titleGroup.append(title, makeProgressText(index, questions.length, counts));
     const progress = createProgressBar(index + 1, questions.length, "Session progress");
     const startedAtMs = new Date(questionState.startedAt || Date.now()).getTime();
-    const timingPaused = questionState.submitted || activeSession.navigationOpen || activeSession.finalReviewOpen;
+    const timingPaused = questionState.submitted;
     const totalTimer = document.createElement("p");
     totalTimer.id = "practice-total-timer";
     totalTimer.dataset.elapsedMs = String(getStoredSessionElapsedMs(activeSession));

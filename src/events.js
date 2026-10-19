@@ -1,6 +1,6 @@
 import { DEFAULT_DASHBOARD_PAGES, DEFAULT_QUESTION_BANK_COUNTS, state, patchGeneration, resetGenerationState } from "./app.js";
 import { DEFAULT_CONFIG } from "./data/defaults.js";
-import { QUESTION_BANK_PROVIDER_ID } from "./data/bank/catalog.js";
+import { DEFAULT_QUESTION_BANK_COUNT, QUESTION_BANK_MAX_COUNT, QUESTION_BANK_PROVIDER_ID } from "./data/bank/catalog.js";
 import { buildQuestionBankSession, clearQuestionBankCache, loadQuestionBankOverviews } from "./data/bank/loader.js";
 import { SCIENCE_SKILLS, SECTIONS, TOPICS, getSkillsForSection, getTopicsBySection } from "./data/taxonomy.js";
 import { isValidMistakeTypeId, normalizeMistakeTypeIds } from "./data/mistakes.js";
@@ -198,7 +198,7 @@ export const createActions = ({ render, applyTheme }) => {
         const question = active.generatedSession?.questions?.[active.currentQuestionIndex];
         if (!question) return;
         if (fromRoute === "practice") pauseQuestionTimer(active, question.id);
-        if (toRoute === "practice" && !active.navigationOpen && !active.finalReviewOpen) ensureQuestionStart(active, question.id);
+        if (toRoute === "practice") ensureQuestionStart(active, question.id);
     };
 
     const navigate = (route) => {
@@ -364,7 +364,7 @@ export const createActions = ({ render, applyTheme }) => {
         state.questionBank.selectedCounts = {
             ...DEFAULT_QUESTION_BANK_COUNTS,
             ...state.questionBank.selectedCounts,
-            [sectionId]: Math.floor(clamp(Number(questionCount) || 10, 1, 50))
+            [sectionId]: Math.floor(clamp(Number(questionCount) || DEFAULT_QUESTION_BANK_COUNT, 1, QUESTION_BANK_MAX_COUNT))
         };
         render();
     };
@@ -775,13 +775,11 @@ export const createActions = ({ render, applyTheme }) => {
 
     const openNavigationPanel = (filterId = null) => {
         const active = state.activeSession;
-        const question = getActiveQuestion();
         if (!active) return;
         if (hasReachedSessionReviewPoint(active)) {
             openFinalReviewPanel();
             return;
         }
-        if (question) pauseQuestionTimer(active, question.id);
         active.navigationOpen = true;
         active.finalReviewOpen = false;
         active.navigationFilter = ["all", "incomplete", "flagged"].includes(filterId) ? filterId : active.navigationFilter ?? "all";
@@ -790,11 +788,9 @@ export const createActions = ({ render, applyTheme }) => {
 
     const closePracticePanel = () => {
         const active = state.activeSession;
-        const question = getActiveQuestion();
         if (!active) return;
         active.navigationOpen = false;
         active.finalReviewOpen = false;
-        if (question) ensureQuestionStart(active, question.id);
         render();
     };
 
@@ -807,10 +803,8 @@ export const createActions = ({ render, applyTheme }) => {
 
     const openFinalReviewPanel = () => {
         const active = state.activeSession;
-        const question = getActiveQuestion();
         if (!active) return;
         markFinalQuestionReached(active);
-        if (question) pauseQuestionTimer(active, question.id);
         active.navigationOpen = false;
         active.finalReviewOpen = true;
         render();

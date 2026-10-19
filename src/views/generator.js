@@ -1,6 +1,7 @@
 import { DIFFICULTIES, QUESTION_FORMATS, SECTIONS, getSkillsForSection, getTopicsBySection } from "../data/taxonomy.js";
 import { REVIEW_MODES, TIMING_MODES } from "../data/defaults.js";
 import { icon } from "../components/icons.js";
+import { QUESTION_BANK_TOTAL_QUESTION_COUNT } from "../data/bank/catalog.js";
 import { createResumeCard } from "../components/resume.js";
 import { getResumableInfo } from "../storage/progress.js";
 
@@ -61,7 +62,7 @@ const makeQuestionBankCta = (actions) => {
     title.id = "generator-bank-cta-heading";
     title.textContent = "Question bank";
     const text = document.createElement("p");
-    text.textContent = "Use the pregenerated bank of 300 questions to start a session with zero setup friction.";
+    text.textContent = `Use the pregenerated bank of ${QUESTION_BANK_TOTAL_QUESTION_COUNT} questions to start a session with zero setup friction.`;
     const button = makeLabelledButton("btn btn-secondary", "Start session", "arrow-right", () => actions.navigate("bank"));
     panel.append(title, text, button);
     return panel;

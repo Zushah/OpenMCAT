@@ -1,6 +1,7 @@
 export const QUESTION_BANK_PROVIDER_ID = "question_bank";
 export const QUESTION_BANK_MODEL = "openai/gpt-5.5-pro";
 export const QUESTION_BANK_COUNT_OPTIONS = [5, 10, 20, 25, 50];
+export const QUESTION_BANK_MAX_COUNT = Math.max(...QUESTION_BANK_COUNT_OPTIONS);
 export const DEFAULT_QUESTION_BANK_COUNT = 10;
 export const QUESTION_BANK_TARGET_COUNT = 100;
 export const QUESTION_BANK_SKILL_IDS = ["sirs_1", "sirs_2", "sirs_3", "sirs_4"];
@@ -13,9 +14,9 @@ export const QUESTION_BANKS = [
         sectionId: "cp",
         shortName: "C/P",
         title: "C/P Core Bank",
-        description: "100 pregenerated chemistry and physics questions on selected high-yield topics with all skills.",
+        description: `${QUESTION_BANK_TARGET_COUNT} pregenerated chemistry and physics questions on selected high-yield topics with all skills.`,
         version: "0.2.0",
-        targetQuestionCount: 100,
+        targetQuestionCount: QUESTION_BANK_TARGET_COUNT,
         defaultQuestionCount: DEFAULT_QUESTION_BANK_COUNT,
         questionCountOptions: QUESTION_BANK_COUNT_OPTIONS,
         url: bankUrl("cp.json"),
@@ -43,9 +44,9 @@ export const QUESTION_BANKS = [
         sectionId: "bb",
         shortName: "B/B",
         title: "B/B Core Bank",
-        description: "100 pregenerated biology and biochemistry questions on selected high-yield topics with all skills.",
+        description: `${QUESTION_BANK_TARGET_COUNT} pregenerated biology and biochemistry questions on selected high-yield topics with all skills.`,
         version: "0.2.0",
-        targetQuestionCount: 100,
+        targetQuestionCount: QUESTION_BANK_TARGET_COUNT,
         defaultQuestionCount: DEFAULT_QUESTION_BANK_COUNT,
         questionCountOptions: QUESTION_BANK_COUNT_OPTIONS,
         url: bankUrl("bb.json"),
@@ -73,9 +74,9 @@ export const QUESTION_BANKS = [
         sectionId: "ps",
         shortName: "P/S",
         title: "P/S Core Bank",
-        description: "100 pregenerated psychology and sociology questions on selected high-yield topics with all skills.",
+        description: `${QUESTION_BANK_TARGET_COUNT} pregenerated psychology and sociology questions on selected high-yield topics with all skills.`,
         version: "0.2.0",
-        targetQuestionCount: 100,
+        targetQuestionCount: QUESTION_BANK_TARGET_COUNT,
         defaultQuestionCount: DEFAULT_QUESTION_BANK_COUNT,
         questionCountOptions: QUESTION_BANK_COUNT_OPTIONS,
         url: bankUrl("ps.json"),
@@ -99,5 +100,7 @@ export const QUESTION_BANKS = [
         ]
     }
 ];
+
+export const QUESTION_BANK_TOTAL_QUESTION_COUNT = QUESTION_BANKS.reduce((sum, bank) => sum + bank.targetQuestionCount, 0);
 
 export const getQuestionBankCatalogEntry = (sectionId) => QUESTION_BANKS.find((bank) => bank.sectionId === sectionId) ?? null;

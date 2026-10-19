@@ -1,5 +1,5 @@
 import { createProgressBar } from "../components/progress.js";
-import { QUESTION_BANKS } from "../data/bank/catalog.js";
+import { QUESTION_BANKS, QUESTION_BANK_TOTAL_QUESTION_COUNT } from "../data/bank/catalog.js";
 import { SCIENCE_SKILLS, TOPICS } from "../data/taxonomy.js";
 import { icon } from "../components/icons.js";
 import { createResumeCard } from "../components/resume.js";
@@ -118,7 +118,7 @@ const renderHero = (actions, loading) => {
     const hero = createElement("section", "hero hero-with-actions question-bank-hero");
     const copy = createElement("div", "hero-copy question-bank-hero-copy");
     appendText(copy, "h1", "", "Question bank");
-    appendText(copy, "p", "", "Start practicing immediately with 300 pregenerated questions. No payment required.");
+    appendText(copy, "p", "", `Start practicing immediately with ${QUESTION_BANK_TOTAL_QUESTION_COUNT} pregenerated questions. No payment required.`);
     const actionsWrap = createElement("div", "hero-actions question-bank-hero-actions");
     const refresh = document.createElement("button");
     refresh.type = "button";
