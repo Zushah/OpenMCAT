@@ -7,6 +7,7 @@ import { icon } from "../components/icons.js";
 import { REVIEW_MODES, TIMING_MODES } from "../data/defaults.js";
 import { getHashParams } from "../router.js";
 import { buildReviewDrillConfig } from "../analytics/drill.js";
+import { matchesReviewFilter } from "../storage/progress.js";
 
 const cb = Chalkboard;
 
@@ -285,11 +286,7 @@ export const renderReviewView = (state, actions) => {
     const passagesById = new Map((activeSession.generatedSession.passages ?? []).map((passage) => [passage.id, passage]));
     const passageMetadataById = createPassageMetadataById(activeSession.generatedSession.passages ?? [], activeSession.generatedSession.questions);
     const highlightRangesByTargetKey = activeSession.highlightRangesByTargetKey ?? {};
-    const records = activeSession.generatedSession.questions.map((question, index) => ({ question, state: activeSession.questionStateById[question.id], index })).filter((record) => {
-        if (activeSession.reviewFilter === "incorrect") return record.state.submitted && !record.state.isCorrect;
-        if (activeSession.reviewFilter === "flagged") return Boolean(record.state.flagged);
-        return true;
-    });
+    const records = activeSession.generatedSession.questions.map((question, index) => ({ question, state: activeSession.questionStateById[question.id], index })).filter((record) => matchesReviewFilter(record.state, activeSession.reviewFilter));
     const reviewList = document.createElement("section");
     reviewList.className = "review-list";
     reviewList.setAttribute("aria-label", "Questions");

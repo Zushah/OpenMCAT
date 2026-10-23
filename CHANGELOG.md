@@ -3,7 +3,8 @@
 All committed changes to the [`Zushah/OpenMCAT`](https://github.com/Zushah/OpenMCAT) code repository are recorded here.
 
 ## 36. [`v1.11.1`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-10-23&until=2026-10-23) 2026-10-23
-- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Fix keyboard shortcuts and drilling missed topics
+- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Fix review navigation, question bank session sizes, and duplicated limits
+- [`c3c147c`](https://github.com/Zushah/OpenMCAT/commit/c3c147c) Fix keyboard shortcuts and drilling missed topics
 
 ## 35. [`v1.11.0`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-10-18&until=2026-10-18) 2026-10-18
 - [`a82cd5b`](https://github.com/Zushah/OpenMCAT/commit/a82cd5b) Fix navigation timers and question bank limits

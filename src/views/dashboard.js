@@ -1,4 +1,5 @@
 import { DIFFICULTIES, SCIENCE_SKILLS, SECTIONS, TOPICS } from "../data/taxonomy.js";
+import { DEFAULT_SECONDS_PER_QUESTION } from "../data/defaults.js";
 import { chartAxis, createAccessibleDataTable, createBarValueLabelsPlugin, createChartDataDetails, createChartLegend, createChartShell, createDoughnutTotalPlugin, createPolarRankLabelsPlugin, createRadarValueLabelsPlugin, destroyCharts, getChartTheme, getDefaultChartOptions, hasChartRuntime, insertChartLegend, legendItemsFromDatasets, queueChartRender, toggleChartSeries } from "../components/charts.js";
 import { icon } from "../components/icons.js";
 import { createStatCard } from "../components/stats.js";
@@ -145,7 +146,7 @@ const topicLabelWithSection = (topicId, sectionId = null) => `${rowNameFromId("s
 
 const getQuestionFormat = () => "mixed";
 
-const targetSecondsForSection = () => 95;
+const targetSecondsForSection = () => DEFAULT_SECONDS_PER_QUESTION;
 
 const createElement = (tag, className = "", text = "") => { const element = document.createElement(tag); if (className) element.className = className; if (text) element.textContent = text; return element; };
 

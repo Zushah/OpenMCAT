@@ -12,7 +12,7 @@ import { findSessionByToken, getHashParams, getSessionToken, matchesSessionToken
 import { buildExportPayload, combineBackupPayloads, createBackupArtifact, createExportPayload, downloadExport, importPayload, parseImportFile, parseImportText, previewBackupCombination } from "./storage/exportimport.js";
 import { clearAllData, getAllData, getAttempts, getSessions, initializeStorage, saveAttempt, saveSession, updateAttempt, updateSession } from "./storage/db.js";
 import { normalizeGeneratorConfig, saveGeneratorOptions } from "./storage/generator.js";
-import { buildCompletionPatch, getMostRecentResumableSession, hydrateActiveSession, isResumableSession, isReviewableSession } from "./storage/progress.js";
+import { buildCompletionPatch, getMostRecentResumableSession, getReviewStepTarget, hydrateActiveSession, isResumableSession, isReviewableSession, matchesReviewFilter } from "./storage/progress.js";
 import { saveSettings as persistSettings } from "./storage/settings.js";
 import { formatBackupDataSize, formatCurrentDataSizeMessage, getBackupStatus, isBackupReminderDue, markBackupCompleted, scheduleBackupReminder } from "./storage/backup.js";
 import { checkPersistentStorage, requestPersistentStorage } from "./storage/persistence.js";
@@ -945,8 +945,12 @@ export const createActions = ({ render, applyTheme }) => {
     };
 
     const setReviewFilter = (filterId) => {
-        if (!state.activeSession) return;
-        state.activeSession.reviewFilter = filterId;
+        const active = state.activeSession;
+        if (!active) return;
+        active.reviewFilter = filterId;
+        const questions = active.generatedSession.questions;
+        const currentIndex = active.viewQuestionIndex ?? 0;
+        if (!matchesReviewFilter(active.questionStateById[questions[currentIndex]?.id], filterId)) active.viewQuestionIndex = getReviewStepTarget({ questions, questionStateById: active.questionStateById, filterId, currentIndex, delta: 1 });
         render();
     };
 
@@ -957,6 +961,12 @@ export const createActions = ({ render, applyTheme }) => {
         render();
         const target = document.querySelector(`[data-review-index="${state.activeSession.viewQuestionIndex}"]`);
         target?.scrollIntoView({ behavior: "smooth", block: "center" });
+    };
+
+    const stepReviewQuestion = (delta) => {
+        const active = state.activeSession;
+        if (!active) return;
+        setReviewQuestionIndex(getReviewStepTarget({ questions: active.generatedSession.questions, questionStateById: active.questionStateById, filterId: active.reviewFilter, currentIndex: active.viewQuestionIndex ?? 0, delta }));
     };
 
     const toggleMistakeTypeForQuestion = async (questionId, mistakeTypeId) => {
@@ -1269,6 +1279,7 @@ export const createActions = ({ render, applyTheme }) => {
         syncTimerForRouteChange,
         setReviewFilter,
         setReviewQuestionIndex,
+        stepReviewQuestion,
         toggleMistakeTypeForQuestion,
         exportData,
         shareDataBackup,

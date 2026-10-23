@@ -1,5 +1,5 @@
 import { DIFFICULTIES, QUESTION_FORMATS, SECTIONS, getSkillsForSection, getTopicsBySection } from "../data/taxonomy.js";
-import { REVIEW_MODES, TIMING_MODES } from "../data/defaults.js";
+import { DEFAULT_SECONDS_PER_QUESTION, QUESTION_COUNT_LIMITS, REVIEW_MODES, SECONDS_PER_QUESTION_LIMITS, TIMING_MODES } from "../data/defaults.js";
 import { icon } from "../components/icons.js";
 import { QUESTION_BANK_TOTAL_QUESTION_COUNT } from "../data/bank/catalog.js";
 import { createResumeCard } from "../components/resume.js";
@@ -239,7 +239,7 @@ const makeSessionSummary = (state, actions, sectionTopics, sectionSkills) => {
     const topicCount = config.topicIds.filter((id) => sectionTopics.some((topic) => topic.id === id)).length;
     const skillCount = config.skillIds.filter((id) => sectionSkills.some((skill) => skill.id === id)).length;
     const format = findLabel(QUESTION_FORMATS, config.questionFormat);
-    const timing = config.timingMode === "timed" ? `Timed · ${config.secondsPerQuestion ?? 95}s per question` : findLabel(TIMING_MODES, config.timingMode, "label");
+    const timing = config.timingMode === "timed" ? `Timed · ${config.secondsPerQuestion ?? DEFAULT_SECONDS_PER_QUESTION}s per question` : findLabel(TIMING_MODES, config.timingMode, "label");
     const review = findLabel(REVIEW_MODES, config.reviewMode, "label").replace(/^Review\s+/i, "").replace(/^./, (character) => character.toUpperCase());
     const rows = [
         ["Section", findLabel(SECTIONS, config.sectionId, "shortName")],
@@ -440,10 +440,10 @@ export const renderGeneratorView = (state, actions) => {
     formatCountRow.append(makeFormatSelect(config, actions), makeNumberField({
         id: "question-count",
         labelText: "Question count",
-        hint: "(1-59)",
+        hint: `(${QUESTION_COUNT_LIMITS.min}-${QUESTION_COUNT_LIMITS.max})`,
         value: config.questionCount,
-        min: 1,
-        max: 59,
+        min: QUESTION_COUNT_LIMITS.min,
+        max: QUESTION_COUNT_LIMITS.max,
         onChange: (questionCount) => actions.updateConfig({ questionCount })
     }));
     difficultySplit.append(formatCountRow);
@@ -462,9 +462,9 @@ export const renderGeneratorView = (state, actions) => {
         timingColumn.append(makeNumberField({
             id: "seconds-per-question",
             labelText: "Seconds per question",
-            value: config.secondsPerQuestion ?? 95,
-            min: 30,
-            max: 240,
+            value: config.secondsPerQuestion ?? DEFAULT_SECONDS_PER_QUESTION,
+            min: SECONDS_PER_QUESTION_LIMITS.min,
+            max: SECONDS_PER_QUESTION_LIMITS.max,
             onChange: (secondsPerQuestion) => actions.updateConfig({ secondsPerQuestion }),
             className: "field generator-timing-extra"
         }));

@@ -1,6 +1,7 @@
 import { QUESTION_BANK_PROVIDER_ID } from "../data/bank/catalog.js";
 import { MISTAKE_TYPES, normalizeMistakeTypeIds } from "../data/mistakes.js";
 import { SCIENCE_SKILLS, SECTIONS, TOPICS } from "../data/taxonomy.js";
+import { DEFAULT_SECONDS_PER_QUESTION } from "../data/defaults.js";
 import { computeMastery } from "./mastery.js";
 
 const cb = Chalkboard;
@@ -8,7 +9,7 @@ const cb = Chalkboard;
 const DEFAULT_ALPHA = 2;
 const DEFAULT_BETA = 2;
 const DEFAULT_MIN_ATTEMPTS = 3;
-const DEFAULT_TARGET_TIME_MS = 95000;
+const DEFAULT_TARGET_TIME_MS = DEFAULT_SECONDS_PER_QUESTION * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const validSectionIds = new Set(SECTIONS.map((section) => section.id));
 const validTopicIds = new Set(TOPICS.map((topic) => topic.id));

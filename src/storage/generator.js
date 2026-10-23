@@ -1,4 +1,4 @@
-import { DEFAULT_CONFIG, QUESTION_COUNT_LIMITS, REVIEW_MODES, TIMING_MODES } from "../data/defaults.js";
+import { DEFAULT_CONFIG, DEFAULT_SECONDS_PER_QUESTION, QUESTION_COUNT_LIMITS, REVIEW_MODES, SECONDS_PER_QUESTION_LIMITS, TIMING_MODES } from "../data/defaults.js";
 import { DIFFICULTIES, QUESTION_FORMATS, SECTIONS, getSkillsForSection, getTopicsBySection } from "../data/taxonomy.js";
 
 export const GENERATOR_OPTIONS_KEY = "openmcat_generator_options_v1";
@@ -44,7 +44,7 @@ export const normalizeGeneratorConfig = (config) => {
         questionFormat: FORMAT_IDS.has(source.questionFormat) ? source.questionFormat : DEFAULT_CONFIG.questionFormat,
         questionCount: clampInteger(source.questionCount, DEFAULT_CONFIG.questionCount, QUESTION_COUNT_LIMITS.min, QUESTION_COUNT_LIMITS.max),
         timingMode,
-        secondsPerQuestion: timingMode === "timed" ? clampInteger(source.secondsPerQuestion, 95, 30, 240) : null,
+        secondsPerQuestion: timingMode === "timed" ? clampInteger(source.secondsPerQuestion, DEFAULT_SECONDS_PER_QUESTION, SECONDS_PER_QUESTION_LIMITS.min, SECONDS_PER_QUESTION_LIMITS.max) : null,
         reviewMode: REVIEW_MODE_IDS.has(source.reviewMode) ? source.reviewMode : DEFAULT_CONFIG.reviewMode
     };
 };

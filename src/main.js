@@ -165,10 +165,10 @@ const setupKeyboardShortcuts = () => {
         }
         if (state.route === "review" && state.activeSession) {
             if (event.key === "ArrowLeft") {
-                actions.setReviewQuestionIndex((state.activeSession.viewQuestionIndex ?? 0) - 1);
+                actions.stepReviewQuestion(-1);
                 event.preventDefault();
             } else if (event.key === "ArrowRight") {
-                actions.setReviewQuestionIndex((state.activeSession.viewQuestionIndex ?? 0) + 1);
+                actions.stepReviewQuestion(1);
                 event.preventDefault();
             }
         }

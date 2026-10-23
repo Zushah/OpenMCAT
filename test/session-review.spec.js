@@ -248,3 +248,68 @@ test("drilling with no missed questions only opens the generator", async ({ page
     await expect(page.getByText("Generator prefilled from this session's missed questions.")).toHaveCount(0);
     expect(await readGeneratorConfig(page)).toEqual(before);
 });
+
+const finishPatternSession = async (page, { wrong = [], right = [], flagged = [] }) => {
+    await startSampleSession(page);
+    const lastIndex = SAMPLE_SESSION.questions.length - 1;
+    for (let index = 0; index <= lastIndex; index++) {
+        const question = SAMPLE_SESSION.questions[index];
+        if (flagged.includes(index)) await page.getByRole("button", { name: /^Flag/ }).click();
+        if (wrong.includes(index)) await submitChoice(page, ["A", "B", "C", "D"].find((choiceId) => choiceId !== question.correctChoiceId));
+        if (right.includes(index)) await submitChoice(page, question.correctChoiceId);
+        if (index < lastIndex) await page.getByRole("button", { name: "Next", exact: true }).click();
+    }
+    await page.locator(".session-top-actions").getByRole("button", { name: "Review", exact: true }).click();
+    await page.getByRole("dialog", { name: "Review" }).getByRole("button", { name: "End session" }).click();
+    await expect(page).toHaveURL(REVIEW_URL);
+    await expect(page.getByRole("heading", { level: 2, name: "Session review" })).toBeVisible();
+};
+
+const focusedReviewIndex = (page) => page.locator(".review-question.is-focused").getAttribute("data-review-index");
+
+const pressReviewKey = (page, key) => page.keyboard.press(key);
+
+test("changing the review filter snaps the focus onto a visible question", async ({ page }) => {
+    await finishPatternSession(page, { wrong: [0, 3], right: [1, 4], flagged: [1, 2] });
+    await pressReviewKey(page, "ArrowRight");
+    expect(await focusedReviewIndex(page)).toBe("1");
+    await page.getByRole("button", { name: "Incorrect only" }).click();
+    await expect(page.locator(".review-question")).toHaveCount(2);
+    expect(await focusedReviewIndex(page)).toBe("3");
+    await page.getByRole("button", { name: "Flagged only" }).click();
+    await expect(page.locator(".review-question")).toHaveCount(2);
+    expect(await focusedReviewIndex(page)).toBe("2");
+    await pressReviewKey(page, "ArrowLeft");
+    expect(await focusedReviewIndex(page)).toBe("1");
+    await pressReviewKey(page, "ArrowLeft");
+    expect(await focusedReviewIndex(page)).toBe("1");
+    await page.getByRole("button", { name: "All", exact: true }).click();
+    await expect(page.locator(".review-question")).toHaveCount(5);
+    expect(await focusedReviewIndex(page)).toBe("1");
+});
+
+test("review arrow keys still step one question at a time under the all filter", async ({ page }) => {
+    await finishPatternSession(page, { wrong: [0, 3], right: [1, 4] });
+    expect(await focusedReviewIndex(page)).toBe("0");
+    for (const expected of ["1", "2", "3", "4", "4"]) {
+        await pressReviewKey(page, "ArrowRight");
+        expect(await focusedReviewIndex(page)).toBe(expected);
+    }
+    for (const expected of ["3", "2", "1", "0", "0"]) {
+        await pressReviewKey(page, "ArrowLeft");
+        expect(await focusedReviewIndex(page)).toBe(expected);
+    }
+});
+
+test("review arrow keys do nothing when the flagged filter matches no question", async ({ page }) => {
+    await finishPatternSession(page, { wrong: [0, 3], right: [1, 4] });
+    await pressReviewKey(page, "ArrowRight");
+    expect(await focusedReviewIndex(page)).toBe("1");
+    await page.getByRole("button", { name: "Flagged only" }).click();
+    await expect(page.getByText("No questions match this filter.")).toBeVisible();
+    await pressReviewKey(page, "ArrowRight");
+    await pressReviewKey(page, "ArrowLeft");
+    await expect(page.getByText("No questions match this filter.")).toBeVisible();
+    await page.getByRole("button", { name: "All", exact: true }).click();
+    expect(await focusedReviewIndex(page)).toBe("1");
+});

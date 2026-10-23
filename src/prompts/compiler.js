@@ -59,7 +59,7 @@ export const compileUserPrompt = (config) => {
     - If not using a passage, set passageId to null.
     - For passage-based questions, keep each passageId's questions consecutive in the questions array.
     - Include session.estimatedTimeMinutes.
-    - If the AI model is known (otherwise enter it as "unknown"), set session.aiModel as the exact provider/model identifier for the currently active and specific architecture that you are, e.g. openai/gpt-5.5-instant, anthropic/claude-haiku-4.5, google/gemini-3.5-flash, deepseek/deepseek-v4-flash, etc.
+    - If the AI model is known (otherwise enter it as "unknown"), set session.aiModel as the exact provider/model identifier for the currently active and specific architecture that you are, e.g. openai/gpt-5.6-sol, anthropic/claude-sonnet-5.5, google/gemini-3.6-flash, deepseek/deepseek-v4-flash, etc.
     - Include selfCheck for each question.
     - Randomize correctChoiceId across A, B, C, and D; do not overuse any one answer letter, and use multiple correct letters when the requested count allows.
     - Do not include text besides a single-line (i.e., no line breaks) JSON object.`;

@@ -15,6 +15,10 @@ export const QUESTION_COUNT_LIMITS = {
     max: 59
 };
 
+export const DEFAULT_SECONDS_PER_QUESTION = 95;
+
+export const SECONDS_PER_QUESTION_LIMITS = { min: 30, max: 240 };
+
 export const DEFAULT_SETTINGS = {
     theme: "system",
     backupReminderSnoozedTiming: "daily",

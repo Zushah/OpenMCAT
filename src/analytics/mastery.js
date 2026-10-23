@@ -1,6 +1,8 @@
+import { DEFAULT_SECONDS_PER_QUESTION } from "../data/defaults.js";
+
 const cb = Chalkboard;
 
-export const computeMastery = ({ correct, attempts, averageTimeMs, targetTimeMs = 95000, alpha = 2, beta = 2 }) => {
+export const computeMastery = ({ correct, attempts, averageTimeMs, targetTimeMs = DEFAULT_SECONDS_PER_QUESTION * 1000, alpha = 2, beta = 2 }) => {
     if (!attempts || attempts < 1) return { mastery: 0, smoothedAccuracy: 0.5, timingPenalty: 0, volumeMultiplier: 0 };
     const smoothedAccuracy = (correct + alpha) / (attempts + alpha + beta);
     const accuracyScore = smoothedAccuracy * 100;

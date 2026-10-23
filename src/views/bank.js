@@ -104,7 +104,7 @@ const renderBankCard = ({ catalog, entry, selectedCount, actions, number }) => {
     const start = document.createElement("button");
     start.type = "button";
     start.className = "btn btn-secondary question-bank-start";
-    const startLabel = createElement("span", "", progress.remainingCount > 0 ? `Start next ${selectedCount}` : "All answered");
+    const startLabel = createElement("span", "", progress.remainingCount > 0 ? `Start next ${Math.min(selectedCount, progress.remainingCount)}` : "All answered");
     start.append(startLabel);
     if (progress.remainingCount > 0) start.append(icon("arrow-right", { size: 14 }));
     start.disabled = !canStart;

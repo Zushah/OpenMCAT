@@ -5,6 +5,7 @@ import { formatDurationMs } from "../components/timer.js";
 import { icon } from "../components/icons.js";
 import { createResumeCard } from "../components/resume.js";
 import { getResumableInfo } from "../storage/progress.js";
+import { DEFAULT_SECONDS_PER_QUESTION } from "../data/defaults.js";
 
 const cb = Chalkboard;
 
@@ -438,7 +439,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
     timer.dataset.submitted = timingPaused ? "true" : "false";
     timer.dataset.startedAtMs = String(startedAtMs);
     timer.dataset.elapsedMs = String(questionState.elapsedMs ?? 0);
-    timer.dataset.maxMs = String((activeSession.config.secondsPerQuestion ?? 95) * 1000);
+    timer.dataset.maxMs = String((activeSession.config.secondsPerQuestion ?? DEFAULT_SECONDS_PER_QUESTION) * 1000);
     updatePracticeTimerElement(timer, nowMs);
     const actionRow = document.createElement("div");
     actionRow.className = "button-row session-top-actions";

@@ -1,4 +1,5 @@
 import { SCIENCE_SKILLS, TOPICS } from "../taxonomy.js";
+import { DEFAULT_SECONDS_PER_QUESTION } from "../defaults.js";
 import { PRACTICE_SCHEMA_VERSION } from "../../schema/practice.js";
 import { validatePracticeSession } from "../../schema/validators.js";
 import { DEFAULT_QUESTION_BANK_COUNT, QUESTION_BANK_MAX_COUNT, QUESTION_BANK_MODEL, QUESTION_BANK_PROVIDER_ID, QUESTION_BANK_SKILL_IDS, QUESTION_BANKS, getQuestionBankCatalogEntry } from "./catalog.js";
@@ -165,7 +166,7 @@ export const loadQuestionBankOverviews = async (attempts = [], options = {}) => 
     return Object.fromEntries(entries.map((entry) => [entry.catalog.sectionId, entry]));
 };
 
-const groupQuestionBankQuestions = (questions = []) => {
+export const groupQuestionBankQuestions = (questions = []) => {
     const groups = [];
     let index = 0;
     while (index < questions.length) {
@@ -186,18 +187,17 @@ const groupQuestionBankQuestions = (questions = []) => {
     return groups;
 };
 
-const selectNextQuestions = ({ bank, catalog, attempts, questionCount }) => {
-    const latestAttempts = getLatestAttemptByQuestionId(attempts, catalog.id);
+export const selectNextQuestions = ({ bank, catalog, attempts, questionCount }) => {
+    const latestAttempts = getLatestAttemptByQuestionId(attempts ?? [], catalog.id);
     const answeredQuestionIds = new Set(latestAttempts.keys());
     const targetCount = clampQuestionCount(questionCount, catalog.defaultQuestionCount);
+    const remainingGroups = groupQuestionBankQuestions(bank.questions).map((group) => group.questions.filter((question) => !answeredQuestionIds.has(question.id))).filter((remaining) => remaining.length);
     const selected = [];
-    groupQuestionBankQuestions(bank.questions).some((group) => {
-        const remaining = group.questions.filter((question) => !answeredQuestionIds.has(question.id));
-        if (!remaining.length) return false;
-        if (selected.length >= targetCount) return true;
-        selected.push(...remaining);
-        return selected.length >= targetCount;
-    });
+    for (const remaining of remainingGroups) {
+        if (selected.length === targetCount) break;
+        if (remaining.length <= targetCount - selected.length) selected.push(...remaining);
+    }
+    if (!selected.length && remainingGroups.length) return remainingGroups[0].slice(0, targetCount);
     return selected;
 };
 
@@ -244,7 +244,7 @@ const prepareQuestionBankSession = ({ entry, attempts = [], questionCount }) => 
             skillIds,
             difficulty: "medium",
             questionFormat: "mixed",
-            estimatedTimeMinutes: Math.ceil((questions.length * 95) / 60),
+            estimatedTimeMinutes: Math.ceil((questions.length * DEFAULT_SECONDS_PER_QUESTION) / 60),
             aiModel: QUESTION_BANK_MODEL,
             disclaimer: "AI-generated OpenMCAT question-bank practice. Verify explanations when uncertain."
         },

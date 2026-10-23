@@ -24,6 +24,27 @@ export const getMostRecentResumableSession = (sessions) => {
     return newest;
 };
 
+export const matchesReviewFilter = (questionState, filterId) => {
+    if (filterId === "incorrect") return Boolean(questionState?.submitted) && !questionState?.isCorrect;
+    if (filterId === "flagged") return Boolean(questionState?.flagged);
+    return true;
+};
+
+export const getReviewStepTarget = ({ questions, questionStateById, filterId, currentIndex, delta }) => {
+    const list = Array.isArray(questions) ? questions : [];
+    const flooredIndex = Math.floor(Number(currentIndex));
+    const current = Number.isFinite(flooredIndex) ? flooredIndex : 0;
+    if (!list.length) return current;
+    const visible = list.map((question, index) => index).filter((index) => matchesReviewFilter(questionStateById?.[list[index]?.id], filterId));
+    if (!visible.length) return Math.min(Math.max(current, 0), list.length - 1);
+    const isCurrentVisible = visible.includes(current);
+    const next = visible.find((index) => index > current);
+    const previous = visible.filter((index) => index < current).pop();
+    if (delta < 0) return previous ?? (isCurrentVisible ? current : visible[0]);
+    if (delta > 0 || !isCurrentVisible) return next ?? (isCurrentVisible ? current : visible[visible.length - 1]);
+    return current;
+};
+
 export const hydrateActiveSession = (record) => {
     if (!isUsableSessionRecord(record)) return null;
     const lastQuestionIndex = getQuestions(record).length - 1;

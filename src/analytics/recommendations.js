@@ -1,5 +1,6 @@
 import { MISTAKE_TYPES, getMistakeTypeLabel } from "../data/mistakes.js";
 import { getSkillsForSection, getTopicsBySection } from "../data/taxonomy.js";
+import { DEFAULT_SECONDS_PER_QUESTION } from "../data/defaults.js";
 
 const cb = Chalkboard;
 
@@ -25,7 +26,7 @@ const getDefaultSkillIds = (sectionId, count = 2) => getSkillsForSection(section
 
 const getQuestionFormat = () => "mixed";
 
-const getTargetSeconds = () => 95;
+const getTargetSeconds = () => DEFAULT_SECONDS_PER_QUESTION;
 
 const getSectionLabel = (sectionsById, sectionId) => sectionsById?.[sectionId]?.shortName ?? sectionId ?? "section";
 

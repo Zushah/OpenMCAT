@@ -1,5 +1,6 @@
 import { MISTAKE_TYPES, getMistakeTypeLabel } from "../data/mistakes.js";
 import { SCIENCE_SKILLS, SECTIONS, TOPICS } from "../data/taxonomy.js";
+import { DEFAULT_SECONDS_PER_QUESTION } from "../data/defaults.js";
 
 const cb = Chalkboard;
 
@@ -439,7 +440,7 @@ const FIELD_DESCRIPTIONS = {
     mastery: "OpenMCAT 0-100 mastery estimate using smoothed accuracy, practice volume, timing penalty, and sometimes topic coverage.",
     priorityScore: "OpenMCAT 0-100 weakness priority. Higher means more drill-worthy; it combines accuracy weakness, timing pressure, confidence mismatch, and volume.",
     averageElapsedMs: "Average time per question in milliseconds.",
-    targetTimeMs: "OpenMCAT target time for the row in milliseconds. Current default is generally 95 seconds per science question.",
+    targetTimeMs: `OpenMCAT target time for the row in milliseconds. Current default is generally ${DEFAULT_SECONDS_PER_QUESTION} seconds per science question.`,
     timeRatio: "averageElapsedMs / targetTimeMs. Above 1.0 means slower than target; above about 1.12 suggests visible timing pressure.",
     timedUntimedGap: "untimedAccuracy - timedAccuracy. Positive values suggest the student performs better without time pressure.",
     confidenceCalibrationScore: "OpenMCAT 0-100 score for how closely confidence ratings match observed accuracy. Higher is better calibrated.",
