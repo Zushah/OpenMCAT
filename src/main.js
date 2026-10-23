@@ -120,7 +120,12 @@ const shouldIgnoreShortcut = (target) => {
 
 const setupKeyboardShortcuts = () => {
     window.addEventListener("keydown", (event) => {
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
+        if (event.repeat) return;
+        if (event.isComposing || typeof event.key !== "string") return;
         if (shouldIgnoreShortcut(event.target)) return;
+        if (event.shiftKey && (event.key === "ArrowLeft" || event.key === "ArrowRight")) return;
+        if (event.key === "Enter" && event.target instanceof HTMLElement && event.target.closest("button, a[href], summary")) return;
         if (state.route === "practice" && state.activeSession && !state.activeSession.completedAt) {
             if (state.activeSession.navigationOpen || state.activeSession.finalReviewOpen) {
                 if (event.key === "Escape") {

@@ -6,6 +6,7 @@ import { formatDurationMs } from "../components/timer.js";
 import { icon } from "../components/icons.js";
 import { REVIEW_MODES, TIMING_MODES } from "../data/defaults.js";
 import { getHashParams } from "../router.js";
+import { buildReviewDrillConfig } from "../analytics/drill.js";
 
 const cb = Chalkboard;
 
@@ -308,24 +309,9 @@ export const renderReviewView = (state, actions) => {
     drillMissed.className = "btn btn-secondary";
     drillMissed.textContent = "Drill missed topics";
     drillMissed.addEventListener("click", () => {
-        const missed = records.filter((record) => record.state.submitted && !record.state.isCorrect);
-        if (!missed.length) { actions.navigate("generator"); return; }
-        const topicCounts = new Map();
-        const skillCounts = new Map();
-        missed.forEach((record) => {
-            (record.question.testedTopicIds ?? []).forEach((topicId) => { topicCounts.set(topicId, (topicCounts.get(topicId) ?? 0) + 1); });
-            (record.question.testedSkillIds ?? []).forEach((skillId) => { skillCounts.set(skillId, (skillCounts.get(skillId) ?? 0) + 1); });
-        });
-        const topTopic = Array.from(topicCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0];
-        const topSkill = Array.from(skillCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0];
-        const patch = {};
-        if (topTopic) patch.topicIds = [topTopic];
-        if (topSkill) patch.skillIds = [topSkill];
-        patch.questionCount = 8;
-        patch.reviewMode = "later";
-        patch.timingMode = "timed";
-        actions.updateConfig(patch);
-        actions.navigate("generator");
+        const config = buildReviewDrillConfig(activeSession);
+        if (!config) { actions.navigate("generator"); return; }
+        actions.applyDashboardDrill(config, { message: "Generator prefilled from this session's missed questions." });
     });
     actionRow.append(drillMissed);
     const dashboard = document.createElement("button");

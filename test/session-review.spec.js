@@ -1,5 +1,7 @@
 import { expect, test } from "./fixtures.js";
 import { SAMPLE_SESSION } from "../src/data/samples.js";
+import { DEFAULT_CONFIG } from "../src/data/defaults.js";
+import { GENERATOR_OPTIONS_KEY } from "../src/storage/generator.js";
 
 const REVIEW_URL = /#\/review\?session=(?!session_)[\w-]+$/;
 
@@ -165,4 +167,84 @@ test("a completed session never renders the practice page", async ({ page }) => 
     await page.keyboard.press("Enter");
     await expect(page.getByRole("heading", { level: 2, name: "No active session" })).toBeVisible();
     expect(await readAttempts(page)).toHaveLength(2);
+});
+
+const readGeneratorConfig = (page) => page.evaluate((key) => JSON.parse(localStorage.getItem(key)).config, GENERATOR_OPTIONS_KEY);
+
+const expectOnlySelected = async (page, groupName, namePrefix) => {
+    const selected = page.getByRole("group", { name: groupName }).locator('button[aria-pressed="true"]');
+    await expect(selected).toHaveCount(1);
+    await expect(selected).toContainText(namePrefix);
+};
+
+const expectMissedPrefill = async (page) => {
+    await expect(page).toHaveURL(/#\/generate$/);
+    await expect(page.getByRole("group", { name: "Section" }).locator('button[aria-pressed="true"]')).toHaveAttribute("data-section-id", "bb");
+    await expectOnlySelected(page, "Topics", "Control of Enzyme Activity");
+    await expectOnlySelected(page, "Skills", "Scientific Reasoning and Problem Solving");
+};
+
+const reopenReviewFromDashboard = async (page) => {
+    await goToDashboard(page);
+    await page.locator(".recent-sessions-table").getByRole("button", { name: "Review" }).click();
+    await expect(page).toHaveURL(REVIEW_URL);
+    await expectSampleReview(page);
+};
+
+test("drilling missed topics keeps the reviewed session's section", async ({ page }) => {
+    await finishSampleSession(page);
+    await page.goto("/#/generate");
+    await page.getByRole("group", { name: "Section" }).locator('button[data-section-id="ps"]').click();
+    await expect(page.getByRole("group", { name: "Section" }).locator('button[aria-pressed="true"]')).toHaveAttribute("data-section-id", "ps");
+    await reopenReviewFromDashboard(page);
+    await page.getByRole("button", { name: "Drill missed topics" }).click();
+    await expectMissedPrefill(page);
+    await expect(page.getByText("Generator prefilled from this session's missed questions.")).toBeVisible();
+});
+
+test("drilling missed topics ignores the review filter", async ({ page }) => {
+    await finishSampleSession(page);
+    await page.getByRole("button", { name: "Flagged only" }).click();
+    await expect(page.getByText("No questions match this filter.")).toBeVisible();
+    await page.getByRole("button", { name: "Drill missed topics" }).click();
+    await expectMissedPrefill(page);
+});
+
+test("drilling missed topics reuses the session's own settings", async ({ page }) => {
+    await page.goto("/#/generate");
+    const customConfig = { ...DEFAULT_CONFIG, difficulty: "hard", questionFormat: "mixed", questionCount: 5, timingMode: "timed", secondsPerQuestion: 120, reviewMode: "immediate" };
+    await page.evaluate(({ key, config }) => localStorage.setItem(key, JSON.stringify({ version: 1, config })), { key: GENERATOR_OPTIONS_KEY, config: customConfig });
+    await page.reload();
+    await finishSampleSession(page);
+    const [record] = await readSessions(page);
+    expect(record.config).toMatchObject({ difficulty: "hard", questionFormat: "mixed", questionCount: 5, timingMode: "timed", secondsPerQuestion: 120, reviewMode: "immediate" });
+    await page.goto("/#/generate");
+    await page.getByRole("button", { name: "Restore default options" }).click();
+    await expect(page.getByLabel("Question count (1-59)")).toHaveValue(String(DEFAULT_CONFIG.questionCount));
+    await reopenReviewFromDashboard(page);
+    await page.getByRole("button", { name: "Drill missed topics" }).click();
+    await expectMissedPrefill(page);
+    const drilled = await readGeneratorConfig(page);
+    for (const field of ["difficulty", "questionFormat", "questionCount", "timingMode", "secondsPerQuestion", "reviewMode"]) expect(drilled[field], field).toEqual(record.config[field]);
+    await expect(page.getByLabel("Question count (1-59)")).toHaveValue("5");
+    await expect(page.getByLabel("Seconds per question")).toHaveValue("120");
+    await expect(page.getByRole("group", { name: "Difficulty" }).getByRole("button", { name: "Hard" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("group", { name: "Timing mode" }).getByRole("button", { name: "Timed", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("group", { name: "Review mode" }).getByRole("button", { name: "Review immediately" })).toHaveAttribute("aria-pressed", "true");
+});
+
+test("drilling with no missed questions only opens the generator", async ({ page }) => {
+    await startSampleSession(page);
+    await submitChoice(page, SAMPLE_SESSION.questions[0].correctChoiceId);
+    await page.getByRole("button", { name: "Navigation", exact: true }).click();
+    await page.getByRole("dialog", { name: "Navigation" }).getByRole("button", { name: /Question 5/ }).click();
+    await page.locator(".session-top-actions").getByRole("button", { name: "Review", exact: true }).click();
+    await page.getByRole("dialog", { name: "Review" }).getByRole("button", { name: "End session" }).click();
+    await expect(page).toHaveURL(REVIEW_URL);
+    await expect(page.locator(".stat-card").filter({ hasText: "Score" })).toContainText("1/1");
+    const before = await readGeneratorConfig(page);
+    await page.getByRole("button", { name: "Drill missed topics" }).click();
+    await expect(page).toHaveURL(/#\/generate$/);
+    await expect(page.getByText("Generator prefilled from this session's missed questions.")).toHaveCount(0);
+    expect(await readGeneratorConfig(page)).toEqual(before);
 });

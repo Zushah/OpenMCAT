@@ -1191,12 +1191,12 @@ export const createActions = ({ render, applyTheme }) => {
         showToast("All current data deleted.");
     };
 
-    const applyDashboardDrill = (config = {}) => {
+    const applyDashboardDrill = (config = {}, options = {}) => {
         if (!config || typeof config !== "object") { showToast("No drill configuration is available yet."); return; }
         commitGeneratorConfig(config, { replaceTopicHistory: true });
         resetGenerationState();
         navigate("generator");
-        showToast("Generator prefilled from dashboard analytics.", "success");
+        showToast(options.message ?? "Generator prefilled from dashboard analytics.", "success");
     };
 
     const applyRecommendation = () => {
