@@ -3,7 +3,8 @@
 All committed changes to the [`Zushah/OpenMCAT`](https://github.com/Zushah/OpenMCAT) code repository are recorded here.
 
 ## 37. [`v1.12.0`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-11-04&until=2026-11-04) 2026-11-04
-- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Add AI walkthroughs for practice sessions
+- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Add generatable videos to AI walkthroughs for practice sessions
+- [`0ca8439`](https://github.com/Zushah/OpenMCAT/commit/0ca8439) Add AI walkthroughs for practice sessions
 
 ## 36. [`v1.11.1`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-10-23&until=2026-10-23) 2026-10-23
 - [`e381e21`](https://github.com/Zushah/OpenMCAT/commit/e381e21) Bump Chart from v4.5.1 to v4.6.1 and Playwright from v1.62.1 to v1.64.1

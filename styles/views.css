@@ -722,6 +722,16 @@
     margin-top: 14px;
 }
 
+.walkthrough-row {
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.walkthrough-video-note, .walkthrough-video-warning {
+    max-width: 46ch;
+    margin: 0 auto 16px;
+}
+
 .backup-reminder-size {
     font-family: var(--font-serif);
     font-size: 19px;

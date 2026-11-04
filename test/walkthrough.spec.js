@@ -1,5 +1,6 @@
 import { expect, test } from "./fixtures.js";
 import { SAMPLE_SESSION } from "../src/data/samples.js";
+import { AI_AGENT_TOOLS } from "../src/data/chats.js";
 
 const REVIEW_URL = /#\/review\?session=(?!session_)[\w-]+$/;
 
@@ -140,4 +141,53 @@ test("the walkthrough modal closes, blocks review arrows, and resets between rev
     }, SAMPLE_SESSION);
     await expect(page.locator(".review-session-title")).toHaveText("Other session");
     await expect(dialog).toHaveCount(0);
+});
+
+test("video walkthroughs add requirements, a long-session warning, and Check your AI", async ({ page }) => {
+    await finishSampleSession(page);
+    let dialog = await openWalkthrough(page);
+    const format = dialog.getByRole("group", { name: "Format" });
+    await expect(format.getByRole("button", { name: "Text walkthrough" })).toHaveAttribute("aria-pressed", "true");
+    await expect(dialog.getByRole("button", { name: "Check your AI" })).toHaveCount(0);
+    await format.getByRole("button", { name: "Video walkthrough" }).click();
+    for (const tool of AI_AGENT_TOOLS) await expect(dialog.locator(".walkthrough-video-note")).toContainText(tool);
+    await expect(dialog.getByRole("button", { name: "Check your AI" })).toBeEnabled();
+    await page.keyboard.press("Escape");
+    dialog = await openWalkthrough(page);
+    await expect(dialog.getByRole("button", { name: "Text walkthrough" })).toHaveAttribute("aria-pressed", "true");
+
+    await page.evaluate(async () => {
+        const db = await import("/src/storage/db.js");
+        const [record] = await db.getSessions();
+        const questions = Array.from({ length: 16 }, (_, index) => ({ ...record.generatedSession.questions[index % 5], id: `long_${index}` }));
+        const questionStateById = Object.fromEntries(questions.map((question) => [question.id, { submitted: true, isCorrect: true, submittedChoiceId: question.correctChoiceId, elapsedMs: 30000 }]));
+        await db.saveSession({ ...record, id: "session_long", generatedSession: { ...record.generatedSession, questions }, questionStateById });
+        location.hash = "#/review?session=long";
+    });
+    await expect(page.locator(".review-question")).toHaveCount(16);
+    dialog = await openWalkthrough(page);
+    await expect(dialog.locator(".warning-note")).toHaveCount(0);
+    await dialog.getByRole("button", { name: "Video walkthrough" }).click();
+    await expect(dialog.locator(".warning-note")).toContainText("16 questions");
+    await expect(dialog.getByRole("button", { name: "Copy prompt" })).toBeEnabled();
+    await dialog.getByRole("button", { name: "Select individually" }).click();
+    await dialog.getByRole("checkbox").first().uncheck();
+    await expect(dialog.locator(".warning-note")).toHaveCount(0);
+});
+
+test("video and Check your AI prompts copy the right content", async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "Clipboard permissions are only granted in Chromium.");
+    await finishSampleSession(page);
+    const dialog = await openWalkthrough(page);
+    await dialog.getByRole("button", { name: "Video walkthrough" }).click();
+    const readClipboard = () => page.evaluate(() => navigator.clipboard.readText());
+    await dialog.getByRole("button", { name: "Copy prompt" }).click();
+    await expect(dialog.getByRole("button", { name: "Copied" })).toBeVisible();
+    const video = await readClipboard();
+    for (const text of ["Preflight", "Final self-check", "Fallback package", '"payloadVersion": "1.0"']) expect(video).toContain(text);
+    await dialog.getByRole("button", { name: "Check your AI" }).click();
+    await expect(dialog.locator(".walkthrough-row .btn-secondary")).toHaveText("Copied");
+    const check = await readClipboard();
+    for (const text of ["openmcat-check.mp4", ...AI_AGENT_TOOLS]) expect(check).toContain(text);
+    for (const text of [SAMPLE_SESSION.session.title, ...SAMPLE_SESSION.questions.map((question) => question.stem)]) expect(check).not.toContain(text);
 });

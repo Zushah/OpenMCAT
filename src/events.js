@@ -22,7 +22,7 @@ import { MAX_AI_MODEL_NAME_LENGTH } from "./data/models.js";
 import { buildRecommendation } from "./analytics/recommendations.js";
 import { getSelectionHighlightRanges, toggleHighlightRange } from "./components/highlights.js";
 import { showToast } from "./components/toast.js";
-import { WALKTHROUGH_SCOPES } from "./prompts/walkthrough.js";
+import { WALKTHROUGH_FORMATS, WALKTHROUGH_SCOPES } from "./prompts/walkthrough.js";
 
 const cb = Chalkboard;
 
@@ -1009,6 +1009,14 @@ export const createActions = ({ render, applyTheme }) => {
         focusWalkthroughElement(`scope-${scope}`);
     };
 
+    const setWalkthroughFormat = (format) => {
+        const walkthrough = getActiveWalkthrough();
+        if (!walkthrough || !WALKTHROUGH_FORMATS.includes(format)) return;
+        walkthrough.format = format;
+        render();
+        focusWalkthroughElement(`format-${format}`);
+    };
+
     const toggleWalkthroughQuestion = (questionId) => {
         const walkthrough = getActiveWalkthrough();
         const questionIds = (state.activeSession?.generatedSession?.questions ?? []).map((question) => question.id);
@@ -1344,6 +1352,7 @@ export const createActions = ({ render, applyTheme }) => {
         toggleMistakeTypeForQuestion,
         openWalkthrough,
         closeWalkthrough,
+        setWalkthroughFormat,
         setWalkthroughScope,
         toggleWalkthroughQuestion,
         setWalkthroughSelection,

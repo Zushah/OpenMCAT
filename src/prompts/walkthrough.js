@@ -2,8 +2,11 @@ import { DEFAULT_SECONDS_PER_QUESTION } from "../data/defaults.js";
 import { getMistakeTypeLabel, normalizeMistakeTypeIds } from "../data/mistakes.js";
 import { getSectionById, getSkillById, getTopicById } from "../data/taxonomy.js";
 import { matchesReviewFilter } from "../storage/progress.js";
+import { compileWalkthroughVideoPrompt } from "./video.js";
 
 export const WALKTHROUGH_SCOPES = ["all", "incorrect", "selected"];
+
+export const WALKTHROUGH_FORMATS = ["text", "video"];
 
 const WALKTHROUGH_PAYLOAD_VERSION = "1.0";
 
@@ -141,7 +144,7 @@ export const buildWalkthroughPayload = (sessionLike, { scope = "all", selectedQu
     };
 };
 
-export const compileWalkthroughPrompt = (payload) => `You are an expert MCAT tutor. Give the student a walkthrough of one of their own OpenMCAT practice sessions, using the session data below. The goal is a personalized walkthrough: explain each question in terms of what this student actually chose, how confident they were, how long they took, and what they said went wrong.
+const compileWalkthroughTextPrompt = (payload) => `You are an expert MCAT tutor. Give the student a walkthrough of one of their own OpenMCAT practice sessions, using the session data below. The goal is a personalized walkthrough: explain each question in terms of what this student actually chose, how confident they were, how long they took, and what they said went wrong.
 
 About OpenMCAT:
 - OpenMCAT is an independent, browser-only, open-source MCAT practice tool. It is not affiliated with or endorsed by the AAMC.
@@ -176,3 +179,5 @@ Style:
 
 OpenMCAT session data:
 ${JSON.stringify(payload, null, 2)}`;
+
+export const compileWalkthroughPrompt = (payload, { format = "text" } = {}) => format === "video" ? compileWalkthroughVideoPrompt(payload) : compileWalkthroughTextPrompt(payload);

@@ -1,5 +1,7 @@
 import { getEffectiveSessionAiModel } from "../analytics/metrics.js";
 import { createAiChatShortcuts } from "./chats.js";
+import { AI_AGENT_TOOLS, WALKTHROUGH_VIDEO_WARNING_THRESHOLD, formatList } from "../data/chats.js";
+import { AI_VIDEO_CHECK_PROMPT } from "../prompts/video.js";
 import { copyTextToClipboard } from "./clipboard.js";
 import { icon } from "./icons.js";
 import { buildWalkthroughPayload, compileWalkthroughPrompt, getWalkthroughIncludedQuestionIds, getWalkthroughPassageNumberById, getWalkthroughQuestionStatus } from "../prompts/walkthrough.js";
@@ -21,16 +23,39 @@ const createDialogClose = (label, onClick) => {
 
 const pluralize = (count, singular, plural = `${singular}s`) => `${count.toLocaleString()} ${count === 1 ? singular : plural}`;
 
-const makeScopeButton = (label, scopeId, currentScope, onClick, { disabled = false, title = "" } = {}) => {
+const makeSegmentButton = (label, focusKey, selected, onClick, { disabled = false, title = "" } = {}) => {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = label;
-    button.dataset.walkthroughFocus = `scope-${scopeId}`;
-    const selected = scopeId === currentScope;
+    button.dataset.walkthroughFocus = focusKey;
     if (selected) button.classList.add("is-selected");
     button.setAttribute("aria-pressed", selected ? "true" : "false");
     if (disabled) { button.disabled = true; if (title) button.title = title; }
     button.addEventListener("click", onClick);
+    return button;
+};
+
+const makeSegmentGroup = (label, buttons) => {
+    const section = createElement("div", "walkthrough-section");
+    const group = createElement("div", "segment walkthrough-segment");
+    group.setAttribute("role", "group");
+    group.setAttribute("aria-label", label);
+    group.append(...buttons);
+    section.append(createElement("p", "walkthrough-label", label), group);
+    return section;
+};
+
+const makeCopyButton = (label, className, text) => {
+    const button = createElement("button", className, label);
+    button.type = "button";
+    button.disabled = !text;
+    button.addEventListener("click", async () => {
+        if (!text) return;
+        button.disabled = true;
+        try { await copyTextToClipboard(text); button.textContent = "Copied"; }
+        catch { button.textContent = "Copy failed"; }
+        finally { setTimeout(() => { button.disabled = false; button.textContent = label; }, 1400); }
+    });
     return button;
 };
 
@@ -81,7 +106,8 @@ export const renderWalkthroughModal = (state, actions) => {
     const questions = activeSession.generatedSession?.questions ?? [];
     const incorrectCount = questions.filter((question) => matchesReviewFilter(activeSession.questionStateById?.[question.id], "incorrect")).length;
     const includedIds = getWalkthroughIncludedQuestionIds(activeSession, walkthrough);
-    const promptText = includedIds.length ? compileWalkthroughPrompt(buildWalkthroughPayload(activeSession, { scope: walkthrough.scope, selectedQuestionIds: walkthrough.selectedQuestionIds, aiModel: getEffectiveSessionAiModel(activeSession) })) : "";
+    const isVideo = walkthrough.format === "video";
+    const promptText = includedIds.length ? compileWalkthroughPrompt(buildWalkthroughPayload(activeSession, { scope: walkthrough.scope, selectedQuestionIds: walkthrough.selectedQuestionIds, aiModel: getEffectiveSessionAiModel(activeSession) }), { format: walkthrough.format }) : "";
     const overlay = createElement("section", "generation-pipeline-overlay walkthrough-overlay");
     overlay.setAttribute("role", "presentation");
     overlay.addEventListener("click", (event) => { if (event.target === overlay) actions.closeWalkthrough(); });
@@ -95,34 +121,29 @@ export const renderWalkthroughModal = (state, actions) => {
     heading.id = "walkthrough-heading";
     heading.tabIndex = -1;
     top.append(heading, createDialogClose("Close Walkthrough with AI", () => actions.closeWalkthrough()));
-    const scopeSection = createElement("div", "walkthrough-section");
-    const scopeLabel = createElement("p", "walkthrough-label", "Questions to include");
-    const scopeGroup = createElement("div", "segment walkthrough-segment");
-    scopeGroup.setAttribute("role", "group");
-    scopeGroup.setAttribute("aria-label", "Questions to include");
-    scopeGroup.append(
-        makeScopeButton(`All (${questions.length})`, "all", walkthrough.scope, () => actions.setWalkthroughScope("all")),
-        makeScopeButton(`Incorrect only (${incorrectCount})`, "incorrect", walkthrough.scope, () => actions.setWalkthroughScope("incorrect"), { disabled: incorrectCount === 0, title: "No incorrect answers in this session." }),
-        makeScopeButton("Select individually", "selected", walkthrough.scope, () => actions.setWalkthroughScope("selected"))
-    );
-    scopeSection.append(scopeLabel, scopeGroup);
+    const formatSection = makeSegmentGroup("Format", [
+        makeSegmentButton("Text walkthrough", "format-text", !isVideo, () => actions.setWalkthroughFormat("text")),
+        makeSegmentButton("Video walkthrough", "format-video", isVideo, () => actions.setWalkthroughFormat("video"))
+    ]);
+    const scopeSection = makeSegmentGroup("Questions to include", [
+        makeSegmentButton(`All (${questions.length})`, "scope-all", walkthrough.scope === "all", () => actions.setWalkthroughScope("all")),
+        makeSegmentButton(`Incorrect only (${incorrectCount})`, "scope-incorrect", walkthrough.scope === "incorrect", () => actions.setWalkthroughScope("incorrect"), { disabled: incorrectCount === 0, title: "No incorrect answers in this session." }),
+        makeSegmentButton("Select individually", "scope-selected", walkthrough.scope === "selected", () => actions.setWalkthroughScope("selected"))
+    ]);
     if (walkthrough.scope === "selected") scopeSection.append(renderQuestionChecklist(activeSession, walkthrough, actions));
+    panel.append(top, createAiChatShortcuts(), formatSection, scopeSection);
+    if (isVideo) {
+        panel.append(createElement("p", "note walkthrough-video-note", `Video walkthroughs need an AI that can run code for a long time: it has to run Python, install software, download files from the internet, and give you back a video file. Agent tools like ${formatList(AI_AGENT_TOOLS)} are built for this, and some regular AI chats can do it too. Not sure about yours? Use "Check your AI" first. Making a video can take a while.`));
+        if (includedIds.length > WALKTHROUGH_VIDEO_WARNING_THRESHOLD) panel.append(createElement("p", "warning-note walkthrough-video-warning", `This video walkthrough covers ${includedIds.length} questions, so it may take a long time to make and to watch. Consider including fewer questions.`));
+    }
     const instructions = createElement("p", "generation-pipeline-instructions analytics-prompt-instructions walkthrough-instructions", "Copy prompt → Paste into your AI's chat:");
     const controls = createElement("div", "analytics-prompt-row walkthrough-row");
-    const copyButton = createElement("button", "btn btn-primary", "Copy prompt");
-    copyButton.type = "button";
-    copyButton.disabled = !includedIds.length;
-    copyButton.addEventListener("click", async () => {
-        if (!promptText) return;
-        copyButton.disabled = true;
-        try { await copyTextToClipboard(promptText); copyButton.textContent = "Copied"; }
-        catch { copyButton.textContent = "Copy failed"; }
-        finally { setTimeout(() => { copyButton.disabled = false; copyButton.textContent = "Copy prompt"; }, 1400); }
-    });
-    controls.append(copyButton);
-    panel.append(top, createAiChatShortcuts(), scopeSection, instructions, controls);
-    if (!includedIds.length) panel.append(createElement("p", "note walkthrough-empty-note", "Select at least one question to include."));
-    else panel.append(createElement("p", "tiny analytics-prompt-note walkthrough-note", `The prompt is ${promptText.length.toLocaleString()} characters long and includes the full text of ${pluralize(includedIds.length, "question")} plus your answers, confidence ratings, times, flags, and mistake types from this session.`));
+    controls.append(makeCopyButton("Copy prompt", "btn btn-primary", promptText));
+    if (isVideo) controls.append(makeCopyButton("Check your AI", "btn btn-secondary", AI_VIDEO_CHECK_PROMPT));
+    panel.append(instructions, controls);
+    const checkNote = isVideo ? " The \"Check your AI\" prompt contains no session data." : "";
+    if (!includedIds.length) panel.append(createElement("p", "note walkthrough-empty-note", `Select at least one question to include.${checkNote}`));
+    else panel.append(createElement("p", "tiny analytics-prompt-note walkthrough-note", `The prompt is ${promptText.length.toLocaleString()} characters long and includes the full text of ${pluralize(includedIds.length, "question")} plus your answers, confidence ratings, times, flags, and mistake types from this session.${checkNote}`));
     overlay.append(panel);
     return overlay;
 };
