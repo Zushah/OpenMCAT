@@ -1526,15 +1526,16 @@ const renderRecentSessions = (metrics, actions, pages, resumableSessionId = null
     table.className = "recent-sessions-table";
     const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
-    appendHeaderCells(headerRow, [["When"], ["Section"], ["Mode"], ["Answered", "table-num"], ["Accuracy", "table-num"], ["Avg time", "table-num"], ["Action", "table-action"]]);
+    appendHeaderCells(headerRow, [["When"], ["Session"], ["Section"], ["Answered", "table-num"], ["Accuracy", "table-num"], ["Avg time", "table-num"], ["Action", "table-action"]]);
     thead.append(headerRow);
     table.append(thead);
     const tbody = document.createElement("tbody");
     sessions.forEach((session) => {
         const row = document.createElement("tr");
         appendCell(row, session.completedAt || session.createdAt ? new Date(session.completedAt ?? session.createdAt).toLocaleDateString() : "n/a", "table-meta");
+        const title = session.title || "Practice session";
+        appendCell(row, title, "table-title").title = title;
         appendCell(row, rowNameFromId("section", session.sectionId));
-        appendCell(row, session.timingMode, "table-meta");
         appendCell(row, `${session.attempts}/${session.generatedQuestionCount || session.attempts}`, "table-num");
         appendCell(row, pct(session.accuracy), "table-num");
         appendCell(row, formatDurationMs(session.averageElapsedMs), "table-num");

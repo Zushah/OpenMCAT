@@ -313,3 +313,32 @@ test("review arrow keys do nothing when the flagged filter matches no question",
     await page.getByRole("button", { name: "All", exact: true }).click();
     expect(await focusedReviewIndex(page)).toBe("1");
 });
+
+test("the review shows confidence, difficulty, and the session source", async ({ page }) => {
+    await startSampleSession(page);
+    const [first, second] = SAMPLE_SESSION.questions;
+    await page.locator(".practice-confidence").getByRole("button", { name: "4", exact: true }).click();
+    await submitChoice(page, first.correctChoiceId);
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await submitChoice(page, second.correctChoiceId);
+    await page.getByRole("button", { name: "Navigation", exact: true }).click();
+    await page.getByRole("dialog", { name: "Navigation" }).getByRole("button", { name: /Question 5/ }).click();
+    await page.locator(".session-top-actions").getByRole("button", { name: "Review", exact: true }).click();
+    await page.getByRole("dialog", { name: "Review" }).getByRole("button", { name: "End session" }).click();
+    await expect(page).toHaveURL(REVIEW_URL);
+    const metas = page.locator(".review-question-meta");
+    await expect(metas.nth(0)).toContainText("| Confidence 4/5");
+    await expect(metas.nth(1)).not.toContainText("Confidence");
+    await expect(page.locator(".review-meta-line")).toContainText(/Medium · mock-mcat-v1$/);
+
+    await goToDashboard(page);
+    const titleCell = page.locator(".recent-sessions-table tbody td.table-title").first();
+    await expect(page.locator(".recent-sessions-table thead th")).toHaveText(["When", "Session", "Section", "Answered", "Accuracy", "Avg time", "Action"]);
+    await expect(titleCell).toHaveText(SAMPLE_SESSION.session.title);
+    await expect(titleCell).toHaveAttribute("title", SAMPLE_SESSION.session.title);
+
+    const [record] = await readSessions(page);
+    await page.evaluate(async (value) => { const { saveSession } = await import("/src/storage/db.js"); await saveSession(value); }, { ...record, id: "session_bank_review", providerMeta: { source: "question_bank" } });
+    await page.goto("/#/review?session=bank_review");
+    await expect(page.locator(".review-meta-line")).toContainText(/Medium · Question bank$/);
+});

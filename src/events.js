@@ -1037,6 +1037,26 @@ export const createActions = ({ render, applyTheme }) => {
         focusWalkthroughElement(mode === "all" ? "select-all" : "select-none");
     };
 
+    const focusMainContent = () => document.getElementById("main-content")?.focus({ preventScroll: true });
+
+    const closeTopmostDialog = () => {
+        const route = state.route;
+        const active = state.activeSession;
+        const dialogs = [
+            [route === "review" && Boolean(state.walkthrough), closeWalkthrough],
+            [route === "dashboard" && Boolean(state.dashboard.modelCorrection), () => { closeDashboardModelCorrection(); focusMainContent(); }],
+            [route === "dashboard" && state.dashboard.aiAnalysisOpen, () => { closeDashboardAiAnalysis(); focusMainContent(); }],
+            [route === "dashboard" && state.dashboard.backupReminderOpen, () => { closeDashboardBackupReminder(); focusMainContent(); }],
+            [route === "generator" && state.generation.pipelineOpen && Boolean(state.generation.compiledPrompt), () => { closeGenerationPipeline(); focusMainContent(); }],
+            [route === "settings" && Boolean(state.settingsDataConfirmation), () => { closeSettingsDataConfirmation(); focusMainContent(); }],
+            [route === "practice" && Boolean(active) && !active.completedAt && (active.navigationOpen || active.finalReviewOpen), closePracticePanel]
+        ];
+        const match = dialogs.find(([open]) => open);
+        if (!match) return false;
+        match[1]();
+        return true;
+    };
+
     const toggleMistakeTypeForQuestion = async (questionId, mistakeTypeId) => {
         const active = state.activeSession;
         if (!active || !isValidMistakeTypeId(mistakeTypeId)) return;
@@ -1352,6 +1372,7 @@ export const createActions = ({ render, applyTheme }) => {
         toggleMistakeTypeForQuestion,
         openWalkthrough,
         closeWalkthrough,
+        closeTopmostDialog,
         setWalkthroughFormat,
         setWalkthroughScope,
         toggleWalkthroughQuestion,

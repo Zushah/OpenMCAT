@@ -119,29 +119,17 @@ const shouldIgnoreShortcut = (target) => {
     return tag === "input" || tag === "textarea" || tag === "select" || target.isContentEditable;
 };
 
-const closeOpenDialog = () => {
-    if (!state.walkthrough) return false;
-    actions.closeWalkthrough();
-    return true;
-};
-
 const setupKeyboardShortcuts = () => {
     window.addEventListener("keydown", (event) => {
         if (event.ctrlKey || event.metaKey || event.altKey) return;
+        if (event.key === "Escape" && !event.defaultPrevented && !event.isComposing && actions.closeTopmostDialog()) { event.preventDefault(); return; }
         if (event.repeat) return;
         if (event.isComposing || typeof event.key !== "string") return;
-        if (event.key === "Escape" && !event.defaultPrevented && closeOpenDialog()) { event.preventDefault(); return; }
         if (shouldIgnoreShortcut(event.target)) return;
         if (event.shiftKey && (event.key === "ArrowLeft" || event.key === "ArrowRight")) return;
         if (event.key === "Enter" && event.target instanceof HTMLElement && event.target.closest("button, a[href], summary")) return;
         if (state.route === "practice" && state.activeSession && !state.activeSession.completedAt) {
-            if (state.activeSession.navigationOpen || state.activeSession.finalReviewOpen) {
-                if (event.key === "Escape") {
-                    actions.closePracticePanel();
-                    event.preventDefault();
-                }
-                return;
-            }
+            if (state.activeSession.navigationOpen || state.activeSession.finalReviewOpen) return;
             const key = event.key.toLowerCase();
             const questionCount = state.activeSession.generatedSession?.questions?.length ?? 0;
             const hasReachedReviewPoint = state.activeSession.hasReachedFinalQuestion === true || (questionCount > 0 && state.activeSession.currentQuestionIndex + 1 >= questionCount);

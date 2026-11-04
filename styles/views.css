@@ -2574,7 +2574,15 @@
 }
 
 .recent-sessions-table {
-    min-width: 600px;
+    min-width: 660px;
+}
+
+.table-title {
+    max-width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--ink);
 }
 
 .mistake-breakdown-table {

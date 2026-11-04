@@ -8,6 +8,8 @@ import { REVIEW_MODES, TIMING_MODES } from "../data/defaults.js";
 import { getHashParams } from "../router.js";
 import { buildReviewDrillConfig } from "../analytics/drill.js";
 import { matchesReviewFilter } from "../storage/progress.js";
+import { getEffectiveSessionAiModel } from "../analytics/metrics.js";
+import { DIFFICULTIES } from "../data/taxonomy.js";
 import { renderWalkthroughModal } from "../components/walkthrough.js";
 
 const cb = Chalkboard;
@@ -169,7 +171,9 @@ const makeQuestionReviewBlock = (record, index, isFocused, passagesById, passage
     const verdictText = document.createElement("strong");
     verdictText.className = "review-verdict";
     verdictText.textContent = verdict;
+    const confidence = state.submitted ? state.submittedConfidence ?? state.confidence : null;
     meta.append(`Selected: ${selected} | Correct: ${question.correctChoiceId} | `, verdictText, ` | ${formatDurationMs(state.elapsedMs ?? 0)}`);
+    if (Number.isFinite(confidence)) meta.append(` | Confidence ${confidence}/5`);
     card.append(meta);
     const heading = document.createElement("h4");
     const number = document.createElement("span");
@@ -225,7 +229,7 @@ export const renderReviewView = (state, actions) => {
         text.textContent = getHashParams(location.hash).has("session") ? "That session was not found." : "Complete a practice session first, then return here for full review.";
         const button = document.createElement("button");
         button.className = "btn btn-primary";
-        button.textContent = "Go to generator";
+        button.textContent = "Go to practice";
         button.addEventListener("click", () => actions.navigate("generator"));
         empty.append(heading, text, button);
         root.append(empty);
@@ -250,7 +254,11 @@ export const renderReviewView = (state, actions) => {
     const when = activeSession.completedAt ?? activeSession.createdAt;
     const metaLine = document.createElement("p");
     metaLine.className = "review-meta-line";
-    metaLine.textContent = [when ? new Date(when).toLocaleDateString() : null, formatModeLabel(TIMING_MODES, activeSession.config?.timingMode, null), formatModeLabel(REVIEW_MODES, activeSession.config?.reviewMode, null)].filter(Boolean).join(" · ");
+    const difficultyId = activeSession.generatedSession.session.difficulty ?? activeSession.config?.difficulty;
+    const difficultyLabel = DIFFICULTIES.find((item) => item.id === difficultyId)?.name ?? (typeof difficultyId === "string" && difficultyId ? difficultyId.charAt(0).toUpperCase() + difficultyId.slice(1) : null);
+    const aiModel = getEffectiveSessionAiModel(activeSession);
+    const source = isQuestionBankSession(activeSession) ? "Question bank" : aiModel !== "unknown" ? aiModel : null;
+    metaLine.textContent = [when ? new Date(when).toLocaleDateString() : null, formatModeLabel(TIMING_MODES, activeSession.config?.timingMode, null), formatModeLabel(REVIEW_MODES, activeSession.config?.reviewMode, null), difficultyLabel, source].filter(Boolean).join(" · ");
     const note = document.createElement("p");
     note.className = "muted-note";
     note.textContent = "AI-generated. Use for drilling and review. Verify uncertain explanations.";
