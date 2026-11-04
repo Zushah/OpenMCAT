@@ -8,6 +8,7 @@ import { REVIEW_MODES, TIMING_MODES } from "../data/defaults.js";
 import { getHashParams } from "../router.js";
 import { buildReviewDrillConfig } from "../analytics/drill.js";
 import { matchesReviewFilter } from "../storage/progress.js";
+import { renderWalkthroughModal } from "../components/walkthrough.js";
 
 const cb = Chalkboard;
 
@@ -302,6 +303,13 @@ export const renderReviewView = (state, actions) => {
     root.append(reviewList);
     const actionRow = document.createElement("div");
     actionRow.className = "question-actions review-actions";
+    const walkthrough = document.createElement("button");
+    walkthrough.type = "button";
+    walkthrough.className = "btn btn-primary";
+    walkthrough.textContent = "Walkthrough with AI";
+    walkthrough.dataset.walkthroughTrigger = "";
+    walkthrough.addEventListener("click", () => actions.openWalkthrough());
+    actionRow.append(walkthrough);
     const drillMissed = document.createElement("button");
     drillMissed.className = "btn btn-secondary";
     drillMissed.textContent = "Drill missed topics";
@@ -312,7 +320,7 @@ export const renderReviewView = (state, actions) => {
     });
     actionRow.append(drillMissed);
     const dashboard = document.createElement("button");
-    dashboard.className = "btn btn-primary";
+    dashboard.className = "btn btn-secondary";
     dashboard.textContent = "Back to dashboard";
     dashboard.addEventListener("click", () => actions.navigate("dashboard"));
     actionRow.append(dashboard);
@@ -329,6 +337,8 @@ export const renderReviewView = (state, actions) => {
         actionRow.append(bank);
     }
     root.append(actionRow);
+    const walkthroughModal = renderWalkthroughModal(state, actions);
+    if (walkthroughModal) root.append(walkthroughModal);
     syncMistakeTypePanelHeights(root);
     return root;
 };

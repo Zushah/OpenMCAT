@@ -56,6 +56,7 @@ export const hydrateActiveSession = (record) => {
         config: structuredClone(record.config),
         generatedSession: structuredClone(record.generatedSession),
         providerMeta: structuredClone(record.providerMeta ?? {}),
+        aiModelOverride: record.aiModelOverride ?? null,
         currentQuestionIndex: Number.isFinite(savedIndex) ? Math.min(Math.max(savedIndex, 0), lastQuestionIndex) : 0,
         questionStateById: structuredClone(record.questionStateById),
         highlightRangesByTargetKey: structuredClone(record.highlightRangesByTargetKey ?? {}),

@@ -22,6 +22,7 @@ import { MAX_AI_MODEL_NAME_LENGTH } from "./data/models.js";
 import { buildRecommendation } from "./analytics/recommendations.js";
 import { getSelectionHighlightRanges, toggleHighlightRange } from "./components/highlights.js";
 import { showToast } from "./components/toast.js";
+import { WALKTHROUGH_SCOPES } from "./prompts/walkthrough.js";
 
 const cb = Chalkboard;
 
@@ -205,6 +206,7 @@ export const createActions = ({ render, applyTheme }) => {
         syncTimerForRouteChange(state.route, route);
         if (route !== "dashboard") { state.dashboard.aiAnalysisOpen = false; state.dashboard.backupReminderOpen = false; state.dashboard.modelCorrection = null; }
         if (route !== "settings") state.settingsDataConfirmation = null;
+        if (route !== "review") state.walkthrough = null;
         state.route = route;
         if (route === "dashboard") maybeOpenDashboardBackupReminder();
         setHashForRoute(route);
@@ -917,6 +919,7 @@ export const createActions = ({ render, applyTheme }) => {
         catch (error) { console.warn("OpenMCAT: failed loading the session to review.", error); }
         if (!record) { showToast("That session cannot be reviewed.", "error"); return; }
         state.activeSession = hydrateActiveSession(record);
+        state.walkthrough = null;
         state.dashboard.aiAnalysisOpen = false;
         state.dashboard.backupReminderOpen = false;
         state.dashboard.modelCorrection = null;
@@ -967,6 +970,63 @@ export const createActions = ({ render, applyTheme }) => {
         const active = state.activeSession;
         if (!active) return;
         setReviewQuestionIndex(getReviewStepTarget({ questions: active.generatedSession.questions, questionStateById: active.questionStateById, filterId: active.reviewFilter, currentIndex: active.viewQuestionIndex ?? 0, delta }));
+    };
+
+    const focusWalkthroughElement = (focusKey) => {
+        requestAnimationFrame(() => {
+            const target = focusKey ? Array.from(document.querySelectorAll("[data-walkthrough-focus]")).find((element) => element.dataset.walkthroughFocus === focusKey) : document.getElementById("walkthrough-heading");
+            target?.focus({ preventScroll: true });
+        });
+    };
+
+    const getActiveWalkthrough = () => {
+        const walkthrough = state.walkthrough;
+        return walkthrough && state.activeSession && walkthrough.sessionId === state.activeSession.id ? walkthrough : null;
+    };
+
+    const openWalkthrough = () => {
+        const active = state.activeSession;
+        if (state.route !== "review" || !active?.completedAt) return;
+        state.walkthrough = { sessionId: active.id, format: "text", scope: "all", selectedQuestionIds: (active.generatedSession?.questions ?? []).map((question) => question.id) };
+        render();
+        focusWalkthroughElement(null);
+    };
+
+    const closeWalkthrough = () => {
+        if (!state.walkthrough) return;
+        state.walkthrough = null;
+        render();
+        document.querySelector("[data-walkthrough-trigger]")?.focus({ preventScroll: true });
+    };
+
+    const setWalkthroughScope = (scope) => {
+        const walkthrough = getActiveWalkthrough();
+        if (!walkthrough || !WALKTHROUGH_SCOPES.includes(scope)) return;
+        const active = state.activeSession;
+        if (scope === "incorrect" && !(active.generatedSession?.questions ?? []).some((question) => matchesReviewFilter(active.questionStateById?.[question.id], "incorrect"))) return;
+        walkthrough.scope = scope;
+        render();
+        focusWalkthroughElement(`scope-${scope}`);
+    };
+
+    const toggleWalkthroughQuestion = (questionId) => {
+        const walkthrough = getActiveWalkthrough();
+        const questionIds = (state.activeSession?.generatedSession?.questions ?? []).map((question) => question.id);
+        if (!walkthrough || !questionIds.includes(questionId)) return;
+        const selected = new Set(walkthrough.selectedQuestionIds);
+        if (selected.has(questionId)) selected.delete(questionId);
+        else selected.add(questionId);
+        walkthrough.selectedQuestionIds = questionIds.filter((id) => selected.has(id));
+        render();
+        focusWalkthroughElement(`question-${questionId}`);
+    };
+
+    const setWalkthroughSelection = (mode) => {
+        const walkthrough = getActiveWalkthrough();
+        if (!walkthrough || (mode !== "all" && mode !== "none")) return;
+        walkthrough.selectedQuestionIds = mode === "all" ? (state.activeSession.generatedSession?.questions ?? []).map((question) => question.id) : [];
+        render();
+        focusWalkthroughElement(mode === "all" ? "select-all" : "select-none");
     };
 
     const toggleMistakeTypeForQuestion = async (questionId, mistakeTypeId) => {
@@ -1238,6 +1298,7 @@ export const createActions = ({ render, applyTheme }) => {
 
     const resetToNewSession = () => {
         state.activeSession = null;
+        state.walkthrough = null;
         resetGenerationState();
         navigate("generator");
     };
@@ -1281,6 +1342,11 @@ export const createActions = ({ render, applyTheme }) => {
         setReviewQuestionIndex,
         stepReviewQuestion,
         toggleMistakeTypeForQuestion,
+        openWalkthrough,
+        closeWalkthrough,
+        setWalkthroughScope,
+        toggleWalkthroughQuestion,
+        setWalkthroughSelection,
         exportData,
         shareDataBackup,
         openSettingsDataConfirmation,

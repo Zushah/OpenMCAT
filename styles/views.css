@@ -651,6 +651,77 @@
     margin: 14px auto 0;
 }
 
+.walkthrough-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.walkthrough-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.walkthrough-segment {
+    justify-content: center;
+    gap: 6px 22px;
+}
+
+.walkthrough-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: min(320px, 100%);
+    margin-top: 6px;
+}
+
+.walkthrough-checklist-tools {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.walkthrough-question-list {
+    display: flex;
+    flex-direction: column;
+    max-height: 240px;
+    overflow-y: auto;
+    border-top: 1px solid var(--rule);
+    text-align: left;
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule-2) transparent;
+}
+
+.walkthrough-question {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 8px 4px;
+    border-bottom: 1px solid var(--rule);
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--ink-2);
+    cursor: pointer;
+}
+
+.walkthrough-question:hover {
+    color: var(--ink);
+}
+
+#walkthrough-heading:focus {
+    outline: none;
+}
+
+.walkthrough-empty-note {
+    margin-top: 14px;
+}
+
 .backup-reminder-size {
     font-family: var(--font-serif);
     font-size: 19px;

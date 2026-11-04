@@ -549,6 +549,14 @@
         max-height: 180px;
     }
 
+    .walkthrough-segment {
+        gap: 4px 18px;
+    }
+
+    .walkthrough-question-list {
+        max-height: 180px;
+    }
+
     .toast-root {
         left: 8px;
         right: 8px;

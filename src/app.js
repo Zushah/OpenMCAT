@@ -40,6 +40,7 @@ export const state = {
     activeAttempt: null,
     analytics: null,
     settingsDataConfirmation: null,
+    walkthrough: null,
     dashboard: {
         filters: { ...DEFAULT_DASHBOARD_FILTERS },
         pages: { ...DEFAULT_DASHBOARD_PAGES },

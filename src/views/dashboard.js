@@ -1,6 +1,7 @@
 import { DIFFICULTIES, SCIENCE_SKILLS, SECTIONS, TOPICS } from "../data/taxonomy.js";
 import { DEFAULT_SECONDS_PER_QUESTION } from "../data/defaults.js";
 import { chartAxis, createAccessibleDataTable, createBarValueLabelsPlugin, createChartDataDetails, createChartLegend, createChartShell, createDoughnutTotalPlugin, createPolarRankLabelsPlugin, createRadarValueLabelsPlugin, destroyCharts, getChartTheme, getDefaultChartOptions, hasChartRuntime, insertChartLegend, legendItemsFromDatasets, queueChartRender, toggleChartSeries } from "../components/charts.js";
+import { copyTextToClipboard } from "../components/clipboard.js";
 import { icon } from "../components/icons.js";
 import { createStatCard } from "../components/stats.js";
 import { formatDurationMs } from "../components/timer.js";
@@ -151,22 +152,6 @@ const targetSecondsForSection = () => DEFAULT_SECONDS_PER_QUESTION;
 const createElement = (tag, className = "", text = "") => { const element = document.createElement(tag); if (className) element.className = className; if (text) element.textContent = text; return element; };
 
 const appendText = (parent, tag, className, text) => { const element = createElement(tag, className, text); parent.append(element); return element; };
-
-const copyTextToClipboard = async (text) => {
-    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) try { await navigator.clipboard.writeText(text); return; } catch { }
-    const textarea = document.createElement("textarea");
-    textarea.value = text;
-    textarea.setAttribute("readonly", "");
-    textarea.style.position = "fixed";
-    textarea.style.left = "-9999px";
-    textarea.style.top = "0";
-    textarea.style.opacity = "0";
-    document.body.append(textarea);
-    textarea.focus();
-    textarea.select();
-    try { const copied = document.execCommand("copy"); if (!copied) throw new Error("Copy failed"); }
-    finally { textarea.remove(); }
-};
 
 const getPaginatedRows = (rows, pages, key, pageSize = DEFAULT_PAGE_SIZE) => {
     const allRows = Array.isArray(rows) ? rows : [];

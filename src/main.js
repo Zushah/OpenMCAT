@@ -98,6 +98,7 @@ const handleRouteFromLocation = () => {
     if (state.route === nextRoute && !reviewSessionChanged) return false;
     if (nextRoute !== "dashboard") { state.dashboard.aiAnalysisOpen = false; state.dashboard.backupReminderOpen = false; }
     if (nextRoute !== "settings") state.settingsDataConfirmation = null;
+    if (nextRoute !== "review" || reviewSessionChanged) state.walkthrough = null;
     actions.syncTimerForRouteChange(state.route, nextRoute);
     state.route = nextRoute;
     return true;
@@ -118,11 +119,18 @@ const shouldIgnoreShortcut = (target) => {
     return tag === "input" || tag === "textarea" || tag === "select" || target.isContentEditable;
 };
 
+const closeOpenDialog = () => {
+    if (!state.walkthrough) return false;
+    actions.closeWalkthrough();
+    return true;
+};
+
 const setupKeyboardShortcuts = () => {
     window.addEventListener("keydown", (event) => {
         if (event.ctrlKey || event.metaKey || event.altKey) return;
         if (event.repeat) return;
         if (event.isComposing || typeof event.key !== "string") return;
+        if (event.key === "Escape" && !event.defaultPrevented && closeOpenDialog()) { event.preventDefault(); return; }
         if (shouldIgnoreShortcut(event.target)) return;
         if (event.shiftKey && (event.key === "ArrowLeft" || event.key === "ArrowRight")) return;
         if (event.key === "Enter" && event.target instanceof HTMLElement && event.target.closest("button, a[href], summary")) return;
@@ -164,6 +172,7 @@ const setupKeyboardShortcuts = () => {
             }
         }
         if (state.route === "review" && state.activeSession) {
+            if (state.walkthrough) return;
             if (event.key === "ArrowLeft") {
                 actions.stepReviewQuestion(-1);
                 event.preventDefault();

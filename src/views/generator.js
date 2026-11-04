@@ -1,15 +1,10 @@
 import { DIFFICULTIES, QUESTION_FORMATS, SECTIONS, getSkillsForSection, getTopicsBySection } from "../data/taxonomy.js";
 import { DEFAULT_SECONDS_PER_QUESTION, QUESTION_COUNT_LIMITS, REVIEW_MODES, SECONDS_PER_QUESTION_LIMITS, TIMING_MODES } from "../data/defaults.js";
+import { createAiChatShortcuts } from "../components/chats.js";
 import { icon } from "../components/icons.js";
 import { QUESTION_BANK_TOTAL_QUESTION_COUNT } from "../data/bank/catalog.js";
 import { createResumeCard } from "../components/resume.js";
 import { getResumableInfo } from "../storage/progress.js";
-
-const AI_CHAT_SHORTCUTS = [
-    { name: "ChatGPT", href: "https://chatgpt.com/", icon: "./assets/images/chatgpt.svg" },
-    { name: "Claude", href: "https://claude.ai/new", icon: "./assets/images/claude.svg" },
-    { name: "DeepSeek", href: "https://chat.deepseek.com/", icon: "./assets/images/deepseek.svg" }
-];
 
 const CHECK_GLYPH = '<svg width="10" height="8" viewBox="0 0 10 8" aria-hidden="true" focusable="false"><path d="M1 4l3 3 5-6" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
 
@@ -291,27 +286,7 @@ const makeGenerationPipelineModal = (state, actions) => {
     close.addEventListener("click", () => actions.closeGenerationPipeline());
     top.append(heading, close);
     panel.append(top);
-    const shortcuts = document.createElement("nav");
-    shortcuts.className = "generation-pipeline-shortcuts";
-    shortcuts.setAttribute("aria-label", "Open an AI chat");
-    AI_CHAT_SHORTCUTS.forEach((shortcut) => {
-        const link = document.createElement("a");
-        link.className = "btn btn-secondary generation-pipeline-shortcut";
-        link.href = shortcut.href;
-        link.target = "_blank";
-        link.rel = "noopener";
-        link.setAttribute("aria-label", `Open ${shortcut.name} in a new tab`);
-        const shortcutIcon = document.createElement("img");
-        shortcutIcon.className = "generation-pipeline-shortcut-icon";
-        shortcutIcon.src = shortcut.icon;
-        shortcutIcon.alt = "";
-        shortcutIcon.setAttribute("aria-hidden", "true");
-        const label = document.createElement("span");
-        label.textContent = shortcut.name;
-        link.append(shortcutIcon, label);
-        shortcuts.append(link);
-    });
-    panel.append(shortcuts);
+    panel.append(createAiChatShortcuts());
     const instructions = document.createElement("p");
     instructions.className = "generation-pipeline-instructions";
     instructions.textContent = "Copy prompt → Paste into an AI chat → Copy its output → Paste here:";
