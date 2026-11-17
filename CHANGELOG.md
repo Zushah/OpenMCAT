@@ -3,7 +3,8 @@
 All committed changes to the [`Zushah/OpenMCAT`](https://github.com/Zushah/OpenMCAT) code repository are recorded here.
 
 ## 38. [`v1.13.0`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-11-17&until=2026-11-17) 2026-11-17
-- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Fix miscellaneous small inconsistencies
+- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Update catalog for AI model names
+- [`ccb33df`](https://github.com/Zushah/OpenMCAT/commit/ccb33df) Fix miscellaneous small inconsistencies
 - [`eb7745d`](https://github.com/Zushah/OpenMCAT/commit/eb7745d) Add strikethroughing
 
 ## 37. [`v1.12.0`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-11-04&until=2026-11-04) 2026-11-04

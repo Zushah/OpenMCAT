@@ -98,16 +98,23 @@ test("malformed stored sessions never offer to resume or break the app", async (
     await page.goto("/");
     await page.evaluate(async () => {
         const { saveSession } = await import("/src/storage/db.js");
+        const { scheduleBackupReminder } = await import("/src/storage/backup.js");
+        scheduleBackupReminder("never");
         await saveSession({ id: "x", generatedSession: { questions: [{ stem: "s" }] } });
         await saveSession({ id: "y", progress: {}, completedAt: null });
         await saveSession({ id: "z", progress: { savedAt: new Date().toISOString() }, config: {}, generatedSession: { questions: [{ id: "q1" }] }, questionStateById: { q1: {} } });
     });
+    const waitForBankLoad = async (route) => {
+        if (route === "bank") await expect(page.getByRole("button", { name: "Refresh", exact: true })).toBeEnabled();
+    };
     for (const route of ["generate", "bank", "dashboard", "session"]) {
         await page.goto("/");
         await page.goto(`/#/${route}`);
+        await waitForBankLoad(route);
         await page.reload();
         await expect(page.locator("#main-content")).not.toBeEmpty();
         await expect(page.locator(".resume-card")).toHaveCount(0);
+        await waitForBankLoad(route);
     }
 });
 
