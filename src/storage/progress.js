@@ -60,6 +60,7 @@ export const hydrateActiveSession = (record) => {
         currentQuestionIndex: Number.isFinite(savedIndex) ? Math.min(Math.max(savedIndex, 0), lastQuestionIndex) : 0,
         questionStateById: structuredClone(record.questionStateById),
         highlightRangesByTargetKey: structuredClone(record.highlightRangesByTargetKey ?? {}),
+        strikethroughRangesByTargetKey: structuredClone(record.strikethroughRangesByTargetKey ?? {}),
         hasReachedFinalQuestion: record.hasReachedFinalQuestion === true,
         navigationOpen: false,
         navigationFilter: "all",
@@ -78,6 +79,7 @@ export const buildCompletionPatch = (sessionLike, completedAt) => {
         completedAt,
         questionStateById: structuredClone(sessionLike?.questionStateById ?? {}),
         highlightRangesByTargetKey: structuredClone(sessionLike?.highlightRangesByTargetKey ?? {}),
+        strikethroughRangesByTargetKey: structuredClone(sessionLike?.strikethroughRangesByTargetKey ?? {}),
         hasReachedFinalQuestion: sessionLike?.hasReachedFinalQuestion === true,
         summary: {
             submitted,

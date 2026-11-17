@@ -89,6 +89,7 @@ const ensureQuestionStart = (activeSession, questionId, now = new Date()) => {
 const buildProgressPatch = (activeSession, now = new Date()) => ({
     questionStateById: Object.fromEntries(Object.entries(activeSession.questionStateById).map(([questionId, questionState]) => [questionId, { ...structuredClone(questionState), elapsedMs: getQuestionElapsedMs(questionState, now), startedAt: null }])),
     highlightRangesByTargetKey: structuredClone(activeSession.highlightRangesByTargetKey ?? {}),
+    strikethroughRangesByTargetKey: structuredClone(activeSession.strikethroughRangesByTargetKey ?? {}),
     hasReachedFinalQuestion: activeSession.hasReachedFinalQuestion === true,
     progress: { currentQuestionIndex: activeSession.currentQuestionIndex, savedAt: now.toISOString() }
 });
@@ -482,6 +483,7 @@ export const createActions = ({ render, applyTheme }) => {
             providerMeta: normalizedProviderMeta,
             questionStateById: structuredClone(questionStateById),
             highlightRangesByTargetKey: {},
+            strikethroughRangesByTargetKey: {},
             hasReachedFinalQuestion: prepared.questions.length <= 1,
             progress: { currentQuestionIndex: 0, savedAt: nowIso }
         };
@@ -498,6 +500,7 @@ export const createActions = ({ render, applyTheme }) => {
             currentQuestionIndex: 0,
             questionStateById,
             highlightRangesByTargetKey: {},
+            strikethroughRangesByTargetKey: {},
             hasReachedFinalQuestion: prepared.questions.length <= 1,
             navigationOpen: false,
             navigationFilter: "all",
@@ -664,22 +667,26 @@ export const createActions = ({ render, applyTheme }) => {
         showToast(qState.flagged ? "Question flagged." : "Flag removed.");
     };
 
-    const toggleHighlightFromSelection = () => {
+    const toggleAnnotationFromSelection = (mapKey, emptyMessage) => {
         const active = state.activeSession;
         if (!active) return;
         const selectionRanges = getSelectionHighlightRanges();
-        if (!selectionRanges.length) { showToast("Select passage or question text to highlight.", "error"); return; }
-        active.highlightRangesByTargetKey = active.highlightRangesByTargetKey ?? {};
+        if (!selectionRanges.length) { showToast(emptyMessage, "error"); return; }
+        active[mapKey] = active[mapKey] ?? {};
         selectionRanges.forEach((selectionRange) => {
-            const currentRanges = active.highlightRangesByTargetKey[selectionRange.targetKey] ?? [];
+            const currentRanges = active[mapKey][selectionRange.targetKey] ?? [];
             const nextRanges = toggleHighlightRange(currentRanges, selectionRange);
-            if (nextRanges.length) active.highlightRangesByTargetKey[selectionRange.targetKey] = nextRanges;
-            else delete active.highlightRangesByTargetKey[selectionRange.targetKey];
+            if (nextRanges.length) active[mapKey][selectionRange.targetKey] = nextRanges;
+            else delete active[mapKey][selectionRange.targetKey];
         });
         window.getSelection()?.removeAllRanges();
         render();
         scheduleProgressSave();
     };
+
+    const toggleHighlightFromSelection = () => toggleAnnotationFromSelection("highlightRangesByTargetKey", "Select passage, question, or answer text to highlight.");
+
+    const toggleStrikethroughFromSelection = () => toggleAnnotationFromSelection("strikethroughRangesByTargetKey", "Select passage, question, or answer text to strike through.");
 
     const saveCurrentAnswer = async () => {
         const active = state.activeSession;
@@ -1350,6 +1357,7 @@ export const createActions = ({ render, applyTheme }) => {
         setConfidence,
         flagCurrentQuestion,
         toggleHighlightFromSelection,
+        toggleStrikethroughFromSelection,
         submitAnswer,
         previousQuestion,
         nextQuestion,

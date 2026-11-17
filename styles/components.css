@@ -854,11 +854,15 @@ tbody th[scope="row"] {
     transition: background-color var(--t-fast) ease-out;
 }
 
-button.choice-card:hover:not(:disabled) {
+.choice-card[role="button"] {
+    cursor: pointer;
+}
+
+.choice-card[role="button"]:hover:not([aria-disabled="true"]) {
     background: var(--accent-wash);
 }
 
-button.choice-card:disabled {
+.choice-card[aria-disabled="true"] {
     cursor: default;
 }
 

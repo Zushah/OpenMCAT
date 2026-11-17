@@ -188,6 +188,7 @@ test("practice and review order, highlight, store, export, and import question s
         "question:q1:table:qt1:caption",
         "question:q1:table:qt1:column:0",
         "question:q1:table:qt1:cell:0:0",
+        "question:q1:chart:qc1:caption",
         "question:q1:figure:qf1:caption",
         "question:q1:figure:qf1:description"
     ];
@@ -207,6 +208,7 @@ test("practice and review order, highlight, store, export, and import question s
     expect(passageOrder.indexOf("table")).toBeLessThan(passageOrder.indexOf("chart"));
     expect(passageOrder.indexOf("chart")).toBeLessThan(passageOrder.indexOf("figure"));
     await selectTargetAndHighlight(page, "passage:p1:table:t1:cell:0:0");
+    await selectTargetAndHighlight(page, "passage:p1:chart:pc1:caption");
     await selectTargetAndHighlight(page, "passage:p1:figure:pf1:description");
 
     await page.getByRole("button", { name: "Navigation", exact: true }).click();
@@ -248,3 +250,54 @@ test("practice and review order, highlight, store, export, and import question s
         passageFigure: session.passages[0].figureDescriptions[0]
     });
 });
+
+const selectTarget = (page, targetKey) => page.locator(`[data-highlight-target-key="${targetKey}"]`).evaluate((target) => {
+    const range = document.createRange();
+    range.selectNodeContents(target);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+});
+
+for (const [tool, key, selector, field] of [["Highlight", "h", "mark.highlight-mark", "highlightRangesByTargetKey"], ["Strikethrough", "s", "s.strikethrough-mark", "strikethroughRangesByTargetKey"]]) {
+    test(`${tool.toLowerCase()} marks passage, question, and answer text, toggles off, saves, and shows in review`, async ({ page }) => {
+        await openGeneratedSession(page, createStimulusSession());
+        const marked = (targetKey) => page.locator(`[data-highlight-target-key="${targetKey}"] ${selector}`);
+        await selectTarget(page, "question:q1:stem");
+        await page.keyboard.press(key);
+        await selectTarget(page, "question:q1:choice:A");
+        await page.locator(".session-top-actions").getByRole("button", { name: tool, exact: true }).click();
+        await expect(marked("question:q1:stem")).toHaveText(SAMPLE_SESSION.questions[0].stem);
+        await expect(marked("question:q1:choice:A")).toHaveText("Glutamate");
+        await expect(page.locator('.choice-card[data-choice-id="A"]')).toHaveAttribute("aria-pressed", "false");
+        if (tool === "Strikethrough") await expect(page.locator('.choice-card[data-choice-id="A"]')).toHaveAttribute("aria-label", "A. Glutamate. Struckthrough.");
+
+        await selectTarget(page, "question:q1:stem");
+        await page.keyboard.press(key);
+        await expect(marked("question:q1:stem")).toHaveCount(0);
+
+        await page.locator('[data-highlight-target-key="question:q1:table:qt1:caption"]').evaluate((caption) => {
+            const range = document.createRange();
+            range.setStart(caption.firstChild, 0);
+            range.setEnd(caption.parentElement, 1);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+        });
+        await page.keyboard.press(key);
+        await expect(marked("question:q1:table:qt1:caption")).toHaveText("Question-specific measurements");
+
+        await page.getByRole("button", { name: "Navigation", exact: true }).click();
+        await page.getByRole("dialog", { name: "Navigation" }).getByRole("button", { name: /Question 3/ }).click();
+        await selectTarget(page, "passage:p1:text");
+        await page.keyboard.press(key);
+        await expect(marked("passage:p1:text")).toHaveText(SAMPLE_SESSION.passages[0].text);
+
+        await page.getByRole("button", { name: "Navigation", exact: true }).click();
+        await page.getByRole("dialog", { name: "Navigation" }).getByRole("button", { name: /Question 5/ }).click();
+        await page.locator(".session-top-actions").getByRole("button", { name: "Review", exact: true }).click();
+        await page.getByRole("dialog", { name: "Review" }).getByRole("button", { name: "End session" }).click();
+        await expect(page).toHaveURL(/#\/review\?session=[\w-]+$/);
+        const stored = await page.evaluate(async () => (await (await import("/src/storage/db.js")).getSessions())[0]);
+        expect(Object.keys(stored[field]).sort()).toEqual(["passage:p1:text", "question:q1:choice:A", "question:q1:table:qt1:caption"]);
+        await expect(page.locator(".review-question").first().locator(`[data-highlight-target-key="question:q1:choice:A"] ${selector}`)).toHaveText("Glutamate");
+    });
+}

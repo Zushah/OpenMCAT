@@ -18,6 +18,8 @@ export const getPassageTableColumnHighlightKey = (passageId, tableId, columnInde
 
 export const getPassageTableCellHighlightKey = (passageId, tableId, rowIndex, columnIndex) => `passage:${getKeyPart(passageId)}:table:${getKeyPart(tableId)}:cell:${getKeyPart(rowIndex)}:${getKeyPart(columnIndex)}`;
 
+export const getPassageChartCaptionHighlightKey = (passageId, chartId) => `passage:${getKeyPart(passageId)}:chart:${getKeyPart(chartId)}:caption`;
+
 export const getPassageFigureCaptionHighlightKey = (passageId, figureId) => `passage:${getKeyPart(passageId)}:figure:${getKeyPart(figureId)}:caption`;
 
 export const getPassageFigureDescriptionHighlightKey = (passageId, figureId) => `passage:${getKeyPart(passageId)}:figure:${getKeyPart(figureId)}:description`;
@@ -32,9 +34,13 @@ export const getQuestionTableColumnHighlightKey = (questionId, tableId, columnIn
 
 export const getQuestionTableCellHighlightKey = (questionId, tableId, rowIndex, columnIndex) => `question:${getKeyPart(questionId)}:table:${getKeyPart(tableId)}:cell:${getKeyPart(rowIndex)}:${getKeyPart(columnIndex)}`;
 
+export const getQuestionChartCaptionHighlightKey = (questionId, chartId) => `question:${getKeyPart(questionId)}:chart:${getKeyPart(chartId)}:caption`;
+
 export const getQuestionFigureCaptionHighlightKey = (questionId, figureId) => `question:${getKeyPart(questionId)}:figure:${getKeyPart(figureId)}:caption`;
 
 export const getQuestionFigureDescriptionHighlightKey = (questionId, figureId) => `question:${getKeyPart(questionId)}:figure:${getKeyPart(figureId)}:description`;
+
+export const getQuestionChoiceHighlightKey = (questionId, choiceId) => `question:${getKeyPart(questionId)}:choice:${getKeyPart(choiceId)}`;
 
 export const normalizeHighlightRanges = (ranges = [], textLength = Infinity) => {
     const max = Number.isFinite(textLength) ? Math.max(0, Math.floor(textLength)) : Infinity;
@@ -52,36 +58,44 @@ export const normalizeHighlightRanges = (ranges = [], textLength = Infinity) => 
     }, []);
 };
 
-const appendTextSegment = (element, text, highlighted = false) => {
+const appendTextSegment = (element, text, highlighted = false, struck = false) => {
     if (!text) return;
-    if (!highlighted) { element.append(document.createTextNode(text)); return; }
-    const mark = document.createElement("mark");
-    mark.className = "highlight-mark";
-    mark.append(document.createTextNode(text));
-    element.append(mark);
+    let node = document.createTextNode(text);
+    if (struck) { const strike = document.createElement("s"); strike.className = "strikethrough-mark"; strike.append(node); node = strike; }
+    if (highlighted) { const mark = document.createElement("mark"); mark.className = "highlight-mark"; mark.append(node); node = mark; }
+    element.append(node);
 };
 
-export const createHighlightableText = ({ tagName = "p", className = "", text = "", targetKey = "", scopeKey = "", ranges = [] } = {}) => {
+const isOffsetInRanges = (ranges, offset) => ranges.some((range) => range.start <= offset && offset < range.end);
+
+export const isTextFullyCovered = (ranges = [], text = "") => {
+    const sourceText = String(text ?? "");
+    const normalizedRanges = normalizeHighlightRanges(ranges, sourceText.length);
+    if (!normalizedRanges.length || !/\S/.test(sourceText)) return false;
+    for (let index = 0; index < sourceText.length; index += 1) if (!/\s/.test(sourceText[index]) && !isOffsetInRanges(normalizedRanges, index)) return false;
+    return true;
+};
+
+export const createHighlightableText = ({ tagName = "p", className = "", text = "", targetKey = "", scopeKey = "", ranges = [], strikethroughRanges = [] } = {}) => {
     const element = document.createElement(tagName);
     if (className) element.className = className;
     if (targetKey) { element.dataset.highlightTargetKey = targetKey; element.dataset.highlightScopeKey = scopeKey || targetKey; }
     const sourceText = String(text ?? "");
-    const normalizedRanges = normalizeHighlightRanges(ranges, sourceText.length);
-    if (!normalizedRanges.length) { element.textContent = sourceText; return element; }
-    let cursor = 0;
-    normalizedRanges.forEach((range) => {
-        appendTextSegment(element, sourceText.slice(cursor, range.start), false);
-        appendTextSegment(element, sourceText.slice(range.start, range.end), true);
-        cursor = range.end;
+    const highlightRanges = normalizeHighlightRanges(ranges, sourceText.length);
+    const strikeRanges = normalizeHighlightRanges(strikethroughRanges, sourceText.length);
+    if (!highlightRanges.length && !strikeRanges.length) { element.textContent = sourceText; return element; }
+    const boundaries = Array.from(new Set([0, sourceText.length, ...[...highlightRanges, ...strikeRanges].flatMap((range) => [range.start, range.end])])).sort((a, b) => a - b);
+    let segment = null;
+    const flush = () => { if (segment) appendTextSegment(element, sourceText.slice(segment.start, segment.end), segment.highlighted, segment.struck); };
+    boundaries.slice(0, -1).forEach((start, index) => {
+        const end = boundaries[index + 1];
+        const highlighted = isOffsetInRanges(highlightRanges, start), struck = isOffsetInRanges(strikeRanges, start);
+        if (segment && segment.highlighted === highlighted && segment.struck === struck) { segment.end = end; return; }
+        flush();
+        segment = { start, end, highlighted, struck };
     });
-    appendTextSegment(element, sourceText.slice(cursor), false);
+    flush();
     return element;
-};
-
-const getHighlightTarget = (node) => {
-    if (!node) return null;
-    const element = node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement;
-    return element?.closest?.(HIGHLIGHT_TARGET_SELECTOR) ?? null;
 };
 
 const getOffsetWithinTarget = (target, container, offset) => {
@@ -102,14 +116,14 @@ const getHighlightScopeKey = (target) => target?.dataset.highlightScopeKey || ta
 
 const targetIntersectsRange = (range, target) => { try { return range.intersectsNode(target); } catch (error) { return false; } };
 
-const getSelectedTargetRange = (range, target, startTarget, endTarget) => {
+const getSelectedTargetRange = (range, target) => {
     const targetKey = target.dataset.highlightTargetKey;
     if (!targetKey) return null;
     const text = target.textContent ?? "";
     let start = 0;
     let end = text.length;
-    if (target === startTarget) { const offset = getOffsetWithinTarget(target, range.startContainer, range.startOffset); if (offset === null) return null; start = offset; }
-    if (target === endTarget) { const offset = getOffsetWithinTarget(target, range.endContainer, range.endOffset); if (offset === null) return null; end = offset; }
+    if (target.contains(range.startContainer)) { const offset = getOffsetWithinTarget(target, range.startContainer, range.startOffset); if (offset === null) return null; start = offset; }
+    if (target.contains(range.endContainer)) { const offset = getOffsetWithinTarget(target, range.endContainer, range.endOffset); if (offset === null) return null; end = offset; }
     const selectedRange = trimWhitespace(text, { start: Math.min(start, end), end: Math.max(start, end) });
     if (selectedRange.end <= selectedRange.start) return null;
     return { targetKey, ...selectedRange };
@@ -119,14 +133,10 @@ export const getSelectionHighlightRanges = () => {
     const selection = window.getSelection?.();
     if (!selection || selection.rangeCount === 0 || selection.isCollapsed) return [];
     const range = selection.getRangeAt(0);
-    const startTarget = getHighlightTarget(range.startContainer);
-    const endTarget = getHighlightTarget(range.endContainer);
-    if (!startTarget || !endTarget) return [];
-    const scopeKey = getHighlightScopeKey(startTarget);
-    if (!scopeKey || scopeKey !== getHighlightScopeKey(endTarget)) return [];
-    return Array.from(document.querySelectorAll(HIGHLIGHT_TARGET_SELECTOR)).filter((target) => {
-        return getHighlightScopeKey(target) === scopeKey && targetIntersectsRange(range, target);
-    }).map((target) => getSelectedTargetRange(range, target, startTarget, endTarget)).filter(Boolean);
+    const selected = Array.from(document.querySelectorAll(HIGHLIGHT_TARGET_SELECTOR)).filter((target) => targetIntersectsRange(range, target)).map((target) => ({ target, selectedRange: getSelectedTargetRange(range, target) })).filter((item) => item.selectedRange);
+    const scopeKey = getHighlightScopeKey(selected[0]?.target);
+    if (!scopeKey || selected.some((item) => getHighlightScopeKey(item.target) !== scopeKey)) return [];
+    return selected.map((item) => item.selectedRange);
 };
 
 export const getSelectionHighlightRange = () => getSelectionHighlightRanges()[0] ?? null;

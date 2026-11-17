@@ -404,7 +404,7 @@ const queueStimulusChartRender = (figure) => {
     pendingChartRenders.set(state.canvas, frameId);
 };
 
-export const createStimulusChart = (chartSpec, { defer = false, surface = "passage" } = {}) => {
+export const createStimulusChart = (chartSpec, { defer = false, surface = "passage", captionElement = null } = {}) => {
     const figure = document.createElement("figure");
     figure.className = `stimulus-chart stimulus-chart--${surface === "question" ? "question" : "passage"}`;
     figure.dataset.chartId = chartSpec.id;
@@ -414,9 +414,8 @@ export const createStimulusChart = (chartSpec, { defer = false, surface = "passa
     canvas.setAttribute("role", "img");
     canvas.setAttribute("aria-label", chartSpec.caption);
     canvasWrap.append(canvas);
-    const caption = document.createElement("figcaption");
-    caption.className = "stimulus-chart-caption";
-    caption.textContent = chartSpec.caption;
+    const caption = captionElement ?? document.createElement("figcaption");
+    if (!captionElement) { caption.className = "stimulus-chart-caption"; caption.textContent = chartSpec.caption; }
     figure.append(caption, canvasWrap);
     stimulusChartStates.set(figure, { canvas, chartSpec, queued: false, rendered: false });
     if (!defer) queueStimulusChartRender(figure);

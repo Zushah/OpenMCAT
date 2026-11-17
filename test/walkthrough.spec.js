@@ -86,7 +86,8 @@ test("walkthrough payloads keep session numbering and leave out private fields",
                 q3: { submitted: false, selectedChoiceId: "D", confidence: 3 },
                 q4: { submitted: true, isCorrect: false, submittedChoiceId: "B" }
             },
-            highlightRangesByTargetKey: { "question:q1:stem": [{ start: 0, end: 3 }] }
+            highlightRangesByTargetKey: { "question:q1:stem": [{ start: 0, end: 3 }] },
+            strikethroughRangesByTargetKey: { "question:q1:stem": [{ start: 0, end: 3 }] }
         };
         const bankSession = { ...session, providerMeta: { source: "question_bank" }, generatedSession: { ...sample, questions: sample.questions.map((question) => ({ ...question, bankId: "bb-core" })) } };
         const legacy = { generatedSession: { questions: [{ id: "x1", passageId: "missing", stem: "?" }] }, questionStateById: {} };
@@ -104,7 +105,7 @@ test("walkthrough payloads keep session numbering and leave out private fields",
     expect(result.all.questions[2]).toMatchObject({ result: "unsubmitted", studentChoiceId: null, confidence: null, passageLabel: "Passage 1" });
     expect(result.all.session.aiModel).toBe("override-model");
     expect(result.bank.session).not.toHaveProperty("aiModel");
-    for (const key of ["highlight", "attemptId", "selfCheck", "bankId"]) for (const payload of [result.all, result.bank]) expect(JSON.stringify(payload)).not.toContain(`"${key}`);
+    for (const key of ["highlight", "strikethrough", "attemptId", "selfCheck", "bankId"]) for (const payload of [result.all, result.bank]) expect(JSON.stringify(payload)).not.toContain(`"${key}`);
     expect(result.legacy.questions[0]).toMatchObject({ passageLabel: null, result: "unsubmitted" });
 });
 

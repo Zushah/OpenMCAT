@@ -343,7 +343,8 @@ const makeShortcutLegend = (hasReachedReviewPoint) => {
         [["←", "→"], "navigate"],
         hasReachedReviewPoint ? [["R"], "review"] : [["N"], "navigation"],
         [["F"], "flag"],
-        [["H"], "highlight"]
+        [["H"], "highlight"],
+        [["S"], "strikethrough"]
     ];
     groups.forEach(([keys, action]) => {
         const group = document.createElement("span");
@@ -353,7 +354,7 @@ const makeShortcutLegend = (hasReachedReviewPoint) => {
     });
     const spoken = document.createElement("span");
     spoken.className = "visually-hidden";
-    spoken.textContent = hasReachedReviewPoint ? "Shortcuts: A/B/C/D select, Enter submit, Left/Right navigate, R review, F flag, H highlight." : "Shortcuts: A/B/C/D select, Enter submit, Left/Right navigate, N navigation, F flag, H highlight.";
+    spoken.textContent = hasReachedReviewPoint ? "Shortcuts: A/B/C/D select, Enter submit, Left/Right navigate, R review, F flag, H highlight, S strikethrough." : "Shortcuts: A/B/C/D select, Enter submit, Left/Right navigate, N navigation, F flag, H highlight, S strikethrough.";
     Array.from(hint.children).forEach((child) => child.setAttribute("aria-hidden", "true"));
     hint.append(spoken);
     return hint;
@@ -414,6 +415,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
     const passageMetadataById = createPassageMetadataById(activeSession.generatedSession.passages ?? [], questions);
     const passageMetadata = passage ? passageMetadataById.get(passage.id) : null;
     const highlightRangesByTargetKey = activeSession.highlightRangesByTargetKey ?? {};
+    const strikethroughRangesByTargetKey = activeSession.strikethroughRangesByTargetKey ?? {};
     const top = document.createElement("section");
     top.className = "session-top";
     top.setAttribute("aria-label", "Session status");
@@ -444,13 +446,15 @@ export const renderPracticeView = (state, actions, nowMs) => {
     const actionRow = document.createElement("div");
     actionRow.className = "button-row session-top-actions";
     const flagButton = makeToolButton({ label: questionState.flagged ? "Unflag" : "Flag", key: "F", pressed: Boolean(questionState.flagged), onClick: () => actions.flagCurrentQuestion() });
-    const highlightButton = makeToolButton({ label: "Highlight", key: "H", title: "Highlight selected passage or question text (H)", onClick: () => actions.toggleHighlightFromSelection() });
-    highlightButton.addEventListener("pointerdown", (event) => event.preventDefault());
-    highlightButton.addEventListener("mousedown", (event) => event.preventDefault());
+    const highlightButton = makeToolButton({ label: "Highlight", key: "H", title: "Highlight selected passage, question, or answer text (H)", onClick: () => actions.toggleHighlightFromSelection() });
+    const strikethroughButton = makeToolButton({ label: "Strikethrough", key: "S", title: "Strike through selected passage, question, or answer text (S)", onClick: () => actions.toggleStrikethroughFromSelection() });
+    [highlightButton, strikethroughButton].forEach((button) => {
+        button.addEventListener("pointerdown", (event) => event.preventDefault());
+        button.addEventListener("mousedown", (event) => event.preventDefault());
+    });
     const navigationButton = makeToolButton({ label: "Navigation", key: "N", onClick: () => actions.openNavigationPanel() });
     const reviewButton = makeToolButton({ label: "Review", key: "R", title: "Open final review before ending.", onClick: () => actions.openFinalReviewPanel() });
-    if (hasReachedReviewPoint) actionRow.append(flagButton, highlightButton, reviewButton);
-    else actionRow.append(flagButton, highlightButton, navigationButton);
+    actionRow.append(flagButton, highlightButton, strikethroughButton, hasReachedReviewPoint ? reviewButton : navigationButton);
     const timerRow = document.createElement("div");
     timerRow.className = "session-timer-row";
     timerRow.append(totalTimer, timer);
@@ -460,7 +464,7 @@ export const renderPracticeView = (state, actions, nowMs) => {
     const grid = document.createElement("section");
     grid.className = "session-grid";
     if (!passage) grid.classList.add("is-single");
-    if (passage) grid.append(createPassageCard(passage, { ...(passageMetadata ?? {}), highlightRangesByTargetKey }));
+    if (passage) grid.append(createPassageCard(passage, { ...(passageMetadata ?? {}), highlightRangesByTargetKey, strikethroughRangesByTargetKey }));
     const questionCard = document.createElement("article");
     questionCard.className = "question-card";
     questionCard.dataset.scrollKey = `practice-question:${question.id}`;
@@ -482,14 +486,16 @@ export const renderPracticeView = (state, actions, nowMs) => {
         text: question.stem,
         targetKey: questionHighlightKey,
         scopeKey: getQuestionHighlightScopeKey(question.id),
-        ranges: highlightRangesByTargetKey[questionHighlightKey]
+        ranges: highlightRangesByTargetKey[questionHighlightKey],
+        strikethroughRanges: strikethroughRangesByTargetKey[questionHighlightKey]
     });
     questionCard.append(questionHeader, stem);
     appendStimulusContent(questionCard, question, {
         surface: "question",
         ownerId: question.id,
         scopeKey: getQuestionHighlightScopeKey(question.id),
-        highlightRangesByTargetKey
+        highlightRangesByTargetKey,
+        strikethroughRangesByTargetKey
     });
     const choiceList = document.createElement("div");
     choiceList.className = "choice-list";
@@ -497,14 +503,16 @@ export const renderPracticeView = (state, actions, nowMs) => {
     choiceList.setAttribute("aria-label", "Answer choices");
     const controlsLocked = questionState.submitted && activeSession.config.reviewMode === "immediate";
     question.choices.forEach((choice) => {
-        const choiceElement = createChoiceCard(choice, {
+        choiceList.append(createChoiceCard(choice, {
             selectedId: questionState.selectedChoiceId,
             submitted: showFeedback,
-            correctId: question.correctChoiceId
-        });
-        choiceElement.disabled = controlsLocked;
-        if (!controlsLocked) choiceElement.addEventListener("click", () => actions.selectChoice(choice.id));
-        choiceList.append(choiceElement);
+            correctId: question.correctChoiceId,
+            disabled: controlsLocked,
+            onSelect: () => actions.selectChoice(choice.id),
+            questionId: question.id,
+            highlightRangesByTargetKey,
+            strikethroughRangesByTargetKey
+        }));
     });
     questionCard.append(choiceList);
     const confidence = document.createElement("fieldset");

@@ -111,7 +111,7 @@ const syncMistakeTypePanelHeights = (root) => {
     });
 };
 
-const createReviewPassageDropdown = (passage, passageMetadata = {}, highlightRangesByTargetKey = {}) => {
+const createReviewPassageDropdown = (passage, passageMetadata = {}, highlightRangesByTargetKey = {}, strikethroughRangesByTargetKey = {}) => {
     const details = document.createElement("details");
     details.className = "review-passage-dropdown";
     const summary = document.createElement("summary");
@@ -123,7 +123,7 @@ const createReviewPassageDropdown = (passage, passageMetadata = {}, highlightRan
     expandIcon.className = "review-passage-icon";
     expandIcon.append(icon("chevron-down", { size: 14 }));
     summary.append(label, expandIcon);
-    details.append(summary, createPassageCard(passage, { className: "passage-card review-passage-card", ...passageMetadata, highlightRangesByTargetKey, deferCharts: true }));
+    details.append(summary, createPassageCard(passage, { className: "passage-card review-passage-card", ...passageMetadata, highlightRangesByTargetKey, strikethroughRangesByTargetKey, deferCharts: true }));
     details.addEventListener("toggle", () => {
         label.textContent = details.open ? `Hide ${passageTitle}` : `Show ${passageTitle}`;
         expandIcon.replaceChildren(icon(details.open ? "chevron-up" : "chevron-down", { size: 14 }));
@@ -157,7 +157,7 @@ const appendReviewExplanation = (card, question, state) => {
     card.append(explanation);
 };
 
-const makeQuestionReviewBlock = (record, index, isFocused, passagesById, passageMetadataById, highlightRangesByTargetKey, actions) => {
+const makeQuestionReviewBlock = (record, index, isFocused, passagesById, passageMetadataById, highlightRangesByTargetKey, strikethroughRangesByTargetKey, actions) => {
     const { question, state } = record;
     const card = document.createElement("article");
     const resultClass = state.submitted ? state.isCorrect ? "is-correct" : "is-incorrect" : "is-unanswered";
@@ -187,16 +187,18 @@ const makeQuestionReviewBlock = (record, index, isFocused, passagesById, passage
         text: question.stem,
         targetKey: questionHighlightKey,
         scopeKey: getQuestionHighlightScopeKey(question.id),
-        ranges: highlightRangesByTargetKey[questionHighlightKey] ?? []
+        ranges: highlightRangesByTargetKey[questionHighlightKey] ?? [],
+        strikethroughRanges: strikethroughRangesByTargetKey[questionHighlightKey] ?? []
     }));
     card.append(heading);
     appendStimulusContent(card, question, {
         surface: "question",
         ownerId: question.id,
         scopeKey: getQuestionHighlightScopeKey(question.id),
-        highlightRangesByTargetKey
+        highlightRangesByTargetKey,
+        strikethroughRangesByTargetKey
     });
-    card.append(createStaticChoiceList(question, { selectedId: state.submitted ? state.submittedChoiceId ?? state.selectedChoiceId : null, submitted: true }));
+    card.append(createStaticChoiceList(question, { selectedId: state.submitted ? state.submittedChoiceId ?? state.selectedChoiceId : null, submitted: true, highlightRangesByTargetKey, strikethroughRangesByTargetKey }));
     appendReviewExplanation(card, question, state);
     if (state.flagged) {
         const flagged = document.createElement("p");
@@ -205,7 +207,7 @@ const makeQuestionReviewBlock = (record, index, isFocused, passagesById, passage
         card.append(flagged);
     }
     const passage = question.passageId ? passagesById.get(question.passageId) : null;
-    if (passage) card.append(createReviewPassageDropdown(passage, passageMetadataById.get(passage.id) ?? {}, highlightRangesByTargetKey));
+    if (passage) card.append(createReviewPassageDropdown(passage, passageMetadataById.get(passage.id) ?? {}, highlightRangesByTargetKey, strikethroughRangesByTargetKey));
     if (!state.submitted || state.isCorrect) return card;
     const row = document.createElement("div");
     row.className = "review-question-row is-incorrect";
@@ -295,6 +297,7 @@ export const renderReviewView = (state, actions) => {
     const passagesById = new Map((activeSession.generatedSession.passages ?? []).map((passage) => [passage.id, passage]));
     const passageMetadataById = createPassageMetadataById(activeSession.generatedSession.passages ?? [], activeSession.generatedSession.questions);
     const highlightRangesByTargetKey = activeSession.highlightRangesByTargetKey ?? {};
+    const strikethroughRangesByTargetKey = activeSession.strikethroughRangesByTargetKey ?? {};
     const records = activeSession.generatedSession.questions.map((question, index) => ({ question, state: activeSession.questionStateById[question.id], index })).filter((record) => matchesReviewFilter(record.state, activeSession.reviewFilter));
     const reviewList = document.createElement("section");
     reviewList.className = "review-list";
@@ -306,7 +309,7 @@ export const renderReviewView = (state, actions) => {
         reviewList.append(empty);
     } else {
         const focusedIndex = state.activeSession.viewQuestionIndex ?? 0;
-        records.forEach((record) => { reviewList.append(makeQuestionReviewBlock(record, record.index, record.index === focusedIndex, passagesById, passageMetadataById, highlightRangesByTargetKey, actions)); });
+        records.forEach((record) => { reviewList.append(makeQuestionReviewBlock(record, record.index, record.index === focusedIndex, passagesById, passageMetadataById, highlightRangesByTargetKey, strikethroughRangesByTargetKey, actions)); });
     };
     root.append(reviewList);
     const actionRow = document.createElement("div");

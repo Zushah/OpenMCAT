@@ -2,8 +2,11 @@
 
 All committed changes to the [`Zushah/OpenMCAT`](https://github.com/Zushah/OpenMCAT) code repository are recorded here.
 
+## 38. [`v1.13.0`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-11-17&until=2026-11-17) 2026-11-17
+- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Add strikethroughing
+
 ## 37. [`v1.12.0`](https://github.com/Zushah/OpenMCAT/commits/main/?since=2026-11-04&until=2026-11-04) 2026-11-04
-- [`current`](https://github.com/Zushah/OpenMCAT/commit/HEAD) Fix popups, reviews, and dashboard details
+- [`b2fb57a`](https://github.com/Zushah/OpenMCAT/commit/b2fb57a) Fix popups, reviews, and dashboard details
 - [`8ed434a`](https://github.com/Zushah/OpenMCAT/commit/8ed434a) Add generatable videos to AI walkthroughs for practice sessions
 - [`0ca8439`](https://github.com/Zushah/OpenMCAT/commit/0ca8439) Add AI walkthroughs for practice sessions
 

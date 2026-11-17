@@ -178,6 +178,17 @@
     }
 }
 
+@media (min-width: 900px) and (max-width: 1279px) {
+    .session-top-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        row-gap: 10px;
+    }
+
+    .session-top-actions {
+        grid-column: 1 / -1;
+    }
+}
+
 @media (min-width: 1025px) {
     .session-grid:not(.is-single) > .question-card {
         position: sticky;
@@ -631,7 +642,7 @@
     .session-top-actions {
         order: 4;
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
     }
 

@@ -1421,6 +1421,13 @@
     -webkit-box-decoration-break: clone;
 }
 
+.strikethrough-mark {
+    color: inherit;
+    text-decoration-line: line-through;
+    text-decoration-color: currentColor;
+    text-decoration-thickness: 2px;
+}
+
 .practice-panel-overlay {
     place-items: stretch end;
     padding: 0;

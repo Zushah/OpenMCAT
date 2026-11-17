@@ -1,16 +1,25 @@
-import { createHighlightableText, getPassageFigureCaptionHighlightKey, getPassageFigureDescriptionHighlightKey, getPassageHighlightScopeKey, getPassageTableCaptionHighlightKey, getPassageTableCellHighlightKey, getPassageTableColumnHighlightKey, getPassageTextHighlightKey, getPassageTitleHighlightKey, getQuestionFigureCaptionHighlightKey, getQuestionFigureDescriptionHighlightKey, getQuestionHighlightScopeKey, getQuestionTableCaptionHighlightKey, getQuestionTableCellHighlightKey, getQuestionTableColumnHighlightKey } from "./highlights.js";
+import { createHighlightableText, isTextFullyCovered, getPassageChartCaptionHighlightKey, getPassageFigureCaptionHighlightKey, getPassageFigureDescriptionHighlightKey, getPassageHighlightScopeKey, getPassageTableCaptionHighlightKey, getPassageTableCellHighlightKey, getPassageTableColumnHighlightKey, getPassageTextHighlightKey, getPassageTitleHighlightKey, getQuestionFigureCaptionHighlightKey, getQuestionChartCaptionHighlightKey, getQuestionChoiceHighlightKey, getQuestionFigureDescriptionHighlightKey, getQuestionHighlightScopeKey, getQuestionTableCaptionHighlightKey, getQuestionTableCellHighlightKey, getQuestionTableColumnHighlightKey } from "./highlights.js";
 import { createStimulusChart } from "./charts.js";
 
-const createChoiceContent = (element, choice, tagText = "") => {
+const getHighlightRanges = (highlightRangesByTargetKey = {}, targetKey) => highlightRangesByTargetKey[targetKey] ?? [];
+
+const createChoiceContent = (element, choice, { tagText = "", questionId = "", highlightRangesByTargetKey = {}, strikethroughRangesByTargetKey = {} } = {}) => {
     const label = document.createElement("span");
     label.className = "choice-label";
     label.setAttribute("aria-hidden", "true");
     label.textContent = choice.id;
     const body = document.createElement("span");
     body.className = "choice-body";
-    const text = document.createElement("span");
-    text.className = "choice-text";
-    text.textContent = choice.text;
+    const textKey = getQuestionChoiceHighlightKey(questionId, choice.id);
+    const text = createHighlightableText({
+        tagName: "span",
+        className: "choice-text",
+        text: choice.text,
+        targetKey: textKey,
+        scopeKey: getQuestionHighlightScopeKey(questionId),
+        ranges: getHighlightRanges(highlightRangesByTargetKey, textKey),
+        strikethroughRanges: getHighlightRanges(strikethroughRangesByTargetKey, textKey)
+    });
     body.append(text);
     if (tagText) {
         const tag = document.createElement("span");
@@ -30,20 +39,42 @@ const getChoiceFeedback = (choice, { selectedId, submitted, correctId }) => {
     return { className: "", tag: "", label: `${choice.id}. ${choice.text}.` };
 };
 
-export const createChoiceCard = (choice, { selectedId, submitted, correctId }) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "choice-card";
-    button.dataset.choiceId = choice.id;
-    button.setAttribute("aria-pressed", selectedId === choice.id ? "true" : "false");
-    if (selectedId === choice.id) button.classList.add("is-selected");
+const isChoiceStruckThrough = (choice, questionId, strikethroughRangesByTargetKey = {}) => isTextFullyCovered(getHighlightRanges(strikethroughRangesByTargetKey, getQuestionChoiceHighlightKey(questionId, choice.id)), choice.text);
+
+const isSelectingWithin = (element) => {
+    const selection = window.getSelection?.();
+    return Boolean(selection && !selection.isCollapsed && (element.contains(selection.anchorNode) || element.contains(selection.focusNode)));
+};
+
+const hasModifier = (event) => event.ctrlKey || event.metaKey || event.altKey;
+
+export const createChoiceCard = (choice, { selectedId, submitted, correctId, disabled = false, onSelect = null, questionId, highlightRangesByTargetKey = {}, strikethroughRangesByTargetKey = {} }) => {
+    const card = document.createElement("div");
+    card.className = "choice-card";
+    card.setAttribute("role", "button");
+    card.tabIndex = disabled ? -1 : 0;
+    card.dataset.choiceId = choice.id;
+    card.setAttribute("aria-pressed", selectedId === choice.id ? "true" : "false");
+    if (disabled) card.setAttribute("aria-disabled", "true");
+    if (selectedId === choice.id) card.classList.add("is-selected");
     const feedback = getChoiceFeedback(choice, { selectedId, submitted, correctId });
-    if (feedback.className && feedback.className !== "is-selected") button.classList.add(feedback.className);
-    button.setAttribute("aria-label", feedback.label);
-    return createChoiceContent(button, choice, feedback.tag);
+    if (feedback.className && feedback.className !== "is-selected") card.classList.add(feedback.className);
+    card.setAttribute("aria-label", isChoiceStruckThrough(choice, questionId, strikethroughRangesByTargetKey) ? `${feedback.label.endsWith(".") ? feedback.label : `${feedback.label}.`} Struckthrough.` : feedback.label);
+    const select = () => { if (!disabled && onSelect) onSelect(); };
+    card.addEventListener("click", () => { if (!isSelectingWithin(card)) select(); });
+    card.addEventListener("keydown", (event) => {
+        if (event.target !== card || hasModifier(event)) return;
+        if (event.key === "Enter") { event.preventDefault(); if (!event.repeat) select(); }
+        else if (event.key === " ") event.preventDefault();
+    });
+    card.addEventListener("keyup", (event) => {
+        if (event.target !== card || hasModifier(event) || event.key !== " ") return;
+        select();
+    });
+    return createChoiceContent(card, choice, { tagText: feedback.tag, questionId, highlightRangesByTargetKey, strikethroughRangesByTargetKey });
 }
 
-export const createStaticChoiceList = (question, { selectedId = null, submitted = false } = {}) => {
+export const createStaticChoiceList = (question, { selectedId = null, submitted = false, highlightRangesByTargetKey = {}, strikethroughRangesByTargetKey = {} } = {}) => {
     const list = document.createElement("ol");
     list.className = "choice-list is-static";
     list.setAttribute("aria-label", "Answer choices");
@@ -56,13 +87,19 @@ export const createStaticChoiceList = (question, { selectedId = null, submitted 
         const hidden = document.createElement("span");
         hidden.className = "visually-hidden";
         hidden.textContent = `${choice.id}. `;
-        createChoiceContent(item, choice, feedback.tag);
+        createChoiceContent(item, choice, { tagText: feedback.tag, questionId: question.id, highlightRangesByTargetKey, strikethroughRangesByTargetKey });
         item.prepend(hidden);
         if (feedback.tag) {
             const spoken = document.createElement("span");
             spoken.className = "visually-hidden";
             spoken.textContent = ` ${feedback.tag}.`;
             item.append(spoken);
+        }
+        if (isChoiceStruckThrough(choice, question.id, strikethroughRangesByTargetKey)) {
+            const struck = document.createElement("span");
+            struck.className = "visually-hidden";
+            struck.textContent = " Struckthrough.";
+            item.append(struck);
         }
         list.append(item);
     });
@@ -71,13 +108,12 @@ export const createStaticChoiceList = (question, { selectedId = null, submitted 
 
 const getStableContentId = (item, index, fallbackPrefix) => String(item?.id || `${fallbackPrefix}${index + 1}`);
 
-const getHighlightRanges = (highlightRangesByTargetKey = {}, targetKey) => highlightRangesByTargetKey[targetKey] ?? [];
-
 const getStimulusHighlightKeys = (surface) => surface === "question" ? {
     getScopeKey: getQuestionHighlightScopeKey,
     getTableCaptionKey: getQuestionTableCaptionHighlightKey,
     getTableColumnKey: getQuestionTableColumnHighlightKey,
     getTableCellKey: getQuestionTableCellHighlightKey,
+    getChartCaptionKey: getQuestionChartCaptionHighlightKey,
     getFigureCaptionKey: getQuestionFigureCaptionHighlightKey,
     getFigureDescriptionKey: getQuestionFigureDescriptionHighlightKey
 } : {
@@ -85,12 +121,14 @@ const getStimulusHighlightKeys = (surface) => surface === "question" ? {
     getTableCaptionKey: getPassageTableCaptionHighlightKey,
     getTableColumnKey: getPassageTableColumnHighlightKey,
     getTableCellKey: getPassageTableCellHighlightKey,
+    getChartCaptionKey: getPassageChartCaptionHighlightKey,
     getFigureCaptionKey: getPassageFigureCaptionHighlightKey,
     getFigureDescriptionKey: getPassageFigureDescriptionHighlightKey
 };
 
 export const createStimulusTable = (tableData, options = {}) => {
     const highlightRangesByTargetKey = options.highlightRangesByTargetKey ?? {};
+    const strikethroughRangesByTargetKey = options.strikethroughRangesByTargetKey ?? {};
     const ownerId = options.ownerId ?? "";
     const highlightKeys = getStimulusHighlightKeys(options.surface);
     const scopeKey = options.scopeKey ?? highlightKeys.getScopeKey(ownerId);
@@ -106,7 +144,8 @@ export const createStimulusTable = (tableData, options = {}) => {
         text: tableData.caption,
         targetKey: captionKey,
         scopeKey,
-        ranges: getHighlightRanges(highlightRangesByTargetKey, captionKey)
+        ranges: getHighlightRanges(highlightRangesByTargetKey, captionKey),
+        strikethroughRanges: getHighlightRanges(strikethroughRangesByTargetKey, captionKey)
     });
     wrap.append(title);
     const table = document.createElement("table");
@@ -119,7 +158,8 @@ export const createStimulusTable = (tableData, options = {}) => {
             text: column,
             targetKey: columnKey,
             scopeKey,
-            ranges: getHighlightRanges(highlightRangesByTargetKey, columnKey)
+            ranges: getHighlightRanges(highlightRangesByTargetKey, columnKey),
+            strikethroughRanges: getHighlightRanges(strikethroughRangesByTargetKey, columnKey)
         });
         headRow.append(th);
     });
@@ -135,7 +175,8 @@ export const createStimulusTable = (tableData, options = {}) => {
                 text: value,
                 targetKey: cellKey,
                 scopeKey,
-                ranges: getHighlightRanges(highlightRangesByTargetKey, cellKey)
+                ranges: getHighlightRanges(highlightRangesByTargetKey, cellKey),
+                strikethroughRanges: getHighlightRanges(strikethroughRangesByTargetKey, cellKey)
             });
             tr.append(td);
         });
@@ -154,6 +195,7 @@ export const createPassageTable = (tableData, options = {}) => createStimulusTab
 
 export const createStimulusFigureDescription = (figure, options = {}) => {
     const highlightRangesByTargetKey = options.highlightRangesByTargetKey ?? {};
+    const strikethroughRangesByTargetKey = options.strikethroughRangesByTargetKey ?? {};
     const ownerId = options.ownerId ?? "";
     const highlightKeys = getStimulusHighlightKeys(options.surface);
     const scopeKey = options.scopeKey ?? highlightKeys.getScopeKey(ownerId);
@@ -168,7 +210,8 @@ export const createStimulusFigureDescription = (figure, options = {}) => {
         text: figure.caption,
         targetKey: captionKey,
         scopeKey,
-        ranges: getHighlightRanges(highlightRangesByTargetKey, captionKey)
+        ranges: getHighlightRanges(highlightRangesByTargetKey, captionKey),
+        strikethroughRanges: getHighlightRanges(strikethroughRangesByTargetKey, captionKey)
     });
     const descriptionKey = highlightKeys.getFigureDescriptionKey(ownerId, figureId);
     const figureText = createHighlightableText({
@@ -176,7 +219,8 @@ export const createStimulusFigureDescription = (figure, options = {}) => {
         text: figure.description,
         targetKey: descriptionKey,
         scopeKey,
-        ranges: getHighlightRanges(highlightRangesByTargetKey, descriptionKey)
+        ranges: getHighlightRanges(highlightRangesByTargetKey, descriptionKey),
+        strikethroughRanges: getHighlightRanges(strikethroughRangesByTargetKey, descriptionKey)
     });
     figureCard.append(figureHeading, figureText);
     return figureCard;
@@ -188,8 +232,19 @@ export const appendStimulusContent = (parent, stimulus, options = {}) => {
     (stimulus.tables ?? []).forEach((tableData, tableIndex) => {
         parent.append(createStimulusTable(tableData, { ...options, surface, ownerId, tableIndex }));
     });
-    (stimulus.charts ?? []).forEach((chart) => {
-        parent.append(createStimulusChart(chart, surface === "question" ? { surface: "question", defer: options.deferCharts === true } : { defer: options.deferCharts === true }));
+    const highlightKeys = getStimulusHighlightKeys(surface);
+    (stimulus.charts ?? []).forEach((chart, chartIndex) => {
+        const captionKey = highlightKeys.getChartCaptionKey(ownerId, getStableContentId(chart, chartIndex, "chart"));
+        const captionElement = createHighlightableText({
+            tagName: "figcaption",
+            className: "stimulus-chart-caption",
+            text: chart.caption,
+            targetKey: captionKey,
+            scopeKey: options.scopeKey ?? highlightKeys.getScopeKey(ownerId),
+            ranges: getHighlightRanges(options.highlightRangesByTargetKey, captionKey),
+            strikethroughRanges: getHighlightRanges(options.strikethroughRangesByTargetKey, captionKey)
+        });
+        parent.append(createStimulusChart(chart, { surface, defer: options.deferCharts === true, captionElement }));
     });
     (stimulus.figureDescriptions ?? []).forEach((figure, figureIndex) => {
         parent.append(createStimulusFigureDescription(figure, { ...options, surface, ownerId, figureIndex }));
@@ -247,6 +302,7 @@ export const getPassageCardTitle = (passage, options = {}) => {
 
 export const createPassageCard = (passage, options = {}) => {
     const highlightRangesByTargetKey = options.highlightRangesByTargetKey ?? {};
+    const strikethroughRangesByTargetKey = options.strikethroughRangesByTargetKey ?? {};
     const card = document.createElement("article");
     card.className = options.className ?? "passage-card";
     const title = getPassageCardTitle(passage, options);
@@ -264,7 +320,8 @@ export const createPassageCard = (passage, options = {}) => {
             text: title,
             targetKey: titleHighlightKey,
             scopeKey: passageScopeKey,
-            ranges: getHighlightRanges(highlightRangesByTargetKey, titleHighlightKey)
+            ranges: getHighlightRanges(highlightRangesByTargetKey, titleHighlightKey),
+            strikethroughRanges: getHighlightRanges(strikethroughRangesByTargetKey, titleHighlightKey)
         }));
     }
     if (hasNumberedTitle && passage.title) {
@@ -274,7 +331,8 @@ export const createPassageCard = (passage, options = {}) => {
             text: passage.title,
             targetKey: titleHighlightKey,
             scopeKey: passageScopeKey,
-            ranges: getHighlightRanges(highlightRangesByTargetKey, titleHighlightKey)
+            ranges: getHighlightRanges(highlightRangesByTargetKey, titleHighlightKey),
+            strikethroughRanges: getHighlightRanges(strikethroughRangesByTargetKey, titleHighlightKey)
         });
         card.append(originalTitle);
     }
@@ -285,7 +343,8 @@ export const createPassageCard = (passage, options = {}) => {
         text: passage.text ?? "",
         targetKey: passageHighlightKey,
         scopeKey: passageScopeKey,
-        ranges: getHighlightRanges(highlightRangesByTargetKey, passageHighlightKey)
+        ranges: getHighlightRanges(highlightRangesByTargetKey, passageHighlightKey),
+        strikethroughRanges: getHighlightRanges(strikethroughRangesByTargetKey, passageHighlightKey)
     });
     card.append(passageText);
     appendStimulusContent(card, passage, {
@@ -293,6 +352,7 @@ export const createPassageCard = (passage, options = {}) => {
         ownerId: passage.id,
         scopeKey: passageScopeKey,
         highlightRangesByTargetKey,
+        strikethroughRangesByTargetKey,
         deferCharts: options.deferCharts === true
     });
     return card;

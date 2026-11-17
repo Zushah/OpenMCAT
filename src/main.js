@@ -127,7 +127,7 @@ const setupKeyboardShortcuts = () => {
         if (event.isComposing || typeof event.key !== "string") return;
         if (shouldIgnoreShortcut(event.target)) return;
         if (event.shiftKey && (event.key === "ArrowLeft" || event.key === "ArrowRight")) return;
-        if (event.key === "Enter" && event.target instanceof HTMLElement && event.target.closest("button, a[href], summary")) return;
+        if (event.key === "Enter" && event.target instanceof HTMLElement && event.target.closest("button, a[href], summary, [role=\"button\"]")) return;
         if (state.route === "practice" && state.activeSession && !state.activeSession.completedAt) {
             if (state.activeSession.navigationOpen || state.activeSession.finalReviewOpen) return;
             const key = event.key.toLowerCase();
@@ -147,6 +147,9 @@ const setupKeyboardShortcuts = () => {
                 event.preventDefault();
             } else if (key === "h") {
                 actions.toggleHighlightFromSelection();
+                event.preventDefault();
+            } else if (key === "s") {
+                actions.toggleStrikethroughFromSelection();
                 event.preventDefault();
             } else if (key === "f") {
                 actions.flagCurrentQuestion();
