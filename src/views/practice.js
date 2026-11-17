@@ -339,6 +339,7 @@ const makeShortcutLegend = (hasReachedReviewPoint) => {
     hint.append(lead);
     const groups = [
         [["A", "B", "C", "D"], "select"],
+        [["1-5"], "confidence"],
         [["Enter"], "submit"],
         [["←", "→"], "navigate"],
         hasReachedReviewPoint ? [["R"], "review"] : [["N"], "navigation"],
@@ -354,7 +355,7 @@ const makeShortcutLegend = (hasReachedReviewPoint) => {
     });
     const spoken = document.createElement("span");
     spoken.className = "visually-hidden";
-    spoken.textContent = hasReachedReviewPoint ? "Shortcuts: A/B/C/D select, Enter submit, Left/Right navigate, R review, F flag, H highlight, S strikethrough." : "Shortcuts: A/B/C/D select, Enter submit, Left/Right navigate, N navigation, F flag, H highlight, S strikethrough.";
+    spoken.textContent = hasReachedReviewPoint ? "Shortcuts: A/B/C/D select, 1/2/3/4/5 confidence, Enter submit, Left/Right navigate, R review, F flag, H highlight, S strikethrough." : "Shortcuts: A/B/C/D select, 1/2/3/4/5 confidence, Enter submit, Left/Right navigate, N navigation, F flag, H highlight, S strikethrough.";
     Array.from(hint.children).forEach((child) => child.setAttribute("aria-hidden", "true"));
     hint.append(spoken);
     return hint;

@@ -1537,8 +1537,8 @@ const renderRecentSessions = (metrics, actions, pages, resumableSessionId = null
         appendCell(row, title, "table-title").title = title;
         appendCell(row, rowNameFromId("section", session.sectionId));
         appendCell(row, `${session.attempts}/${session.generatedQuestionCount || session.attempts}`, "table-num");
-        appendCell(row, pct(session.accuracy), "table-num");
-        appendCell(row, formatDurationMs(session.averageElapsedMs), "table-num");
+        appendCell(row, session.attempts ? pct(session.accuracy) : "n/a", "table-num");
+        appendCell(row, session.attempts ? formatDurationMs(session.averageElapsedMs) : "n/a", "table-num");
         const action = createElement("td", "table-action");
         action.append(createActionButton("Drill", createSessionDrillConfig(session), actions));
         if (reviewableSessionIds.has(session.id)) { const review = createElement("button", "btn btn-secondary btn-compact", "Review"); review.type = "button"; review.addEventListener("click", () => actions.openSessionReview(session.id)); action.append(review); }

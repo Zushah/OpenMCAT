@@ -238,7 +238,7 @@ export const renderReviewView = (state, actions) => {
         return root;
     }
     const summary = summarize(activeSession);
-    const accuracyText = `${cb.numb.roundTo(summary.accuracy * 100, 0.1)}%`;
+    const accuracyText = summary.answered ? `${cb.numb.roundTo(summary.accuracy * 100, 0.1)}%` : "n/a";
     const headingWrap = document.createElement("header");
     headingWrap.className = "review-header";
     const heading = document.createElement("h2");
@@ -275,7 +275,7 @@ export const renderReviewView = (state, actions) => {
         makeSummaryCard("Score", `${summary.correct}/${summary.answered}`, summary.incomplete ? `${summary.incomplete} unsubmitted` : "All submitted"),
         makeSummaryCard("Accuracy", accuracyText),
         makeSummaryCard("Total Time", formatDurationMs(summary.elapsedMs)),
-        makeSummaryCard("Avg / Question", formatDurationMs(summary.avgMs))
+        makeSummaryCard("Avg / Question", summary.answered ? formatDurationMs(summary.avgMs) : "n/a")
     );
     root.append(summaryGrid);
     const controls = document.createElement("div");

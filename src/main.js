@@ -136,6 +136,9 @@ const setupKeyboardShortcuts = () => {
             if (["a", "b", "c", "d"].includes(key)) {
                 actions.selectChoice(key.toUpperCase());
                 event.preventDefault();
+            } else if (["1", "2", "3", "4", "5"].includes(key)) {
+                actions.setConfidence(Number(key));
+                event.preventDefault();
             } else if (key === "enter") {
                 actions.submitAnswer();
                 event.preventDefault();

@@ -65,7 +65,7 @@ export const renderAboutView = () => {
     const aiNote = document.createElement("p");
     aiNote.append("OpenMCAT uses generative AI for its practice questions. Use them for drilling and review but verify uncertain explanations. Use ", createExternalLink("https://store.aamc.org/online-only-official-mcat-prep-bundle.html", "official AAMC materials"), " for representative MCAT practice.");
     const privacy = document.createElement("p");
-    privacy.textContent = "OpenMCAT highly values your privacy. Therefore, it only stores your data in your own web browser. No account is required. You can export and import your data via JSON files using the controls on the settings page.";
+    privacy.textContent = "OpenMCAT highly values your privacy. Therefore, it only stores your data in your own web browser. No account is required. You can back up, restore, and merge your data with Gzipped JSON backup files using the controls on the settings page.";
     const github = document.createElement("p");
     github.append("OpenMCAT has its source code openly available on a ", createExternalLink("https://github.com/Zushah/OpenMCAT", "GitHub repository"), " under the ", createExternalLink("https://github.com/Zushah/OpenMCAT/blob/main/LICENSE.md", "GNU Affero General Public License v3.0"), ".");
     disclaimer.append(disclaimerText, aiNote, privacy, github);

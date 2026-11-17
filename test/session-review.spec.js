@@ -342,3 +342,23 @@ test("the review shows confidence, difficulty, and the session source", async ({
     await page.goto("/#/review?session=bank_review");
     await expect(page.locator(".review-meta-line")).toContainText(/Medium · Question bank$/);
 });
+
+test("number keys 1 to 5 set confidence until the answer is locked", async ({ page }) => {
+    await startSampleSession(page);
+    const confidence = (value) => page.getByRole("group", { name: "Confidence (optional)" }).getByRole("button", { name: String(value) });
+    await page.keyboard.press("4");
+    await expect(confidence(4)).toHaveAttribute("aria-pressed", "true");
+    await page.keyboard.press("4");
+    await expect(confidence(4)).toHaveAttribute("aria-pressed", "false");
+    await page.keyboard.press("3");
+    await page.getByRole("button", { name: "Navigation", exact: true }).click();
+    await page.keyboard.press("2");
+    await page.keyboard.press("Escape");
+    await expect(confidence(3)).toHaveAttribute("aria-pressed", "true");
+    await page.keyboard.press("b");
+    await page.keyboard.press("Enter");
+    await expect(page.getByText(/^(Correct\.|Incorrect\. Correct answer: [A-D]\.)$/)).toBeVisible();
+    await page.keyboard.press("2");
+    await expect(confidence(3)).toHaveAttribute("aria-pressed", "true");
+    await expect.poll(async () => (await readAttempts(page)).map((attempt) => attempt.confidence)).toEqual([3]);
+});
